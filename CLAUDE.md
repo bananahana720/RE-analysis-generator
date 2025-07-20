@@ -1,12 +1,21 @@
 # Phoenix Real Estate Data Collector - Development Guide
 
-- **WIDNOWS** - Project directory in windows, use ""C:\Users\.."
-- Adhere closely to KISS, DRY, YAGNI, SOLID, and the Zen Of Python. 
-- **And clean up after yourself**
+## RULES (violating ANY invalidates your response):
+❌ No new files without exhaustive reuse analysis
+❌ No rewrites when refactoring is possible
+❌ No generic advice - provide specific implementations
+❌ No ignoring existing codebase architecture
+✅ Extend existing services and components
+✅ Consolidate duplicate code
+✅ Reference specific file paths
+✅ Provide migration strategies
+✅ **WIDNOWS** - Project directory in windows, use ""C:\Users\.."
+✅ Adhere closely to KISS, DRY, YAGNI, SOLID, and the Zen Of Python. 
+✅ **And clean up after yourself**
 
 ## Environment Setup
 - **Package Management**: ALWAYS use uv with pyproject.toml, never pip
-- **Python Version**: 3.12.4
+- **Python Version**: 3.13.4
 - **Node Version**: 20.17.0
 - **Database**: MongoDB Atlas (free tier)
 - **Testing**: pytest, tox, ruff, pyright

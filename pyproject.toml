@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "phoenix-real-estate"
+version = "0.1.0"
+description = "Phoenix Real Estate Data Collection System"
+requires-python = ">=3.13"
+dependencies = [
+    "motor>=3.3.0",
+    "pymongo>=4.5.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "httpx>=0.25.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=4.9.0",
+    "tenacity>=8.2.0",
+    "structlog>=23.2.0",
+    "python-dateutil>=2.8.0",
+    "pytz>=2023.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "mypy>=1.7.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.5.0",
+    "tox>=4.11.0",
+    "tdd-guard==0.5.2"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
