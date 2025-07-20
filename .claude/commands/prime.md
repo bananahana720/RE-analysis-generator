@@ -5,4 +5,7 @@
 git ls-files
 
 ## Read
-README.md
+@README.md
+
+## Read and Execute
+@ai_docs/README.md

@@ -194,7 +194,7 @@ class TestPropertyRepository:
         
         # Check that last_updated was added
         call_args = mock_collection.update_one.call_args[0]
-        assert "last_updated" in call_args[1][""]
+        assert "last_updated" in call_args[1]["$set"]
     
     async def test_search_by_zipcode(self, property_repo, setup_mock_collection):
         """Test search by zipcode with pagination."""

@@ -7,7 +7,7 @@ proper error handling, and support for MongoDB operations including aggregations
 import asyncio
 from abc import ABC
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from pymongo.errors import DuplicateKeyError, OperationFailure
 

@@ -13,7 +13,6 @@ import sys
 import random
 import subprocess
 from pathlib import Path
-from datetime import datetime
 from utils.constants import ensure_session_log_dir
 
 try:
@@ -89,7 +88,7 @@ def get_llm_completion_message():
                 )
                 if result.returncode == 0 and result.stdout.strip():
                     # Debug: Log that OpenRouter was used
-                    print(f"DEBUG: Using OpenRouter for completion message", file=sys.stderr)
+                    print("DEBUG: Using OpenRouter for completion message", file=sys.stderr)
                     return result.stdout.strip()
                 else:
                     print(f"DEBUG: OpenRouter failed with return code {result.returncode}", file=sys.stderr)
@@ -129,7 +128,7 @@ def get_llm_completion_message():
                     timeout=10,
                 )
                 if result.returncode == 0 and result.stdout.strip():
-                    print(f"DEBUG: Using Anthropic for completion message", file=sys.stderr)
+                    print("DEBUG: Using Anthropic for completion message", file=sys.stderr)
                     return result.stdout.strip()
             except (subprocess.TimeoutExpired, subprocess.SubprocessError):
                 pass

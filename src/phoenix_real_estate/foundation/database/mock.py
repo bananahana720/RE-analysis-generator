@@ -3,13 +3,11 @@
 import asyncio
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock
 
 from phoenix_real_estate.foundation.database.schema import (
-    Property, DailyReport, PropertyPrice, PropertyAddress, 
-    PropertyFeatures, PropertyType, ListingStatus, DataSource
+    Property, DailyReport, PropertyPrice, PropertyType, ListingStatus, DataSource
 )
-from phoenix_real_estate.foundation.utils.exceptions import DatabaseError, ValidationError
+from phoenix_real_estate.foundation.utils.exceptions import ValidationError
 
 
 class MockPropertyRepository:

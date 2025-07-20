@@ -10,6 +10,16 @@
           }
         ]
       }
+    ],
+    "userpromptsubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tdd-guard"
+          }
+        ]
+      }
     ]
   }
 }

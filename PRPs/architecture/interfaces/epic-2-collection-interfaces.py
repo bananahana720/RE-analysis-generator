@@ -16,8 +16,7 @@ Key Design Principles:
 
 from abc import ABC, abstractmethod
 from typing import (
-    Any, Dict, List, Optional, Union, Protocol, runtime_checkable,
-    TypeVar, Generic, Awaitable, AsyncIterator, Callable
+    Any, Dict, List, Optional, Protocol, runtime_checkable
 )
 from datetime import datetime, timedelta
 from enum import Enum
@@ -26,8 +25,7 @@ import asyncio
 
 # Import Epic 1 foundation interfaces
 from .epic_1_foundation_interfaces import (
-    ConfigProvider, PropertyRepository, Logger, MetricsCollector,
-    BasePhoenixException, HealthCheckResult
+    ConfigProvider, PropertyRepository, Logger, BasePhoenixException, HealthCheckResult
 )
 
 # ==============================================================================

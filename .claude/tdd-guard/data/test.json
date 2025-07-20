@@ -1,0 +1,659 @@
+{
+  "testModules": [
+    {
+      "moduleId": "tests/foundation/database/test_connection.py",
+      "tests": [
+        {
+          "name": "test_init_valid_config",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_init_valid_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_init_empty_uri_raises_error",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_init_empty_uri_raises_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_init_empty_database_name_raises_error",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_init_empty_database_name_raises_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_init_max_pool_size_limit",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_init_max_pool_size_limit",
+          "state": "passed"
+        },
+        {
+          "name": "test_singleton_pattern",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_singleton_pattern",
+          "state": "passed"
+        },
+        {
+          "name": "test_singleton_thread_safety",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_singleton_thread_safety",
+          "state": "passed"
+        },
+        {
+          "name": "test_connect_success",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_connect_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_connect_already_connected",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_connect_already_connected",
+          "state": "passed"
+        },
+        {
+          "name": "test_connect_retry_on_failure",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_connect_retry_on_failure",
+          "state": "passed"
+        },
+        {
+          "name": "test_connect_max_retries_exceeded",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_connect_max_retries_exceeded",
+          "state": "passed"
+        },
+        {
+          "name": "test_health_check_connected",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_health_check_connected",
+          "state": "passed"
+        },
+        {
+          "name": "test_health_check_not_connected",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_health_check_not_connected",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_database_context_manager",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_get_database_context_manager",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_database_auto_connect",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_get_database_auto_connect",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_indexes",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_create_indexes",
+          "state": "passed"
+        },
+        {
+          "name": "test_close",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_close",
+          "state": "passed"
+        },
+        {
+          "name": "test_mask_uri",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_mask_uri",
+          "state": "passed"
+        },
+        {
+          "name": "test_repr",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_repr",
+          "state": "passed"
+        },
+        {
+          "name": "test_reset_instance",
+          "fullName": "tests/foundation/database/test_connection.py::TestDatabaseConnection::test_reset_instance",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/database/test_repositories.py",
+      "tests": [
+        {
+          "name": "test_init",
+          "fullName": "tests/foundation/database/test_repositories.py::TestBaseRepository::test_init",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_collection_success",
+          "fullName": "tests/foundation/database/test_repositories.py::TestBaseRepository::test_get_collection_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_collection_error",
+          "fullName": "tests/foundation/database/test_repositories.py::TestBaseRepository::test_get_collection_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_success",
+          "fullName": "tests/foundation/database/test_repositories.py::TestPropertyRepository::test_create_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_missing_property_id",
+          "fullName": "tests/foundation/database/test_repositories.py::TestPropertyRepository::test_create_missing_property_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_update_success",
+          "fullName": "tests/foundation/database/test_repositories.py::TestPropertyRepository::test_update_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_search_by_zipcode",
+          "fullName": "tests/foundation/database/test_repositories.py::TestPropertyRepository::test_search_by_zipcode",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_report_new",
+          "fullName": "tests/foundation/database/test_repositories.py::TestDailyReportRepository::test_create_report_new",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_property_repository_with_connection",
+          "fullName": "tests/foundation/database/test_repositories.py::TestRepositoryFactory::test_get_property_repository_with_connection",
+          "state": "passed"
+        },
+        {
+          "name": "test_reset_factory",
+          "fullName": "tests/foundation/database/test_repositories.py::TestRepositoryFactory::test_reset_factory",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/database/test_schema.py",
+      "tests": [
+        {
+          "name": "test_property_type_values",
+          "fullName": "tests/foundation/database/test_schema.py::TestEnumerations::test_property_type_values",
+          "state": "passed"
+        },
+        {
+          "name": "test_listing_status_values",
+          "fullName": "tests/foundation/database/test_schema.py::TestEnumerations::test_listing_status_values",
+          "state": "passed"
+        },
+        {
+          "name": "test_data_source_values",
+          "fullName": "tests/foundation/database/test_schema.py::TestEnumerations::test_data_source_values",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_object_id",
+          "fullName": "tests/foundation/database/test_schema.py::TestPydanticObjectId::test_valid_object_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_invalid_object_id",
+          "fullName": "tests/foundation/database/test_schema.py::TestPydanticObjectId::test_invalid_object_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_address",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyAddress::test_valid_address",
+          "state": "passed"
+        },
+        {
+          "name": "test_full_address_computed",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyAddress::test_full_address_computed",
+          "state": "passed"
+        },
+        {
+          "name": "test_zipcode_validation_valid",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyAddress::test_zipcode_validation_valid",
+          "state": "passed"
+        },
+        {
+          "name": "test_zipcode_validation_invalid",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyAddress::test_zipcode_validation_invalid",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_features",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyFeatures::test_valid_features",
+          "state": "passed"
+        },
+        {
+          "name": "test_optional_fields",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyFeatures::test_optional_fields",
+          "state": "passed"
+        },
+        {
+          "name": "test_validation_boundaries",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyFeatures::test_validation_boundaries",
+          "state": "passed"
+        },
+        {
+          "name": "test_year_built_validation",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyFeatures::test_year_built_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_price",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyPrice::test_valid_price",
+          "state": "passed"
+        },
+        {
+          "name": "test_confidence_score",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyPrice::test_confidence_score",
+          "state": "passed"
+        },
+        {
+          "name": "test_amount_validation",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyPrice::test_amount_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_listing",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyListing::test_valid_listing",
+          "state": "passed"
+        },
+        {
+          "name": "test_default_values",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyListing::test_default_values",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_tax_info",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyTaxInfo::test_valid_tax_info",
+          "state": "passed"
+        },
+        {
+          "name": "test_tax_year_validation",
+          "fullName": "tests/foundation/database/test_schema.py::TestPropertyTaxInfo::test_tax_year_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_minimal_property",
+          "fullName": "tests/foundation/database/test_schema.py::TestProperty::test_minimal_property",
+          "state": "passed"
+        },
+        {
+          "name": "test_complete_property",
+          "fullName": "tests/foundation/database/test_schema.py::TestProperty::test_complete_property",
+          "state": "passed"
+        },
+        {
+          "name": "test_computed_fields",
+          "fullName": "tests/foundation/database/test_schema.py::TestProperty::test_computed_fields",
+          "state": "passed"
+        },
+        {
+          "name": "test_model_serialization",
+          "fullName": "tests/foundation/database/test_schema.py::TestProperty::test_model_serialization",
+          "state": "passed"
+        },
+        {
+          "name": "test_minimal_report",
+          "fullName": "tests/foundation/database/test_schema.py::TestDailyReport::test_minimal_report",
+          "state": "passed"
+        },
+        {
+          "name": "test_complete_report",
+          "fullName": "tests/foundation/database/test_schema.py::TestDailyReport::test_complete_report",
+          "state": "passed"
+        },
+        {
+          "name": "test_quality_score_validation",
+          "fullName": "tests/foundation/database/test_schema.py::TestDailyReport::test_quality_score_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_property_with_multiple_price_updates",
+          "fullName": "tests/foundation/database/test_schema.py::TestSchemaIntegration::test_property_with_multiple_price_updates",
+          "state": "passed"
+        },
+        {
+          "name": "test_property_lifecycle",
+          "fullName": "tests/foundation/database/test_schema.py::TestSchemaIntegration::test_property_lifecycle",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/test_exceptions.py",
+      "tests": [
+        {
+          "name": "test_basic_initialization",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_basic_initialization",
+          "state": "passed"
+        },
+        {
+          "name": "test_initialization_with_context",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_initialization_with_context",
+          "state": "passed"
+        },
+        {
+          "name": "test_initialization_with_original_error",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_initialization_with_original_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_string_representation_without_context",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_string_representation_without_context",
+          "state": "passed"
+        },
+        {
+          "name": "test_string_representation_with_context",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_string_representation_with_context",
+          "state": "passed"
+        },
+        {
+          "name": "test_context_order_in_string_representation",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_context_order_in_string_representation",
+          "state": "passed"
+        },
+        {
+          "name": "test_exception_chaining",
+          "fullName": "tests/foundation/test_exceptions.py::TestPhoenixREError::test_exception_chaining",
+          "state": "passed"
+        },
+        {
+          "name": "test_inheritance",
+          "fullName": "tests/foundation/test_exceptions.py::TestConfigurationError::test_inheritance",
+          "state": "passed"
+        },
+        {
+          "name": "test_typical_usage",
+          "fullName": "tests/foundation/test_exceptions.py::TestConfigurationError::test_typical_usage",
+          "state": "passed"
+        },
+        {
+          "name": "test_config_file_error",
+          "fullName": "tests/foundation/test_exceptions.py::TestConfigurationError::test_config_file_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_inheritance",
+          "fullName": "tests/foundation/test_exceptions.py::TestDatabaseError::test_inheritance",
+          "state": "passed"
+        },
+        {
+          "name": "test_connection_error",
+          "fullName": "tests/foundation/test_exceptions.py::TestDatabaseError::test_connection_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_query_error_with_details",
+          "fullName": "tests/foundation/test_exceptions.py::TestDatabaseError::test_query_error_with_details",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/test_utils.py",
+      "tests": [
+        {
+          "name": "test_safe_int_with_valid_string",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_valid_string",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_decimal_string",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_decimal_string",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_formatted_string",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_formatted_string",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_whitespace",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_whitespace",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_numeric_types",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_numeric_types",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_boolean",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_boolean",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_invalid_input",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_invalid_input",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_none_input",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_none_input",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_custom_default",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_custom_default",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_special_floats[inf-None]",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_special_floats[inf-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_special_floats[-inf-None]",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_special_floats[-inf-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_special_floats[nan-None]",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_special_floats[nan-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_int_with_large_numbers",
+          "fullName": "tests/foundation/test_utils.py::TestSafeInt::test_safe_int_with_large_numbers",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_valid_string",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_valid_string",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_formatted_string",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_formatted_string",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_whitespace",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_whitespace",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_numeric_types",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_numeric_types",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_boolean",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_boolean",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_invalid_input",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_invalid_input",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_none_input",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_none_input",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_custom_default",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_custom_default",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_special_values[inf-inf]",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_special_values[inf-inf]",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_special_values[-inf--inf]",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_special_values[-inf--inf]",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_with_scientific_notation",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_with_scientific_notation",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_float_precision",
+          "fullName": "tests/foundation/test_utils.py::TestSafeFloat::test_safe_float_precision",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_int-value0-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_int-value0-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_int-value1-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_int-value1-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_int-value2-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_int-value2-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_float-value3-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_float-value3-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_float-value4-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_float-value4-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_non_numeric_objects[safe_float-value5-None]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_non_numeric_objects[safe_float-value5-None]",
+          "state": "passed"
+        },
+        {
+          "name": "test_overflow_handling",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_overflow_handling",
+          "state": "passed"
+        },
+        {
+          "name": "test_default_behavior[safe_int-123-999-123]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_default_behavior[safe_int-123-999-123]",
+          "state": "passed"
+        },
+        {
+          "name": "test_default_behavior[safe_int-invalid-999-999]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_default_behavior[safe_int-invalid-999-999]",
+          "state": "passed"
+        },
+        {
+          "name": "test_default_behavior[safe_float-123.45-999.9-123.45]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_default_behavior[safe_float-123.45-999.9-123.45]",
+          "state": "passed"
+        },
+        {
+          "name": "test_default_behavior[safe_float-invalid-999.9-999.9]",
+          "fullName": "tests/foundation/test_utils.py::TestEdgeCases::test_default_behavior[safe_float-invalid-999.9-999.9]",
+          "state": "passed"
+        },
+        {
+          "name": "test_normalize_address_basic",
+          "fullName": "tests/foundation/test_utils.py::TestNormalizeAddress::test_normalize_address_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_normalize_address_empty",
+          "fullName": "tests/foundation/test_utils.py::TestNormalizeAddress::test_normalize_address_empty",
+          "state": "passed"
+        },
+        {
+          "name": "test_valid_zipcode_formats",
+          "fullName": "tests/foundation/test_utils.py::TestIsValidZipcode::test_valid_zipcode_formats",
+          "state": "passed"
+        },
+        {
+          "name": "test_invalid_zipcode_formats",
+          "fullName": "tests/foundation/test_utils.py::TestIsValidZipcode::test_invalid_zipcode_formats",
+          "state": "passed"
+        },
+        {
+          "name": "test_generate_property_id_basic",
+          "fullName": "tests/foundation/test_utils.py::TestGeneratePropertyId::test_generate_property_id_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_generate_property_id_normalization",
+          "fullName": "tests/foundation/test_utils.py::TestGeneratePropertyId::test_generate_property_id_normalization",
+          "state": "passed"
+        },
+        {
+          "name": "test_retry_async_success",
+          "fullName": "tests/foundation/test_utils.py::TestRetryAsync::test_retry_async_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_retry_async_failure",
+          "fullName": "tests/foundation/test_utils.py::TestRetryAsync::test_retry_async_failure",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/integration/test_project_structure.py",
+      "tests": [
+        {
+          "name": "test_package_imports",
+          "fullName": "tests/integration/test_project_structure.py::test_package_imports",
+          "state": "passed"
+        },
+        {
+          "name": "test_utility_function_imports",
+          "fullName": "tests/integration/test_project_structure.py::test_utility_function_imports",
+          "state": "passed"
+        },
+        {
+          "name": "test_exception_hierarchy",
+          "fullName": "tests/integration/test_project_structure.py::test_exception_hierarchy",
+          "state": "passed"
+        },
+        {
+          "name": "test_project_structure",
+          "fullName": "tests/integration/test_project_structure.py::test_project_structure",
+          "state": "passed"
+        },
+        {
+          "name": "test_critical_files_exist",
+          "fullName": "tests/integration/test_project_structure.py::test_critical_files_exist",
+          "state": "passed"
+        },
+        {
+          "name": "test_foundation_layer_integration",
+          "fullName": "tests/integration/test_project_structure.py::test_foundation_layer_integration",
+          "state": "passed"
+        },
+        {
+          "name": "test_async_functionality",
+          "fullName": "tests/integration/test_project_structure.py::test_async_functionality",
+          "state": "passed"
+        },
+        {
+          "name": "test_package_metadata",
+          "fullName": "tests/integration/test_project_structure.py::test_package_metadata",
+          "state": "passed"
+        },
+        {
+          "name": "test_comprehensive_utility_workflow",
+          "fullName": "tests/integration/test_project_structure.py::test_comprehensive_utility_workflow",
+          "state": "passed"
+        },
+        {
+          "name": "test_error_handling_integration",
+          "fullName": "tests/integration/test_project_structure.py::test_error_handling_integration",
+          "state": "passed"
+        }
+      ]
+    }
+  ]
+}

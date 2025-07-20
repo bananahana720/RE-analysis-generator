@@ -11,7 +11,6 @@ import sys
 import json
 import urllib.request
 import urllib.error
-from typing import Optional
 from dotenv import load_dotenv
 
 

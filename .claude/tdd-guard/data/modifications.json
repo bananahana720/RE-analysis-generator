@@ -1,0 +1,15 @@
+{
+  "session_id": "d0f2460e-c6e5-4c73-bca5-600d910e70bc",
+  "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\d0f2460e-c6e5-4c73-bca5-600d910e70bc.jsonl",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "MultiEdit",
+  "tool_input": {
+    "file_path": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator\\tests\\foundation\\database\\test_repositories.py",
+    "edits": [
+      {
+        "old_string": "        # Check that last_updated was added\n        call_args = mock_collection.update_one.call_args[0]\n        assert \"last_updated\" in call_args[1][\"\"]",
+        "new_string": "        # Check that last_updated was added\n        call_args = mock_collection.update_one.call_args[0]\n        assert \"last_updated\" in call_args[1][\"$set\"]"
+      }
+    ]
+  }
+}

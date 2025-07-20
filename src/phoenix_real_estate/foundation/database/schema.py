@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -93,7 +93,7 @@ class PropertyFeatures(BaseModel):
     half_bathrooms: Optional[int] = Field(None, ge=0, le=10)
     square_feet: Optional[int] = Field(None, ge=100, le=50000)
     lot_size_sqft: Optional[int] = Field(None, ge=100, le=10000000)
-    year_built: Optional[int] = Field(None, ge=1800, le=2030)
+    year_built: Optional[int] = Field(None, ge=1800)
     floors: Optional[float] = Field(None, ge=1, le=10)
     garage_spaces: Optional[int] = Field(None, ge=0, le=10)
     pool: Optional[bool] = None
@@ -192,10 +192,6 @@ class Property(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         populate_by_name=True,
-        json_encoders={
-            ObjectId: str,
-            datetime: lambda v: v.isoformat(),
-        },
     )
 
     # Unique identifiers
@@ -245,7 +241,11 @@ class Property(BaseModel):
             return None
         if self.listing.status not in [ListingStatus.ACTIVE, ListingStatus.PENDING]:
             return None
-        return (datetime.utcnow() - self.listing.listing_date).days
+        now = datetime.now(UTC)
+        listing_date = self.listing.listing_date
+        if listing_date.tzinfo is None:
+            listing_date = listing_date.replace(tzinfo=UTC)
+        return (now - listing_date).days
 
 
 class DailyReport(BaseModel):
@@ -254,14 +254,10 @@ class DailyReport(BaseModel):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         populate_by_name=True,
-        json_encoders={
-            ObjectId: str,
-            datetime: lambda v: v.isoformat(),
-        },
     )
 
     id: Optional[PydanticObjectId] = Field(None, alias="_id")
-    date: datetime = Field(default_factory=datetime.utcnow)
+    date: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Collection statistics
     total_properties_processed: int = 0

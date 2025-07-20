@@ -1,26 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "mcp__sequential-thinking__sequentialthinking",
-      "mcp__puppeteer__puppeteer_navigate",
-      "mcp__puppeteer__puppeteer_screenshot"
+      "Write",
+      "MultiEdit",
+      "Edit",
+      "Bash",
+      "mcp__sequential-thinking__sequentialthinking"
+    ],
+    "deny": [
+      "Write(.claude/**)",
+      "MultiEdit(.claude/**)",
+      "Edit(.claude/**)",
+      "Bash(.claude/**)",
+      "Read(.claude/tdd-guard/**)"
     ]
   },
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/pre_tool_use.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type PreToolUse --summarize"
-          }
-        ]
-      },
       {
         "matcher": "",
         "hooks": [
@@ -48,35 +44,9 @@
             "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type PostToolUse --summarize"
           }
         ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/post_tool_use.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type PostToolUse --summarize"
-          }
-        ]
       }
     ],
     "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/notification.py --notify "
-          },
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type Notification --summarize"
-          }
-        ]
-      },
       {
         "matcher": "",
         "hooks": [
@@ -104,35 +74,9 @@
             "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type Stop --add-chat"
           }
         ]
-      },
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/stop.py --chat"
-          },
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type Stop --add-chat"
-          }
-        ]
       }
     ],
     "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/subagent_stop.py"
-          },
-          {
-            "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type SubagentStop"
-          }
-        ]
-      },
       {
         "matcher": "",
         "hooks": [
@@ -156,13 +100,18 @@
             "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type PreCompact"
           }
         ]
-      },
+      }
+    ],
+    "UserPromptSubmit": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type PreCompact"
+            "command": "uv run .claude/hooks/user_prompt_submit.py --log-only"
+          },
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/send_event.py --source-app RE-Analysis-Generator --event-type UserPromptSubmit --summarize"
           }
         ]
       }
