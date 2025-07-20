@@ -1,0 +1,37 @@
+[
+  {
+    "session_id": "366cb4a1-ee43-4e40-81a8-77a4847ae0a7",
+    "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\366cb4a1-ee43-4e40-81a8-77a4847ae0a7.jsonl",
+    "cwd": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "366cb4a1-ee43-4e40-81a8-77a4847ae0a7",
+    "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\366cb4a1-ee43-4e40-81a8-77a4847ae0a7.jsonl",
+    "cwd": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "366cb4a1-ee43-4e40-81a8-77a4847ae0a7",
+    "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\366cb4a1-ee43-4e40-81a8-77a4847ae0a7.jsonl",
+    "cwd": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "366cb4a1-ee43-4e40-81a8-77a4847ae0a7",
+    "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\366cb4a1-ee43-4e40-81a8-77a4847ae0a7.jsonl",
+    "cwd": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "366cb4a1-ee43-4e40-81a8-77a4847ae0a7",
+    "transcript_path": "C:\\Users\\Andrew\\.claude\\projects\\C--Users-Andrew--vscode-RE-analysis-generator\\366cb4a1-ee43-4e40-81a8-77a4847ae0a7.jsonl",
+    "cwd": "C:\\Users\\Andrew\\.vscode\\RE-analysis-generator",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  }
+]
