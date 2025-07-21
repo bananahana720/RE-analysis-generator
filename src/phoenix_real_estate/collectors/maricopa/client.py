@@ -18,6 +18,10 @@ from phoenix_real_estate.foundation.utils.exceptions import (
 )
 from phoenix_real_estate.foundation.utils.helpers import retry_async
 from phoenix_real_estate.collectors.base.rate_limiter import RateLimiter, RateLimitObserver
+from phoenix_real_estate.collectors.base.validators import (
+    CommonValidators,
+    ErrorHandlingUtils,
+)
 
 
 class MaricopaAPIClient(RateLimitObserver):
@@ -101,20 +105,10 @@ class MaricopaAPIClient(RateLimitObserver):
             self.rate_limit = self.config.get_int("MARICOPA_RATE_LIMIT", 1000)
             self.timeout_seconds = self.config.get_int("MARICOPA_TIMEOUT", 30)
 
-            if not self.api_key:
-                raise ConfigurationError("Missing required config: MARICOPA_API_KEY")
+            CommonValidators.validate_required_config(self.api_key, "MARICOPA_API_KEY")
 
             # Validate base URL format and enforce HTTPS
-            if not self.base_url.startswith("https://"):
-                if self.base_url.startswith("http://"):
-                    raise ConfigurationError(
-                        "HTTPS-only communication required, HTTP URLs not allowed"
-                    )
-                else:
-                    raise ConfigurationError(f"Invalid base URL format: {self.base_url}")
-
-            # Remove trailing slash from base URL
-            self.base_url = self.base_url.rstrip("/")
+            self.base_url = CommonValidators.validate_base_url(self.base_url, require_https=True)
 
         except Exception as e:
             if isinstance(e, ConfigurationError):
@@ -145,14 +139,8 @@ class MaricopaAPIClient(RateLimitObserver):
             DataCollectionError: If search request fails
             ValidationError: If zipcode is invalid
         """
-        if not zipcode or not zipcode.strip():
-            raise ValidationError("ZIP code cannot be empty")
-
         # Validate ZIP code format
-        from phoenix_real_estate.foundation.utils.helpers import is_valid_zipcode
-
-        if not is_valid_zipcode(zipcode):
-            raise ValidationError(f"Invalid ZIP code format: {zipcode}")
+        CommonValidators.validate_zipcode(zipcode)
 
         try:
             endpoint = self.ENDPOINTS["search_by_zipcode"].format(zipcode=zipcode.strip())
@@ -185,8 +173,7 @@ class MaricopaAPIClient(RateLimitObserver):
             DataCollectionError: If request fails
             ValidationError: If property_id is invalid
         """
-        if not property_id or not property_id.strip():
-            raise ValidationError("Property ID cannot be empty")
+        CommonValidators.validate_property_id(property_id)
 
         try:
             endpoint = self.ENDPOINTS["property_details"].format(property_id=property_id.strip())
@@ -217,10 +204,7 @@ class MaricopaAPIClient(RateLimitObserver):
             DataCollectionError: If request fails
             ValidationError: If parameters are invalid
         """
-        if days_back <= 0:
-            raise ValidationError("days_back must be positive")
-        if days_back > 365:
-            raise ValidationError("days_back cannot exceed 365")
+        CommonValidators.validate_days_back(days_back)
 
         params = {"days_back": days_back}
         if zip_codes:
@@ -439,12 +423,7 @@ class MaricopaAPIClient(RateLimitObserver):
 
     def _sanitize_url_for_logging(self, url: str) -> str:
         """Sanitize URL for logging to prevent credential exposure."""
-        if "api_key" in url.lower() or "token" in url.lower():
-            # Replace query parameters that might contain credentials
-            import re
-
-            return re.sub(r"([?&](?:api_key|token|auth)=)[^&]*", r"\1[REDACTED]", url)
-        return url
+        return ErrorHandlingUtils.sanitize_url_for_logging(url)
 
     async def _handle_request_error(self, error: Exception, operation: str, **context: Any) -> None:
         """Handle and wrap request errors consistently with security compliance.
@@ -457,14 +436,7 @@ class MaricopaAPIClient(RateLimitObserver):
         self.error_count += 1
 
         # Sanitize context to prevent credential exposure
-        sanitized_context = {}
-        for key, value in context.items():
-            if key in ("api_key", "token", "authorization"):
-                sanitized_context[key] = "[REDACTED]"
-            elif isinstance(value, str) and ("token" in key.lower() or "key" in key.lower()):
-                sanitized_context[key] = "[REDACTED]"
-            else:
-                sanitized_context[key] = value
+        sanitized_context = ErrorHandlingUtils.sanitize_context(context)
 
         self.logger.error(
             f"Maricopa API operation '{operation}' failed: {str(error)}",
@@ -472,16 +444,15 @@ class MaricopaAPIClient(RateLimitObserver):
             exc_info=True,
         )
 
-        # Re-raise if already a DataCollectionError
-        if isinstance(error, DataCollectionError):
-            raise error
-
-        # Wrap other exceptions
-        raise DataCollectionError(
-            f"Maricopa API operation '{operation}' failed: {str(error)}",
-            context={"operation": operation, **sanitized_context},
-            original_error=error,
-        ) from error
+        # Wrap the error with consistent handling
+        wrapped_error = ErrorHandlingUtils.wrap_error(
+            error,
+            f"Maricopa API operation '{operation}'",
+            DataCollectionError,
+            context=sanitized_context,
+            sanitize=False  # Already sanitized
+        )
+        raise wrapped_error from error
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get client performance metrics.

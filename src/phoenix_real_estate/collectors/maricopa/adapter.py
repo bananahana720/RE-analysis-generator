@@ -24,6 +24,10 @@ from phoenix_real_estate.foundation.database.schema import (
     DataCollectionMetadata,
 )
 from phoenix_real_estate.collectors.base.adapter import DataAdapter
+from phoenix_real_estate.collectors.base.validators import (
+    CommonValidators,
+    ErrorHandlingUtils,
+)
 
 
 class DataValidator:
@@ -192,13 +196,17 @@ class MaricopaDataAdapter(DataAdapter):
         except (ValidationError, ProcessingError):
             raise
         except Exception as e:
-            raise ProcessingError(
-                f"Maricopa property adaptation failed: {str(e)}",
+            # Use consistent error wrapping
+            wrapped_error = ErrorHandlingUtils.wrap_error(
+                e,
+                "Maricopa property adaptation",
+                ProcessingError,
                 context={
                     "raw_data_keys": list(raw_data.keys()) if isinstance(raw_data, dict) else None
                 },
-                original_error=e,
-            ) from e
+                sanitize=False  # No sensitive data in this context
+            )
+            raise wrapped_error from e
 
     def get_source_name(self) -> str:
         """Get the source name for this adapter."""
@@ -216,11 +224,8 @@ class MaricopaDataAdapter(DataAdapter):
         Raises:
             ValidationError: If data is invalid with specific details
         """
-        if not isinstance(raw_data, dict):
-            raise ValidationError("Raw data must be a dictionary")
-
-        if not raw_data:
-            raise ValidationError("Raw data cannot be empty")
+        # Validate basic data structure
+        CommonValidators.validate_raw_data_structure(raw_data, dict)
 
         # Check for required address data
         address_data = raw_data.get("address")
@@ -230,12 +235,13 @@ class MaricopaDataAdapter(DataAdapter):
                 context={"available_sections": list(raw_data.keys())},
             )
 
-        # Validate essential address fields
+        # Validate essential address fields by checking nested values
         required_addr_fields = ["house_number", "street_name", "zipcode"]
         missing_fields = []
 
         for field in required_addr_fields:
-            if not self._get_nested_field(address_data, self.field_mappings["address"][field]):
+            value = self._get_nested_field(address_data, self.field_mappings["address"][field])
+            if not value:
                 missing_fields.append(field)
 
         if missing_fields:
@@ -666,4 +672,11 @@ class MaricopaDataAdapter(DataAdapter):
                 "source": "maricopa_api",
             }
         except Exception as e:
-            raise ProcessingError(f"Legacy transform failed: {str(e)}", original_error=e) from e
+            # Use consistent error wrapping
+            wrapped_error = ErrorHandlingUtils.wrap_error(
+                e,
+                "Legacy transform",
+                ProcessingError,
+                sanitize=False
+            )
+            raise wrapped_error from e

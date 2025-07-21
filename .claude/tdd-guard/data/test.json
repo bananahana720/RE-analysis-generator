@@ -1,47 +1,597 @@
 {
   "testModules": [
     {
-      "moduleId": "tests/collectors/test_integration_validation.py",
+      "moduleId": "tests/collectors/phoenix_mls/test_anti_detection.py",
       "tests": [
         {
-          "name": "test_foundation_logger_integration",
-          "fullName": "tests/collectors/test_integration_validation.py::TestEpic1FoundationIntegration::test_foundation_logger_integration",
+          "name": "test_anti_detection_manager_exists",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_anti_detection_manager_exists",
+          "state": "passed"
+        },
+        {
+          "name": "test_anti_detection_initialization",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_anti_detection_initialization",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_random_user_agent",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_get_random_user_agent",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_random_viewport",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_get_random_viewport",
+          "state": "passed"
+        },
+        {
+          "name": "test_human_typing_delay",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_human_typing_delay",
+          "state": "passed"
+        },
+        {
+          "name": "test_random_mouse_movements",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_random_mouse_movements",
+          "state": "passed"
+        },
+        {
+          "name": "test_configure_browser_context",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_configure_browser_context",
+          "state": "passed"
+        },
+        {
+          "name": "test_random_scroll",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_random_scroll",
+          "state": "passed"
+        },
+        {
+          "name": "test_random_wait",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_random_wait",
+          "state": "passed"
+        },
+        {
+          "name": "test_browser_fingerprint",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_browser_fingerprint",
+          "state": "passed"
+        },
+        {
+          "name": "test_realistic_interaction_sequence",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_realistic_interaction_sequence",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_random_headers",
+          "fullName": "tests/collectors/phoenix_mls/test_anti_detection.py::test_get_random_headers",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/collectors/phoenix_mls/test_parser.py",
+      "tests": [
+        {
+          "name": "test_parser_initialization",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parser_initialization",
           "state": "failed",
           "errors": [
             {
-              "message": "self = <collectors.test_integration_validation.TestEpic1FoundationIntegration object at 0x000002815A3FB9D0>\nfoundation_config = <Mock spec='ConfigProvider' id='2754601454624'>\nfoundation_repository = <Mock spec='PropertyRepository' id='2754601455632'>\n\n    def test_foundation_logger_integration(self, foundation_config, foundation_repository):\n        \"\"\"Test that collector uses foundation logging correctly.\"\"\"\n        with patch('phoenix_real_estate.foundation.logging.factory.get_logger') as mock_get_logger:\n            mock_logger = Mock()\n            mock_get_logger.return_value = mock_logger\n    \n>           collector = MaricopaAPICollector(\n                config=foundation_config,\n                repository=foundation_repository,\n                logger_name=\"test.collector\"\n            )\n\ntests\\collectors\\test_integration_validation.py:59: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nsrc\\phoenix_real_estate\\collectors\\maricopa\\collector.py:77: in __init__\n    self.client = client or MaricopaAPIClient(config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <phoenix_real_estate.collectors.maricopa.client.MaricopaAPIClient object at 0x000002815B0A9BE0>\nconfig = <Mock spec='ConfigProvider' id='2754601454624'>\nrequests_per_hour = None\n\n    def __init__(self, config: ConfigProvider, requests_per_hour: Optional[int] = None) -> None:\n        \"\"\"Initialize the Maricopa API client.\n    \n        Args:\n            config: Configuration provider from Epic 1 foundation\n            requests_per_hour: Override default rate limit\n    \n        Raises:\n            ConfigurationError: If required configuration is missing\n        \"\"\"\n        self.config = config\n        self.logger: Logger = get_logger(\"collectors.maricopa.client\")\n    \n        # Load configuration\n        self._load_config()\n    \n        # Set up rate limiting (convert hourly limit to per-minute)\n        actual_requests_per_hour = requests_per_hour or self.rate_limit\n>       requests_per_minute = actual_requests_per_hour / 60.0\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       TypeError: unsupported operand type(s) for /: 'Mock' and 'float'\n\nsrc\\phoenix_real_estate\\collectors\\maricopa\\client.py:71: TypeError"
+              "message": "E   AssertionError: assert False\n     +  where False = hasattr(<phoenix_real_estate.collectors.phoenix_mls.parser.PhoenixMLSParser object at 0x000002011A77E3C0>, 'validate_property_data')"
             }
           ]
         },
         {
-          "name": "test_foundation_exception_hierarchy",
-          "fullName": "tests/collectors/test_integration_validation.py::TestEpic1FoundationIntegration::test_foundation_exception_hierarchy",
+          "name": "test_parse_complete_property",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_complete_property",
           "state": "failed",
           "errors": [
             {
-              "message": "self = <collectors.test_integration_validation.TestEpic1FoundationIntegration object at 0x000002815AFFED50>\nfoundation_config = <Mock spec='ConfigProvider' id='2754601460000'>\nfoundation_repository = <Mock spec='PropertyRepository' id='2754601462688'>\n\n    def test_foundation_exception_hierarchy(self, foundation_config, foundation_repository):\n        \"\"\"Test proper use of foundation exception hierarchy.\"\"\"\n>       collector = MaricopaAPICollector(foundation_config, foundation_repository)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests\\collectors\\test_integration_validation.py:74: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nsrc\\phoenix_real_estate\\collectors\\maricopa\\collector.py:77: in __init__\n    self.client = client or MaricopaAPIClient(config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <phoenix_real_estate.collectors.maricopa.client.MaricopaAPIClient object at 0x000002815C25C690>\nconfig = <Mock spec='ConfigProvider' id='2754601460000'>\nrequests_per_hour = None\n\n    def __init__(self, config: ConfigProvider, requests_per_hour: Optional[int] = None) -> None:\n        \"\"\"Initialize the Maricopa API client.\n    \n        Args:\n            config: Configuration provider from Epic 1 foundation\n            requests_per_hour: Override default rate limit\n    \n        Raises:\n            ConfigurationError: If required configuration is missing\n        \"\"\"\n        self.config = config\n        self.logger: Logger = get_logger(\"collectors.maricopa.client\")\n    \n        # Load configuration\n        self._load_config()\n    \n        # Set up rate limiting (convert hourly limit to per-minute)\n        actual_requests_per_hour = requests_per_hour or self.rate_limit\n>       requests_per_minute = actual_requests_per_hour / 60.0\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       TypeError: unsupported operand type(s) for /: 'Mock' and 'float'\n\nsrc\\phoenix_real_estate\\collectors\\maricopa\\client.py:71: TypeError"
+              "message": "E   AssertionError: assert '123 Main Str...nix, AZ 85001' == '123 Main Str...nix, AZ 85001'\n      \n      - 123 Main Street, Phoenix, AZ 85001\n      ?                -\n      + 123 Main Street Phoenix, AZ 85001"
             }
           ]
         },
         {
-          "name": "test_foundation_config_integration",
-          "fullName": "tests/collectors/test_integration_validation.py::TestEpic1FoundationIntegration::test_foundation_config_integration",
+          "name": "test_parse_minimal_property",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_minimal_property",
           "state": "failed",
           "errors": [
             {
-              "message": "self = <collectors.test_integration_validation.TestEpic1FoundationIntegration object at 0x000002815B068FC0>\nfoundation_repository = <Mock spec='PropertyRepository' id='2754601464704'>\n\n    def test_foundation_config_integration(self, foundation_repository):\n        \"\"\"Test configuration provider integration.\"\"\"\n        # Test missing required config\n        bad_config = Mock(spec=ConfigProvider)\n        bad_config.get.return_value = None\n        bad_config.get_typed = Mock(return_value={})\n    \n>       collector = MaricopaAPICollector(bad_config, foundation_repository)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests\\collectors\\test_integration_validation.py:97: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nsrc\\phoenix_real_estate\\collectors\\maricopa\\collector.py:77: in __init__\n    self.client = client or MaricopaAPIClient(config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc\\phoenix_real_estate\\collectors\\maricopa\\client.py:67: in __init__\n    self._load_config()\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <phoenix_real_estate.collectors.maricopa.client.MaricopaAPIClient object at 0x000002815C25CCD0>\n\n    def _load_config(self) -> None:\n        \"\"\"Load and validate Epic 1 configuration.\"\"\"\n        try:\n            # Epic 1 configuration keys\n            self.api_key = self.config.get(\"MARICOPA_API_KEY\")\n            self.base_url = self.config.get(\n                \"MARICOPA_BASE_URL\", \"https://api.assessor.maricopa.gov/v1\"\n            )\n            self.rate_limit = self.config.get_int(\"MARICOPA_RATE_LIMIT\", 1000)\n            self.timeout_seconds = self.config.get_int(\"MARICOPA_TIMEOUT\", 30)\n    \n            if not self.api_key:\n>               raise ConfigurationError(\"Missing required config: MARICOPA_API_KEY\")\nE               phoenix_real_estate.foundation.utils.exceptions.ConfigurationError: Missing required config: MARICOPA_API_KEY\n\nsrc\\phoenix_real_estate\\collectors\\maricopa\\client.py:105: ConfigurationError"
+              "message": "E   AssertionError: assert '456 Oak Aven...nix, AZ 85002' == '456 Oak Aven...nix, AZ 85002'\n      \n      - 456 Oak Avenue, Phoenix, AZ 85002\n      ?               -\n      + 456 Oak Avenue Phoenix, AZ 85002"
             }
           ]
         },
         {
-          "name": "test_foundation_repository_integration",
-          "fullName": "tests/collectors/test_integration_validation.py::TestEpic1FoundationIntegration::test_foundation_repository_integration",
+          "name": "test_extract_address_components",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_extract_address_components",
           "state": "failed",
           "errors": [
             {
-              "message": "self = <collectors.test_integration_validation.TestEpic1FoundationIntegration object at 0x000002815B069CD0>\nfoundation_config = <Mock spec='ConfigProvider' id='2754619031632'>\n\n    def test_foundation_repository_integration(self, foundation_config):\n        \"\"\"Test repository integration for data storage.\"\"\"\n        repo = Mock(spec=PropertyRepository)\n        repo.find_by_id.return_value = None\n        repo.save.return_value = True\n        repo.find_updated_since.return_value = []\n    \n>       collector = MaricopaAPICollector(foundation_config, repo)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests\\collectors\\test_integration_validation.py:111: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nsrc\\phoenix_real_estate\\collectors\\maricopa\\collector.py:77: in __init__\n    self.client = client or MaricopaAPIClient(config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <phoenix_real_estate.collectors.maricopa.client.MaricopaAPIClient object at 0x000002815B06BBB0>\nconfig = <Mock spec='ConfigProvider' id='2754619031632'>\nrequests_per_hour = None\n\n    def __init__(self, config: ConfigProvider, requests_per_hour: Optional[int] = None) -> None:\n        \"\"\"Initialize the Maricopa API client.\n    \n        Args:\n            config: Configuration provider from Epic 1 foundation\n            requests_per_hour: Override default rate limit\n    \n        Raises:\n            ConfigurationError: If required configuration is missing\n        \"\"\"\n        self.config = config\n        self.logger: Logger = get_logger(\"collectors.maricopa.client\")\n    \n        # Load configuration\n        self._load_config()\n    \n        # Set up rate limiting (convert hourly limit to per-minute)\n        actual_requests_per_hour = requests_per_hour or self.rate_limit\n>       requests_per_minute = actual_requests_per_hour / 60.0\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       TypeError: unsupported operand type(s) for /: 'Mock' and 'float'\n\nsrc\\phoenix_real_estate\\collectors\\maricopa\\client.py:71: TypeError"
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_address'"
             }
           ]
+        },
+        {
+          "name": "test_extract_price_variations",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_extract_price_variations",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_price'"
+            }
+          ]
+        },
+        {
+          "name": "test_extract_beds_baths_variations",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_extract_beds_baths_variations",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_beds'"
+            }
+          ]
+        },
+        {
+          "name": "test_extract_square_footage_formats",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_extract_square_footage_formats",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_square_feet'"
+            }
+          ]
+        },
+        {
+          "name": "test_extract_lot_size_formats",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_extract_lot_size_formats",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_lot_size'"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_search_results",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_search_results",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert 6 == 2\n     +  where 6 = len([{'address': '123 Main St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 450000.0, ...}, {'address': '123 Main St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 450000.0, ...}, {'address': '123 Main St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 450000.0, ...}, {'baths': 2.0, 'beds': 3, 'sqft': 1850}, {'address': '456 Oak Ave, Phoenix, AZ 85002', 'baths': 3.0, 'beds': 4, 'price': 525000.0, ...}, {'baths': 3.0, 'beds': 4, 'sqft': 2200}])"
+            }
+          ]
+        },
+        {
+          "name": "test_validate_required_fields",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_validate_required_fields",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PropertyData.__init__() got an unexpected keyword argument 'raw_html'"
+            }
+          ]
+        },
+        {
+          "name": "test_validate_data_ranges",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_validate_data_ranges",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'validate_property_data'"
+            }
+          ]
+        },
+        {
+          "name": "test_sanitize_text_input",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_sanitize_text_input",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Failed to sanitize: '123 Main St\u2122'\n    assert '123 Main StTM' == '123 Main St'\n      \n      - 123 Main St\n      + 123 Main StTM\n      ?            ++"
+            }
+          ]
+        },
+        {
+          "name": "test_sanitize_numeric_input",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_sanitize_numeric_input",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'sanitize_numeric'"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_malformed_html",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_malformed_html",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   ValueError: Missing required field: price"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_empty_html",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_empty_html",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   ValueError: Empty HTML content"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_non_property_html",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_non_property_html",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   ValueError: Missing required field: address"
+            }
+          ]
+        },
+        {
+          "name": "test_handle_different_property_types",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_handle_different_property_types",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert 'Manufactured' == 'Mobile Home'\n      \n      - Mobile Home\n      + Manufactured"
+            }
+          ]
+        },
+        {
+          "name": "test_store_raw_html",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_store_raw_html",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'store_raw_html'. Did you mean: 'store_html'?"
+            }
+          ]
+        },
+        {
+          "name": "test_store_raw_html_with_compression",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_store_raw_html_with_compression",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'store_raw_html'. Did you mean: 'store_html'?"
+            }
+          ]
+        },
+        {
+          "name": "test_batch_parse_properties",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_batch_parse_properties",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'batch_parse_properties'"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_large_html_performance",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_large_html_performance",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert 201 == 100\n     +  where 201 = len([{'address': '0 Test St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 300000.0, ...}, {'address': '0 Test St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 300000.0, ...}, {'baths': 2.0, 'beds': 3, 'sqft': 1850}, {'address': '1 Test St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 301000.0, ...}, {'baths': 2.0, 'beds': 3, 'sqft': 1850}, {'address': '2 Test St, Phoenix, AZ 85001', 'baths': 2.0, 'beds': 3, 'price': 302000.0, ...}, ...])"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_unicode_addresses",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_unicode_addresses",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert '123 Can\u0303o\u0301n ...nix, AZ 85001' == '123 Ca\u00f1\u00f3n Ro...nix, AZ 85001'\n      \n      - 123 Ca\u00f1\u00f3n Road, Phoenix, AZ 85001\n      ?       --      -\n      + 123 Can\u0303o\u0301n Road Phoenix, AZ 85001\n      ?        ++++"
+            }
+          ]
+        },
+        {
+          "name": "test_parse_special_characters_in_price",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPhoenixMLSParser::test_parse_special_characters_in_price",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSParser' object has no attribute 'extract_price'"
+            }
+          ]
+        },
+        {
+          "name": "test_property_data_creation",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPropertyData::test_property_data_creation",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PropertyData.__init__() got an unexpected keyword argument 'square_feet'"
+            }
+          ]
+        },
+        {
+          "name": "test_property_data_to_dict",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPropertyData::test_property_data_to_dict",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PropertyData.__init__() got an unexpected keyword argument 'street_address'"
+            }
+          ]
+        },
+        {
+          "name": "test_property_data_json_serialization",
+          "fullName": "tests/collectors/phoenix_mls/test_parser.py::TestPropertyData::test_property_data_json_serialization",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PropertyData.__init__() got an unexpected keyword argument 'raw_html'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/collectors/phoenix_mls/test_proxy_manager.py",
+      "tests": [
+        {
+          "name": "test_proxy_manager_exists",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_manager_exists",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_manager_initialization",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_manager_initialization",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_next_proxy",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_get_next_proxy",
+          "state": "passed"
+        },
+        {
+          "name": "test_mark_proxy_failed",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_mark_proxy_failed",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_health_check",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_health_check",
+          "state": "passed"
+        },
+        {
+          "name": "test_exclude_unhealthy_proxies",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_exclude_unhealthy_proxies",
+          "state": "passed"
+        },
+        {
+          "name": "test_concurrent_proxy_usage",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_concurrent_proxy_usage",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_recovery_after_cooldown",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_recovery_after_cooldown",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_statistics",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_statistics",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_authentication",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager.py::test_proxy_authentication",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py",
+      "tests": [
+        {
+          "name": "test_proxy_manager_no_proxies_error",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_proxy_manager_no_proxies_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_all_proxies_failed_error",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_all_proxies_failed_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_mark_success",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_mark_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_check_all_health",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_check_all_health",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_manager_repr",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_proxy_manager_repr",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_health_check_exception",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_proxy_health_check_exception",
+          "state": "passed"
+        },
+        {
+          "name": "test_proxy_recovery_reset",
+          "fullName": "tests/collectors/phoenix_mls/test_proxy_manager_edge_cases.py::test_proxy_recovery_reset",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/collectors/phoenix_mls/test_scraper.py",
+      "tests": [
+        {
+          "name": "test_phoenix_mls_scraper_exists",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_phoenix_mls_scraper_exists",
+          "state": "passed"
+        },
+        {
+          "name": "test_scraper_initialization",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_scraper_initialization",
+          "state": "passed"
+        },
+        {
+          "name": "test_browser_initialization",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_browser_initialization",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_search_by_zipcode",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_search_by_zipcode",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_extract_property_details",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_extract_property_details",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_rate_limiting",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_rate_limiting",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_retry_logic",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_retry_logic",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_session_management",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_session_management",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_proxy_rotation_on_failure",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_proxy_rotation_on_failure",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: PhoenixMLSScraper(base_url=https://www.phoenixmlssearch.com, requests=0, success_rate=0.0%) does not have the attribute '_request_with_proxy'"
+            }
+          ]
+        },
+        {
+          "name": "test_anti_detection_integration",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_anti_detection_integration",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_batch_property_scraping",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_batch_property_scraping",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_error_recovery_partial_results",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_error_recovery_partial_results",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_data_validation_and_cleaning",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_data_validation_and_cleaning",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_scraper_statistics",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_scraper_statistics",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_configuration_validation",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_configuration_validation",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   TypeError: PhoenixMLSScraper.__init__() missing 1 required positional argument: 'proxy_config'"
+            }
+          ]
+        },
+        {
+          "name": "test_full_scraping_workflow",
+          "fullName": "tests/collectors/phoenix_mls/test_scraper.py::test_full_scraping_workflow",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AttributeError: 'PhoenixMLSScraper' object has no attribute 'scrape_zipcode'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/collectors/phoenix_mls/test_tdd_runner.py",
+      "tests": [
+        {
+          "name": "test_tdd_compliance",
+          "fullName": "tests/collectors/phoenix_mls/test_tdd_runner.py::test_tdd_compliance",
+          "state": "passed"
+        },
+        {
+          "name": "test_mutation_score_threshold",
+          "fullName": "tests/collectors/phoenix_mls/test_tdd_runner.py::test_mutation_score_threshold",
+          "state": "skipped"
         }
       ]
     }

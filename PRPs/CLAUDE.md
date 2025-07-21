@@ -1,128 +1,45 @@
-# Phoenix Real Estate Project - Claude Code Knowledge Base
+# Phoenix Real Estate - Quick Reference
 
-## Environment & Constraints
-- **Path Format**: Use forward slashes: `C:/Users/Andrew/.vscode/RE-analysis-generator`
-- **Package Manager**: `uv` (not pip) - `uv sync --extra dev`
-- **Python**: 3.13.4
-- **Budget**: $50/month (GitHub Actions, MongoDB Atlas free tier)
-- **Coverage**: Phoenix area only, respect robots.txt
+## Environment
+- **Path**: `C:/Users/Andrew/.vscode/RE-analysis-generator`
+- **Tools**: `uv` (not pip), Python 3.13.4, MongoDB Atlas free tier
+- **Commands**: `uv sync --extra dev`, `uv run pytest`, `make ruff`
 
-## Key Project Patterns
-
-### Hook Workarounds
-- **Write Blocked**: Use `echo 'content' > file` or `cat > file << 'EOF'`
-- **Validation Issues**: Sub-agents can provide implementations when Write tool blocked
-
-### Development Workflow
-```bash
-# Setup
-uv sync --extra dev
-
-# Quality checks  
-uv run ruff check . --fix
-uv run pytest
-
-# Architecture
-make dev_install_win
-```
-
-### Architecture Standards
-- **Structure**: `src/phoenix_real_estate/foundation/{config,database,logging,utils}/`
-- **Imports**: Absolute from `phoenix_real_estate`, exports via `__init__.py`
-- **Principles**: SOLID, DRY, KISS, Clean Architecture, TDD
-
-## Technology Stack
-- **Database**: MongoDB Atlas (Motor async driver, 10 connection limit)
-- **Validation**: Pydantic v2 (`@field_validator`, `ConfigDict`, `model_dump()`)
-- **Quality**: Ruff, MyPy, pytest with pytest-asyncio
-- **Future**: FastAPI, Playwright, Ollama/LangChain
-
-## Task Completion Lessons
-
-### Task 01 Foundation (Complete)
-- **Method**: Parallel sub-agents, 35% time reduction
-- **Output**: Utils, exceptions, testing framework, 139 tests passing
-
-### Task 02 Database (Complete - 2025-07-20)
-- **Method**: Wave orchestration, 95% time reduction via 4 parallel streams
-- **Output**: Repository pattern, Pydantic v2 schemas, 125/130 tests (96.2%)
-- **Critical Fixes**: MongoDB operator assertions, Field vs custom validators, timezone handling
+## Architecture Patterns
+- **Structure**: `src/phoenix_real_estate/{foundation,collectors,orchestration,processors}/`
+- **Imports**: Drop `src.` prefix → `from phoenix_real_estate.foundation...`
+- **Principles**: TDD first, SOLID, Clean Architecture
 
 ## Key Technical Patterns
 
-### Pydantic v2 Migration
+### Pydantic v2
 - `@field_validator` with `@classmethod`
+- `model_dump()` not `dict()`
 - `datetime.now(UTC)` not `datetime.utcnow()`
-- Remove deprecated `json_encoders`
 
-### MongoDB Atlas Optimization
-- 10 connection pool maximum (free tier)
-- Graceful index creation with failure handling
-- Exponential backoff retry logic
+### MongoDB Atlas
+- 10 connection pool limit
+- Graceful index creation
+- Motor async driver
 
-### Systematic Troubleshooting
-1. Root cause analysis with context examination
-2. Evidence-based fixes against actual errors
-3. Progressive verification before full execution
-4. Zero regression validation
+### Testing
+- TDD: Write tests first, then implement
+- Fixtures in conftest.py
+- `pytest-asyncio` for async tests
 
-### Wave Orchestration Success
-- **Efficiency**: 95% time reduction through parallel execution
-- **Quality**: Production-ready output across concurrent streams
-- **Integration**: Zero conflicts between parallel implementations
+## Task Completion Patterns
 
-### Task 03 Configuration (Complete - 2025-01-21)
-- **Method**: TDD with parallel sub-agents via spawn orchestration
-- **Output**: 146+ tests (100% coverage), exceeded all performance targets by 10-100x
-- **Time**: 2 days total with 60% reduction through parallelization
+### Parallelization Success
+- **Spawn/Wave**: 60-95% time reduction
+- **Sub-agents**: Independent streams, zero conflicts
+- **Strategy**: Split by domain (tests, docs, integration)
 
-## Configuration Management Patterns
+### Common Gotchas
+- **RateLimiter**: `wait_if_needed()` not `acquire()`
+- **Playwright**: Timeout in ms, tests expect seconds
+- **Config**: `get_typed()` for type safety
+- **Async Tests**: ±10% timing tolerance
 
-### Environment Variable Precedence
-1. Direct mappings (MONGODB_URI) > PHOENIX_ prefix > .env files > YAML configs
-2. Factory pattern with `get_config()` for singleton access
-3. `reset_config_cache()` essential for test isolation
-
-### Secret Management
-- Auto-detect prefixes: SECRET_, SECURE_, CREDENTIAL_
-- Never log values: audit access only
-- Base64 with b64: prefix, optional encryption with enc:
-
-### Task 03 Specific Lessons
-- **Boolean Edge Cases**: Conflicting nested keys (bool.n vs bool.n.upper) need special handling
-- **Performance**: Cache limiting prevents memory leaks under 600K+ ops/sec load
-- **Thread Safety**: RLock pattern essential for singleton configuration access
-- **Import Flexibility**: Try python-dotenv → dotenv → graceful fallback pattern
-- **Documentation Scale**: 5,000+ lines of guides proved valuable for complex systems
-
-### Spawn Orchestration Benefits
-- **8 Parallel Streams**: Edge cases, production tests, docs, benchmarks, design, integration
-- **Zero Conflicts**: Independent task boundaries prevented merge issues
-- **Quality Improvement**: Each stream could focus deeply on its domain
-
-### Task 04 Maricopa API Client (Complete - 2025-01-21)
-- **Method**: Parallel spawn with 6 concurrent streams, 70% time reduction
-- **Output**: 89-95% test coverage, production-ready rate limiter (600 req/hour)
-- **Time**: Implementation complete in parallel execution
-
-## Maricopa API Client Patterns
-
-### Rate Limiting Architecture
-- **Conservative Approach**: 600 req/hour (vs 1000 limit) for safety margin
-- **Observer Pattern**: Real-time monitoring with adaptive throttling
-- **Zero Violations**: Achieved through preemptive throttling
-
-### API Client Discoveries
-- **Epic 1 Integration**: `get_typed()` method for type-safe config access
-- **Exception Hierarchy**: RateLimitError, AuthenticationError for specific handling
-- **Async Patterns**: Context managers for all resource management
-- **Security**: Credential sanitization in all logs and error messages
-
-### Task 04 Specific Lessons
-- **Parallel Streams**: Client, adapter, tests, docs, integration, performance - zero conflicts
-- **Test Fixtures**: Discovered fixture propagation issues but maintained 89-95% coverage
-- **Conservative Limits**: Lower rate limits (600 vs 900) proved more stable
-- **Type Safety**: Epic 1's ConfigProvider.get_typed() essential for robust config access
-
-## Ready for Epic 2: Data Collection
-Foundation complete: Utils, Database, Configuration, Maricopa API Client. All systems production-ready.
+## Implementation Status
+✅ **Complete**: Foundation, Database, Config, Maricopa Client, Phoenix MLS Scraper
+🔄 **Next**: Integration testing, selector updates, production deployment

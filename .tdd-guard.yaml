@@ -1,0 +1,34 @@
+# TDD Guard Configuration for Phoenix MLS Scraper
+project_name: "Phoenix MLS Scraper"
+enforce_tdd: true
+test_first_required: true
+
+# Tracking settings
+track_cycles: true
+cycle_storage: .claude/tdd-guard/data/cycles.json
+test_storage: .claude/tdd-guard/data/test.json
+
+# Coverage requirements
+coverage:
+  line: 95
+  branch: 90
+  
+# Mutation testing
+mutation:
+  enabled: true
+  minimum_score: 85
+  
+# Paths
+source_paths:
+  - src/phoenix_real_estate/collectors/phoenix_mls
+  - src\phoenix_real_estate\collectors\maricopa
+test_paths:
+  - tests/collectors/phoenix_mls
+  - tests\collectors\maricopa
+  
+# Pre-commit hooks
+hooks:
+  pre_commit:
+    - check_test_first
+    - verify_coverage
+    - mutation_test

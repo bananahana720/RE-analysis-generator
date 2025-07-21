@@ -1,0 +1,6 @@
+[mutmut]
+paths_to_mutate = src/phoenix_real_estate/collectors/phoenix_mls/
+backup = False
+runner = python -m pytest -x
+tests_dir = tests/collectors/phoenix_mls/
+dict_synonyms = Struct, NamedStruct

@@ -34,7 +34,10 @@ dev = [
     "ruff>=0.1.0",
     "pre-commit>=3.5.0",
     "tox>=4.11.0",
-    "tdd-guard==0.5.2"
+    "tdd-guard==0.5.2",
+    "mutmut>=2.4.0",
+    "playwright>=1.40.0",
+    "httpx>=0.25.0"
 ]
 
 [tool.pytest.ini_options]

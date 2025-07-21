@@ -412,7 +412,7 @@ class TestMaricopaDataAdapter:
         with pytest.raises(ValidationError) as exc_info:
             adapter.validate_raw_data("not a dict")
         
-        assert "Raw data must be a dictionary" in str(exc_info.value)
+        assert "Raw data must be a dict" in str(exc_info.value)
 
     def test_validate_raw_data_empty(self, adapter):
         """Test validation with empty data."""

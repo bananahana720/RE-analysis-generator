@@ -13,7 +13,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
 
-from phoenix_real_estate.foundation import ConfigProvider, PropertyRepository
+from phoenix_real_estate.foundation.config.base import ConfigProvider
+from phoenix_real_estate.foundation import PropertyRepository
 from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ConfigurationError,
@@ -31,17 +32,30 @@ class TestMaricopaAPICollector:
     @pytest.fixture
     def mock_config(self):
         """Mock configuration provider."""
-        config = MagicMock(spec=ConfigProvider)
+        config = MagicMock()
+        # Mock all required methods
         config.get_dict.return_value = {"batch_size": 100, "max_retries": 3}
-        config.get_int.side_effect = lambda key, default: {
+        config.get_int.side_effect = lambda key, default=None: {
             "maricopa.collection.batch_size": 100,
             "maricopa.collection.max_retries": 3,
-            "maricopa.collection.retry_delay_seconds": 5
+            "maricopa.collection.retry_delay_seconds": 5,
+            "MARICOPA_RATE_LIMIT": 1000,
+            "MARICOPA_TIMEOUT": 30
         }.get(key, default)
-        config.get.side_effect = lambda key: {
+        config.get.side_effect = lambda key, default=None: {
             "maricopa.api.base_url": "https://api.example.com",
-            "maricopa.api.bearer_token": "test_token"
-        }.get(key)
+            "maricopa.api.bearer_token": "test_token",
+            "MARICOPA_API_KEY": "test_key",
+            "MARICOPA_BASE_URL": "https://api.example.com"
+        }.get(key, default)
+        # Add get_typed method that's used in initialization
+        config.get_typed.side_effect = lambda key, expected_type, default=None: {
+            "maricopa.collection": {
+                "batch_size": 100,
+                "max_retries": 3,
+                "retry_delay_seconds": 5
+            }
+        }.get(key, default)
         return config
 
     @pytest.fixture
@@ -348,7 +362,7 @@ class TestMaricopaCollectorIntegration:
     @pytest.fixture
     def integration_collector(self):
         """Create collector for integration testing with minimal mocking."""
-        config = MagicMock(spec=ConfigProvider)
+        config = MagicMock()
         config.get_dict.return_value = {"batch_size": 50}
         config.get_int.side_effect = lambda key, default=None: {
             "maricopa.collection.batch_size": 50,
@@ -363,6 +377,21 @@ class TestMaricopaCollectorIntegration:
             "MARICOPA_API_KEY": "test_key",
             "MARICOPA_BASE_URL": "https://api.example.com"
         }.get(key, default)
+        # Add get_typed method to handle both dict and individual key access
+        def get_typed_mock(key, expected_type, default=None):
+            values = {
+                "maricopa.collection": {
+                    "batch_size": 50,
+                    "max_retries": 2,
+                    "retry_delay_seconds": 1
+                },
+                "maricopa.collection.batch_size": 50,
+                "maricopa.collection.max_retries": 2,
+                "maricopa.collection.retry_delay_seconds": 1
+            }
+            return values.get(key, default)
+        
+        config.get_typed.side_effect = get_typed_mock
 
         repository = MagicMock(spec=PropertyRepository)
         repository.find_updated_since.return_value = []
