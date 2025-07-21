@@ -19,6 +19,9 @@ dependencies = [
     "structlog>=23.2.0",
     "python-dateutil>=2.8.0",
     "pytz>=2023.3",
+    "python-dotenv>=1.0.0",
+    "PyYAML>=6.0.1",
+    "psutil>=5.9.0",
 ]
 
 [project.optional-dependencies]
@@ -37,6 +40,11 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "production: marks tests as production scenario tests",
+    "benchmark: marks tests as performance benchmarks",
+    "slow: marks tests as slow running tests",
+]
 
 [tool.mypy]
 python_version = "3.13"

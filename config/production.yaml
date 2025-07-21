@@ -1,0 +1,77 @@
+# Production environment configuration
+
+# Production logging
+logging:
+  level: "INFO"
+  format: "json"  # Structured logging for production
+  console_output: false
+  file_path: "/var/log/phoenix_real_estate/app.log"
+  max_file_size_mb: 50
+  backup_count: 10
+
+# Production database
+database:
+  name: "phoenix_real_estate"
+  max_pool_size: 10
+  min_pool_size: 2
+  connection_timeout_ms: 5000
+
+# Production collection settings
+collection:
+  max_requests_per_hour: 100
+  min_request_delay: 3.6
+  
+  # All target ZIP codes
+  target_zip_codes:
+    - "85031"
+    - "85033"
+    - "85035"
+
+# Production data sources
+sources:
+  maricopa_county:
+    enabled: true
+    rate_limit: 1000
+    
+  phoenix_mls:
+    enabled: true
+    stealth_mode: true
+    
+  particle_space:
+    enabled: true  # Enable if API key available
+
+# Production proxy settings
+proxy:
+  enabled: true
+  provider: "webshare"
+  rotation_enabled: true
+
+# Production processing
+processing:
+  llm_model: "llama2:7b"
+  batch_size: 10
+  max_processing_workers: 2
+
+# Strict validation for production
+validation:
+  strict_mode: true
+  require_address: true
+  require_price: false
+
+# Optimized performance for production
+performance:
+  enable_caching: true
+  cache_ttl_minutes: 60
+  max_memory_usage_mb: 512
+
+# Conservative error handling for production
+error_handling:
+  max_error_rate: 0.05  # 5% max error rate
+  error_cooldown_minutes: 30
+  alert_on_consecutive_failures: 3
+
+# Production security
+security:
+  max_session_age_hours: 12
+  encrypt_sensitive_logs: true
+  sanitize_raw_data: true

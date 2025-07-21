@@ -1,4 +1,4 @@
-.PHONY: install dev-install test lint format type-check quality
+.PHONY: install dev-install test lint format type-check quality benchmark benchmark-quick
 
 install:
 	uv sync
@@ -36,3 +36,11 @@ quick_pyright:
 sanity_check:
 	@echo "Checking for non-editable installs..."
 	@uv pip list  < /dev/null |  grep -E "phoenix-real-estate|src" || echo "All clear\!"
+
+benchmark:
+	@echo "Running comprehensive configuration benchmarks..."
+	uv run python run_benchmarks.py
+
+benchmark-quick:
+	@echo "Running quick performance tests..."
+	uv run pytest tests/foundation/config/test_performance.py -m benchmark -v

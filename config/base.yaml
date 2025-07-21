@@ -1,0 +1,107 @@
+# Base configuration for Phoenix Real Estate Data Collection System
+
+# Application metadata
+application:
+  name: "Phoenix Real Estate Collector"
+  version: "0.1.0"
+  description: "Personal real estate data collection system for Phoenix, Arizona"
+
+# Database configuration (defaults)
+database:
+  name: "phoenix_real_estate"
+  max_pool_size: 10
+  min_pool_size: 1
+  connection_timeout_ms: 10000
+  socket_timeout_ms: 30000
+  server_selection_timeout_ms: 5000
+  
+  # Collections
+  collections:
+    properties: "properties"
+    daily_reports: "daily_reports"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "text"  # text or json
+  console_output: true
+  file_rotation: true
+  max_file_size_mb: 10
+  backup_count: 5
+
+# Data collection defaults
+collection:
+  max_requests_per_hour: 100
+  min_request_delay: 3.6  # seconds
+  target_zip_codes:
+    - "85031"
+    - "85033" 
+    - "85035"
+  user_agent: "Phoenix Real Estate Collector 1.0 (Personal Use)"
+  request_timeout: 30
+  max_retries: 3
+  
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    burst_size: 10
+    window_size_minutes: 60
+
+# Data processing defaults
+processing:
+  llm_model: "llama2:7b"
+  llm_timeout: 30
+  batch_size: 10
+  max_processing_workers: 2
+  
+  # Data validation
+  validation:
+    strict_mode: false
+    require_address: true
+    require_price: false
+    max_price: 50000000  # $50M
+
+# Data sources configuration
+sources:
+  maricopa_county:
+    enabled: true
+    base_url: "https://api.mcassessor.maricopa.gov/api/v1"
+    rate_limit: 1000  # requests per hour
+    timeout: 10
+    
+  phoenix_mls:
+    enabled: true
+    base_url: "https://phoenixmlssearch.com"
+    timeout: 30
+    stealth_mode: true
+    
+  particle_space:
+    enabled: false  # Only enable if API key available
+    base_url: "https://api.particle.space"
+    monthly_limit: 200
+
+# Proxy configuration
+proxy:
+  enabled: false  # Enable only if credentials available
+  provider: "webshare"
+  rotation_enabled: true
+  max_retries: 3
+
+# Security settings
+security:
+  max_session_age_hours: 24
+  encrypt_sensitive_logs: true
+  sanitize_raw_data: true
+  
+# Performance settings
+performance:
+  enable_caching: true
+  cache_ttl_minutes: 60
+  max_memory_usage_mb: 512
+  gc_threshold: 100
+
+# Error handling
+error_handling:
+  max_error_rate: 0.1  # 10%
+  error_cooldown_minutes: 15
+  alert_on_consecutive_failures: 5

@@ -1,6 +1,1076 @@
 {
   "testModules": [
     {
+      "moduleId": "tests/foundation/config/test_base.py",
+      "tests": [
+        {
+          "name": "test_cannot_instantiate_abstract_class",
+          "fullName": "tests/foundation/config/test_base.py::TestConfigProviderAbstractClass::test_cannot_instantiate_abstract_class",
+          "state": "passed"
+        },
+        {
+          "name": "test_interface_methods_required",
+          "fullName": "tests/foundation/config/test_base.py::TestConfigProviderAbstractClass::test_interface_methods_required",
+          "state": "passed"
+        },
+        {
+          "name": "test_load_base_config_only",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_load_base_config_only",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_override",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_environment_override",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_variable_override",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_environment_variable_override",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_with_default",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_get_with_default",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_required_success",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_get_required_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_required_missing_key",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_get_required_missing_key",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_typed_conversions",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_get_typed_conversions",
+          "state": "passed"
+        },
+        {
+          "name": "test_boolean_string_conversions",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_boolean_string_conversions",
+          "state": "passed"
+        },
+        {
+          "name": "test_invalid_type_conversion",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_invalid_type_conversion",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_environment",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_get_environment",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_production_requirements",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_validate_production_requirements",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_missing_production_keys",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_validate_missing_production_keys",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_invalid_zipcode",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_validate_invalid_zipcode",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_invalid_port",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_validate_invalid_port",
+          "state": "passed"
+        },
+        {
+          "name": "test_caching_behavior",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_caching_behavior",
+          "state": "passed"
+        },
+        {
+          "name": "test_nested_config_access",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_nested_config_access",
+          "state": "passed"
+        },
+        {
+          "name": "test_yaml_parse_error",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_yaml_parse_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_missing_config_directory",
+          "fullName": "tests/foundation/config/test_base.py::TestEnvironmentConfigProvider::test_missing_config_directory",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_base_enhanced.py",
+      "tests": [
+        {
+          "name": "test_phoenix_prefix_variables",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_phoenix_prefix_variables",
+          "state": "passed"
+        },
+        {
+          "name": "test_direct_environment_variables",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_direct_environment_variables",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_variable_precedence",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_environment_variable_precedence",
+          "state": "passed"
+        },
+        {
+          "name": "test_dual_support_compatibility",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_dual_support_compatibility",
+          "state": "passed"
+        },
+        {
+          "name": "test_nested_environment_variables",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_nested_environment_variables",
+          "state": "passed"
+        },
+        {
+          "name": "test_type_conversion_from_env_vars",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnvironmentVariableLoading::test_type_conversion_from_env_vars",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_returns_list_of_errors",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_validate_returns_list_of_errors",
+          "state": "passed"
+        },
+        {
+          "name": "test_production_validation_requirements",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_production_validation_requirements",
+          "state": "passed"
+        },
+        {
+          "name": "test_development_validation_requirements",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_development_validation_requirements",
+          "state": "passed"
+        },
+        {
+          "name": "test_required_fields_validation",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_required_fields_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_type_validation",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_type_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_validation_error_details",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_validation_error_details",
+          "state": "passed"
+        },
+        {
+          "name": "test_custom_validation_rules",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_custom_validation_rules",
+          "state": "passed"
+        },
+        {
+          "name": "test_zipcode_validation",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestValidationMethods::test_zipcode_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_dotenv_import_success",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_dotenv_import_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_dotenv_import_fallback",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_dotenv_import_fallback",
+          "state": "passed"
+        },
+        {
+          "name": "test_load_dotenv_disabled",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_load_dotenv_disabled",
+          "state": "passed"
+        },
+        {
+          "name": "test_dotenv_loading_with_comments",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_dotenv_loading_with_comments",
+          "state": "passed"
+        },
+        {
+          "name": "test_env_file_precedence_over_config",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_env_file_precedence_over_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_explicit_env_vars_override_dotenv",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestImportCompatibility::test_explicit_env_vars_override_dotenv",
+          "state": "passed"
+        },
+        {
+          "name": "test_validation_performance",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnhancedFeatures::test_validation_performance",
+          "state": "passed"
+        },
+        {
+          "name": "test_error_aggregation",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnhancedFeatures::test_error_aggregation",
+          "state": "passed"
+        },
+        {
+          "name": "test_backward_compatibility",
+          "fullName": "tests/foundation/config/test_base_enhanced.py::TestEnhancedFeatures::test_backward_compatibility",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_benchmarks.py",
+      "tests": [
+        {
+          "name": "test_run_full_benchmark_suite",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_run_full_benchmark_suite",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   UnicodeEncodeError: 'charmap' codec can't encode character '\\u2705' in position 212: character maps to <undefined>"
+            }
+          ]
+        },
+        {
+          "name": "test_individual_benchmark_category[configuration_load_time]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[configuration_load_time]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[validation_performance]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[validation_performance]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[concurrent_access]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[concurrent_access]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[memory_usage]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[memory_usage]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[secret_access]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[secret_access]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[environment_processing]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[environment_processing]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[yaml_parsing]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[yaml_parsing]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[cache_efficiency]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[cache_efficiency]",
+          "state": "passed"
+        },
+        {
+          "name": "test_individual_benchmark_category[thread_contention]",
+          "fullName": "tests/foundation/config/test_benchmarks.py::TestBenchmarkSuite::test_individual_benchmark_category[thread_contention]",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_enhanced_validation.py",
+      "tests": [
+        {
+          "name": "test_empty_string_conversions",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_empty_string_conversions",
+          "state": "passed"
+        },
+        {
+          "name": "test_enhanced_boolean_conversions",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_enhanced_boolean_conversions",
+          "state": "passed"
+        },
+        {
+          "name": "test_list_parsing_with_separators",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_list_parsing_with_separators",
+          "state": "passed"
+        },
+        {
+          "name": "test_dict_parsing",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_dict_parsing",
+          "state": "passed"
+        },
+        {
+          "name": "test_numeric_conversions",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_numeric_conversions",
+          "state": "passed"
+        },
+        {
+          "name": "test_list_to_string_conversion",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_list_to_string_conversion",
+          "state": "passed"
+        },
+        {
+          "name": "test_error_context_with_key",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestEnhancedTypeConversion::test_error_context_with_key",
+          "state": "passed"
+        },
+        {
+          "name": "test_validation_error_aggregation",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_validation_error_aggregation",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   assert 3 >= 4"
+            }
+          ]
+        },
+        {
+          "name": "test_production_specific_validation",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_production_specific_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_data_type_validation_with_conversion",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_data_type_validation_with_conversion",
+          "state": "passed"
+        },
+        {
+          "name": "test_uri_format_validation",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_uri_format_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_custom_rule_validation",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_custom_rule_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_validation_error_summary_formatting",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestComprehensiveValidation::test_validation_error_summary_formatting",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert 'Invalid Log Level:' in 'Found 3 validation error(s):\\n\\nMissing Required Keys:\\n  - Required configuration keys missing for development\\n\\nIn...Zipcodes:\\n  - Invalid ZIP codes in configuration\\n\\nInvalid Range:\\n  - database.port: Port number out of valid range'"
+            }
+          ]
+        },
+        {
+          "name": "test_get_database_config_with_uri",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_get_database_config_with_uri",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_database_config_with_components",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_get_database_config_with_components",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_database_config_missing_required",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_get_database_config_missing_required",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_logging_config",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_get_logging_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_collection_config",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_get_collection_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_check_methods",
+          "fullName": "tests/foundation/config/test_enhanced_validation.py::TestConfigurationHelpers::test_environment_check_methods",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_environment.py",
+      "tests": [
+        {
+          "name": "test_environment_values",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentEnum::test_environment_values",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_string_conversion",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentEnum::test_environment_string_conversion",
+          "state": "passed"
+        },
+        {
+          "name": "test_from_string_valid",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentEnum::test_from_string_valid",
+          "state": "passed"
+        },
+        {
+          "name": "test_from_string_invalid",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentEnum::test_from_string_invalid",
+          "state": "passed"
+        },
+        {
+          "name": "test_all_environments",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentEnum::test_all_environments",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_config_auto_detection_default",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_config_auto_detection_default",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_config_auto_detection_from_env",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_config_auto_detection_from_env",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_config_explicit_environment",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_config_explicit_environment",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_development_config",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_development_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_testing_config",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_testing_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_production_config",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_create_production_config",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_file_loading_order",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_environment_file_loading_order",
+          "state": "passed"
+        },
+        {
+          "name": "test_missing_env_file_handling",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_missing_env_file_handling",
+          "state": "passed"
+        },
+        {
+          "name": "test_configuration_validation_on_creation",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_configuration_validation_on_creation",
+          "state": "passed"
+        },
+        {
+          "name": "test_invalid_environment_error",
+          "fullName": "tests/foundation/config/test_environment.py::TestEnvironmentFactory::test_invalid_environment_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_config_returns_singleton",
+          "fullName": "tests/foundation/config/test_environment.py::TestGlobalConfigManagement::test_get_config_returns_singleton",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_config_with_different_environments",
+          "fullName": "tests/foundation/config/test_environment.py::TestGlobalConfigManagement::test_get_config_with_different_environments",
+          "state": "passed"
+        },
+        {
+          "name": "test_reset_config_cache",
+          "fullName": "tests/foundation/config/test_environment.py::TestGlobalConfigManagement::test_reset_config_cache",
+          "state": "passed"
+        },
+        {
+          "name": "test_thread_safety",
+          "fullName": "tests/foundation/config/test_environment.py::TestGlobalConfigManagement::test_thread_safety",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_config_with_explicit_environment",
+          "fullName": "tests/foundation/config/test_environment.py::TestGlobalConfigManagement::test_get_config_with_explicit_environment",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_all_environments_success",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_validate_all_environments_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_all_environments_with_errors",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_validate_all_environments_with_errors",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_specific_environment_success",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_validate_specific_environment_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_specific_environment_failure",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_validate_specific_environment_failure",
+          "state": "passed"
+        },
+        {
+          "name": "test_comprehensive_error_reporting",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_comprehensive_error_reporting",
+          "state": "passed"
+        },
+        {
+          "name": "test_missing_config_file_handling",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_missing_config_file_handling",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_with_custom_validators",
+          "fullName": "tests/foundation/config/test_environment.py::TestConfigurationValidator::test_validate_with_custom_validators",
+          "state": "passed"
+        },
+        {
+          "name": "test_full_configuration_lifecycle",
+          "fullName": "tests/foundation/config/test_environment.py::TestIntegration::test_full_configuration_lifecycle",
+          "state": "passed"
+        },
+        {
+          "name": "test_environment_isolation",
+          "fullName": "tests/foundation/config/test_environment.py::TestIntegration::test_environment_isolation",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_performance.py",
+      "tests": [
+        {
+          "name": "test_cold_start_load_time",
+          "fullName": "tests/foundation/config/test_performance.py::TestLoadTimeBenchmarks::test_cold_start_load_time",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_warm_cache_load_time",
+          "fullName": "tests/foundation/config/test_performance.py::TestLoadTimeBenchmarks::test_warm_cache_load_time",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_environment_switch_performance",
+          "fullName": "tests/foundation/config/test_performance.py::TestLoadTimeBenchmarks::test_environment_switch_performance",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_basic_validation_speed",
+          "fullName": "tests/foundation/config/test_performance.py::TestValidationPerformance::test_basic_validation_speed",
+          "state": "passed"
+        },
+        {
+          "name": "test_complex_validation_performance",
+          "fullName": "tests/foundation/config/test_performance.py::TestValidationPerformance::test_complex_validation_performance",
+          "state": "passed"
+        },
+        {
+          "name": "test_throughput_10_threads",
+          "fullName": "tests/foundation/config/test_performance.py::TestConcurrentAccessPerformance::test_throughput_10_threads",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_throughput_scaling",
+          "fullName": "tests/foundation/config/test_performance.py::TestConcurrentAccessPerformance::test_throughput_scaling",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_memory_overhead_per_config",
+          "fullName": "tests/foundation/config/test_performance.py::TestMemoryEfficiency::test_memory_overhead_per_config",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_storage_memory_efficiency",
+          "fullName": "tests/foundation/config/test_performance.py::TestMemoryEfficiency::test_secret_storage_memory_efficiency",
+          "state": "passed"
+        },
+        {
+          "name": "test_cache_hit_rate",
+          "fullName": "tests/foundation/config/test_performance.py::TestCachePerformance::test_cache_hit_rate",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_cache_invalidation_performance",
+          "fullName": "tests/foundation/config/test_performance.py::TestCachePerformance::test_cache_invalidation_performance",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_production_workload_simulation",
+          "fullName": "tests/foundation/config/test_performance.py::TestComprehensiveBenchmark::test_production_workload_simulation",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Config read rate 0/s below 10k/s\n    assert 0.0 > 10000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_production_scenarios.py",
+      "tests": [
+        {
+          "name": "test_concurrent_read_access_50_threads",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestHighLoadConfigurationAccess::test_concurrent_read_access_50_threads",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Errors occurred: [(0, 'PORT must be a valid integer'), (3, 'PORT must be a valid integer'), (6, 'PORT must be a valid integer'), (1, 'PORT must be a valid integer'), (4, 'PORT must be a valid integer'), (5, 'PORT must be a valid integer'), (2, 'PORT must be a valid integer'), (7, 'PORT must be a valid integer'), (8, 'PORT must be a valid integer'), (9, 'PORT must be a valid integer'), (10, 'PORT must be a valid integer'), (11, 'PORT must be a valid integer'), (12, 'PORT must be a valid integer'), (13, 'PORT must be a valid integer'), (14, 'PORT must be a valid integer'), (15, 'PORT must be a valid integer'), (16, 'PORT must be a valid integer'), (17, 'PORT must be a valid integer'), (18, 'PORT must be a valid integer'), (19, 'PORT must be a valid integer'), (20, 'PORT must be a valid integer'), (21, 'PORT must be a valid integer'), (22, 'PORT must be a valid integer'), (23, 'PORT must be a valid integer'), (24, 'PORT must be a valid integer'), (25, 'PORT must be a valid integer'), (26, 'PORT must be a valid integer'), (27, 'PORT must be a valid integer'), (28, 'PORT must be a valid integer'), (29, 'PORT must be a valid integer'), (30, 'PORT must be a valid integer'), (31, 'PORT must be a valid integer'), (32, 'PORT must be a valid integer'), (33, 'PORT must be a valid integer'), (34, 'PORT must be a valid integer'), (35, 'PORT must be a valid integer'), (36, 'PORT must be a valid integer'), (37, 'PORT must be a valid integer'), (38, 'PORT must be a valid integer'), (39, 'PORT must be a valid integer'), (40, 'PORT must be a valid integer'), (41, 'PORT must be a valid integer'), (42, 'PORT must be a valid integer'), (43, 'PORT must be a valid integer'), (44, 'PORT must be a valid integer'), (46, 'PORT must be a valid integer'), (45, 'PORT must be a valid integer'), (47, 'PORT must be a valid integer'), (48, 'PORT must be a valid integer'), (49, 'PORT must be a valid integer')]\n    assert 50 == 0\n     +  where 50 = len([(0, 'PORT must be a valid integer'), (3, 'PORT must be a valid integer'), (6, 'PORT must be a valid integer'), (1, 'PORT must be a valid integer'), (4, 'PORT must be a valid integer'), (5, 'PORT must be a valid integer'), ...])"
+            }
+          ]
+        },
+        {
+          "name": "test_high_volume_reads_1000_sequential",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestHighLoadConfigurationAccess::test_high_volume_reads_1000_sequential",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_mixed_read_write_load",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestHighLoadConfigurationAccess::test_mixed_read_write_load",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Errors occurred: [('reader', 0, 'PORT must be a valid integer'), ('reader', 3, 'PORT must be a valid integer'), ('reader', 2, 'PORT must be a valid integer'), ('reader', 1, 'PORT must be a valid integer'), ('reader', 4, 'PORT must be a valid integer'), ('reader', 5, 'PORT must be a valid integer'), ('reader', 6, 'PORT must be a valid integer'), ('reader', 7, 'PORT must be a valid integer'), ('reader', 8, 'PORT must be a valid integer'), ('reader', 9, 'PORT must be a valid integer'), ('reader', 10, 'PORT must be a valid integer'), ('reader', 11, 'PORT must be a valid integer'), ('reader', 12, 'PORT must be a valid integer'), ('reader', 13, 'PORT must be a valid integer'), ('reader', 14, 'PORT must be a valid integer'), ('reader', 15, 'PORT must be a valid integer'), ('reader', 16, 'PORT must be a valid integer'), ('reader', 17, 'PORT must be a valid integer'), ('reader', 18, 'PORT must be a valid integer'), ('reader', 19, 'PORT must be a valid integer'), ('reader', 20, 'PORT must be a valid integer'), ('reader', 21, 'PORT must be a valid integer'), ('reader', 22, 'PORT must be a valid integer'), ('reader', 23, 'PORT must be a valid integer'), ('reader', 24, 'PORT must be a valid integer')]\n    assert 25 == 0\n     +  where 25 = len([('reader', 0, 'PORT must be a valid integer'), ('reader', 3, 'PORT must be a valid integer'), ('reader', 2, 'PORT mus...e a valid integer'), ('reader', 4, 'PORT must be a valid integer'), ('reader', 5, 'PORT must be a valid integer'), ...])"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_rotation_without_restart",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestSecretRotation::test_secret_rotation_without_restart",
+          "state": "passed"
+        },
+        {
+          "name": "test_concurrent_secret_rotation",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestSecretRotation::test_concurrent_secret_rotation",
+          "state": "passed"
+        },
+        {
+          "name": "test_encrypted_secret_rotation",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestSecretRotation::test_encrypted_secret_rotation",
+          "state": "passed"
+        },
+        {
+          "name": "test_config_reload_during_access",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestConfigurationReloadUnderLoad::test_config_reload_during_access",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Errors occurred: [('access', 0, 'PORT must be a valid integer'), ('access', 4, 'PORT must be a valid integer'), ('access', 2, 'PORT must be a valid integer'), ('access', 3, 'PORT must be a valid integer'), ('access', 1, 'PORT must be a valid integer'), ('access', 5, 'PORT must be a valid integer'), ('access', 6, 'PORT must be a valid integer'), ('access', 7, 'PORT must be a valid integer'), ('access', 8, 'PORT must be a valid integer'), ('access', 9, 'PORT must be a valid integer')]\n    assert 10 == 0\n     +  where 10 = len([('access', 0, 'PORT must be a valid integer'), ('access', 4, 'PORT must be a valid integer'), ('access', 2, 'PORT mus...e a valid integer'), ('access', 1, 'PORT must be a valid integer'), ('access', 5, 'PORT must be a valid integer'), ...])"
+            }
+          ]
+        },
+        {
+          "name": "test_environment_switch_under_load",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestConfigurationReloadUnderLoad::test_environment_switch_under_load",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Errors occurred: [(0, 'PORT must be a valid integer'), (3, 'PORT must be a valid integer'), (2, 'PORT must be a valid integer'), (1, 'PORT must be a valid integer'), (4, 'PORT must be a valid integer')]\n    assert 5 == 0\n     +  where 5 = len([(0, 'PORT must be a valid integer'), (3, 'PORT must be a valid integer'), (2, 'PORT must be a valid integer'), (1, 'PORT must be a valid integer'), (4, 'PORT must be a valid integer')])"
+            }
+          ]
+        },
+        {
+          "name": "test_memory_usage_sustained_access",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestMemoryUsage::test_memory_usage_sustained_access",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_manager_memory_usage",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestMemoryUsage::test_secret_manager_memory_usage",
+          "state": "passed"
+        },
+        {
+          "name": "test_recovery_from_invalid_config",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestErrorRecovery::test_recovery_from_invalid_config",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_concurrent_error_recovery",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestErrorRecovery::test_concurrent_error_recovery",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   assert 0 > 0"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_validation_error_recovery",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestErrorRecovery::test_secret_validation_error_recovery",
+          "state": "passed"
+        },
+        {
+          "name": "test_production_required_fields",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestProductionValidation::test_production_required_fields",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_production_security_validation",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestProductionValidation::test_production_security_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_production_performance_requirements",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestProductionValidation::test_production_performance_requirements",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_config_load_time_benchmark",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestPerformanceBenchmarks::test_config_load_time_benchmark",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_access_benchmark",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestPerformanceBenchmarks::test_secret_access_benchmark",
+          "state": "passed"
+        },
+        {
+          "name": "test_concurrent_performance_benchmark",
+          "fullName": "tests/foundation/config/test_production_scenarios.py::TestPerformanceBenchmarks::test_concurrent_performance_benchmark",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_secrets.py",
+      "tests": [
+        {
+          "name": "test_initialization_with_secret_key",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_initialization_with_secret_key",
+          "state": "passed"
+        },
+        {
+          "name": "test_initialization_without_secret_key",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_initialization_without_secret_key",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_with_secret_prefix",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_secret_with_secret_prefix",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_with_secure_prefix",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_secret_with_secure_prefix",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_with_credential_prefix",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_secret_with_credential_prefix",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_non_secret_returns_none",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_secret_non_secret_returns_none",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_missing_returns_default",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_secret_missing_returns_default",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_required_secret_success",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_required_secret_success",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_required_secret_raises_error",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_get_required_secret_raises_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_base64_decoding",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_base64_decoding",
+          "state": "passed"
+        },
+        {
+          "name": "test_no_plaintext_logging",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretManager::test_no_plaintext_logging",
+          "state": "passed"
+        },
+        {
+          "name": "test_decrypt_if_needed_base64",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_decrypt_if_needed_base64",
+          "state": "passed"
+        },
+        {
+          "name": "test_decrypt_if_needed_plain",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_decrypt_if_needed_plain",
+          "state": "passed"
+        },
+        {
+          "name": "test_store_secret_with_encryption",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_store_secret_with_encryption",
+          "state": "passed"
+        },
+        {
+          "name": "test_store_secret_without_encryption",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_store_secret_without_encryption",
+          "state": "passed"
+        },
+        {
+          "name": "test_round_trip_encoding_decoding",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_round_trip_encoding_decoding",
+          "state": "passed"
+        },
+        {
+          "name": "test_invalid_base64_handling",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretEncryption::test_invalid_base64_handling",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_database_credentials",
+          "fullName": "tests/foundation/config/test_secrets.py::TestCredentialHelpers::test_get_database_credentials",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_proxy_credentials",
+          "fullName": "tests/foundation/config/test_secrets.py::TestCredentialHelpers::test_get_proxy_credentials",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_api_keys",
+          "fullName": "tests/foundation/config/test_secrets.py::TestCredentialHelpers::test_get_api_keys",
+          "state": "passed"
+        },
+        {
+          "name": "test_missing_credential_handling",
+          "fullName": "tests/foundation/config/test_secrets.py::TestCredentialHelpers::test_missing_credential_handling",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_secrets_all_present",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretValidation::test_validate_secrets_all_present",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_secrets_missing_required",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretValidation::test_validate_secrets_missing_required",
+          "state": "passed"
+        },
+        {
+          "name": "test_validate_secrets_recommended_warning",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretValidation::test_validate_secrets_recommended_warning",
+          "state": "passed"
+        },
+        {
+          "name": "test_comprehensive_error_reporting",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecretValidation::test_comprehensive_error_reporting",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_secret_manager_singleton",
+          "fullName": "tests/foundation/config/test_secrets.py::TestGlobalSecretManager::test_get_secret_manager_singleton",
+          "state": "passed"
+        },
+        {
+          "name": "test_convenience_function_get_secret",
+          "fullName": "tests/foundation/config/test_secrets.py::TestGlobalSecretManager::test_convenience_function_get_secret",
+          "state": "passed"
+        },
+        {
+          "name": "test_convenience_function_get_required_secret",
+          "fullName": "tests/foundation/config/test_secrets.py::TestGlobalSecretManager::test_convenience_function_get_required_secret",
+          "state": "passed"
+        },
+        {
+          "name": "test_no_secrets_in_exception_messages",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecurityBestPractices::test_no_secrets_in_exception_messages",
+          "state": "passed"
+        },
+        {
+          "name": "test_no_secrets_in_str_repr",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecurityBestPractices::test_no_secrets_in_str_repr",
+          "state": "passed"
+        },
+        {
+          "name": "test_audit_logging_for_secret_access",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecurityBestPractices::test_audit_logging_for_secret_access",
+          "state": "passed"
+        },
+        {
+          "name": "test_safe_error_messages",
+          "fullName": "tests/foundation/config/test_secrets.py::TestSecurityBestPractices::test_safe_error_messages",
+          "state": "passed"
+        },
+        {
+          "name": "test_empty_secret_value",
+          "fullName": "tests/foundation/config/test_secrets.py::TestEdgeCases::test_empty_secret_value",
+          "state": "passed"
+        },
+        {
+          "name": "test_whitespace_secret_value",
+          "fullName": "tests/foundation/config/test_secrets.py::TestEdgeCases::test_whitespace_secret_value",
+          "state": "passed"
+        },
+        {
+          "name": "test_unicode_secret_value",
+          "fullName": "tests/foundation/config/test_secrets.py::TestEdgeCases::test_unicode_secret_value",
+          "state": "passed"
+        },
+        {
+          "name": "test_very_long_secret_value",
+          "fullName": "tests/foundation/config/test_secrets.py::TestEdgeCases::test_very_long_secret_value",
+          "state": "passed"
+        }
+      ]
+    },
+    {
+      "moduleId": "tests/foundation/config/test_thread_safe_rotation.py",
+      "tests": [
+        {
+          "name": "test_atomic_secret_rotation",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestAdvancedSecretRotation::test_atomic_secret_rotation",
+          "state": "passed"
+        },
+        {
+          "name": "test_secret_rotation_with_validation",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestAdvancedSecretRotation::test_secret_rotation_with_validation",
+          "state": "passed"
+        },
+        {
+          "name": "test_bulk_secret_rotation_performance",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestAdvancedSecretRotation::test_bulk_secret_rotation_performance",
+          "state": "passed"
+        },
+        {
+          "name": "test_config_object_lifecycle",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestMemoryLeakPrevention::test_config_object_lifecycle",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_secret_reference_cleanup",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestMemoryLeakPrevention::test_secret_reference_cleanup",
+          "state": "passed"
+        },
+        {
+          "name": "test_thread_local_storage_cleanup",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestMemoryLeakPrevention::test_thread_local_storage_cleanup",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Multiple config instances found: 0\n    assert 0 == 1\n     +  where 0 = len(set())"
+            }
+          ]
+        },
+        {
+          "name": "test_config_access_during_shutdown",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestProductionEdgeCases::test_config_access_during_shutdown",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: Errors during shutdown: ['PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer']\n    assert 296 == 0\n     +  where 296 = len(['PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', 'PORT must be a valid integer', ...])"
+            }
+          ]
+        },
+        {
+          "name": "test_recursive_config_access",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestProductionEdgeCases::test_recursive_config_access",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   phoenix_real_estate.foundation.config.environment.ConfigurationError: PORT must be a valid integer"
+            }
+          ]
+        },
+        {
+          "name": "test_config_consistency_across_processes",
+          "fullName": "tests/foundation/config/test_thread_safe_rotation.py::TestProductionEdgeCases::test_config_consistency_across_processes",
+          "state": "skipped"
+        }
+      ]
+    },
+    {
       "moduleId": "tests/foundation/database/test_connection.py",
       "tests": [
         {
@@ -376,6 +1446,216 @@
       ]
     },
     {
+      "moduleId": "tests/foundation/test_logging.py",
+      "tests": [
+        {
+          "name": "test_json_formatter_basic",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_json_formatter_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_json_formatter_with_correlation_id",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_json_formatter_with_correlation_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_json_formatter_with_extra_fields",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_json_formatter_with_extra_fields",
+          "state": "passed"
+        },
+        {
+          "name": "test_json_formatter_sensitive_data_filtering",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_json_formatter_sensitive_data_filtering",
+          "state": "passed"
+        },
+        {
+          "name": "test_json_formatter_with_exception",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_json_formatter_with_exception",
+          "state": "passed"
+        },
+        {
+          "name": "test_text_formatter_basic",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_text_formatter_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_text_formatter_with_colors",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_text_formatter_with_colors",
+          "state": "passed"
+        },
+        {
+          "name": "test_text_formatter_with_location",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_text_formatter_with_location",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_formatter_json",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_get_formatter_json",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_formatter_text",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_get_formatter_text",
+          "state": "passed"
+        },
+        {
+          "name": "test_get_formatter_invalid_type",
+          "fullName": "tests/foundation/test_logging.py::TestFormatters::test_get_formatter_invalid_type",
+          "state": "passed"
+        },
+        {
+          "name": "test_console_handler_development",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_console_handler_development",
+          "state": "passed"
+        },
+        {
+          "name": "test_console_handler_production",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_console_handler_production",
+          "state": "passed"
+        },
+        {
+          "name": "test_console_handler_custom_format",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_console_handler_custom_format",
+          "state": "passed"
+        },
+        {
+          "name": "test_file_handler_creation",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_file_handler_creation",
+          "state": "passed"
+        },
+        {
+          "name": "test_file_handler_rotation",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_file_handler_rotation",
+          "state": "passed"
+        },
+        {
+          "name": "test_timed_file_handler",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_timed_file_handler",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_console_handler",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_console_handler",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_file_handler_size_based",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_file_handler_size_based",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_file_handler_time_based",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_file_handler_time_based",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   AssertionError: assert 'MIDNIGHT' == 'midnight'\n      \n      - midnight\n      + MIDNIGHT"
+            }
+          ]
+        },
+        {
+          "name": "test_create_handler_from_config_console",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_handler_from_config_console",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_handler_from_config_file",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_handler_from_config_file",
+          "state": "passed"
+        },
+        {
+          "name": "test_create_handler_from_config_invalid",
+          "fullName": "tests/foundation/test_logging.py::TestHandlers::test_create_handler_from_config_invalid",
+          "state": "passed"
+        },
+        {
+          "name": "test_phoenix_logger_basic",
+          "fullName": "tests/foundation/test_logging.py::TestPhoenixLogger::test_phoenix_logger_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_phoenix_logger_with_correlation_id",
+          "fullName": "tests/foundation/test_logging.py::TestPhoenixLogger::test_phoenix_logger_with_correlation_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_phoenix_logger_log_with_context",
+          "fullName": "tests/foundation/test_logging.py::TestPhoenixLogger::test_phoenix_logger_log_with_context",
+          "state": "passed"
+        },
+        {
+          "name": "test_phoenix_logger_without_correlation_id",
+          "fullName": "tests/foundation/test_logging.py::TestPhoenixLogger::test_phoenix_logger_without_correlation_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_logger_manager_configure",
+          "fullName": "tests/foundation/test_logging.py::TestLoggerManager::test_logger_manager_configure",
+          "state": "passed"
+        },
+        {
+          "name": "test_logger_manager_get_logger",
+          "fullName": "tests/foundation/test_logging.py::TestLoggerManager::test_logger_manager_get_logger",
+          "state": "passed"
+        },
+        {
+          "name": "test_logger_manager_correlation_id",
+          "fullName": "tests/foundation/test_logging.py::TestLoggerManager::test_logger_manager_correlation_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_correlation_context_basic",
+          "fullName": "tests/foundation/test_logging.py::TestCorrelationContext::test_correlation_context_basic",
+          "state": "passed"
+        },
+        {
+          "name": "test_correlation_context_with_custom_id",
+          "fullName": "tests/foundation/test_logging.py::TestCorrelationContext::test_correlation_context_with_custom_id",
+          "state": "passed"
+        },
+        {
+          "name": "test_correlation_context_nested",
+          "fullName": "tests/foundation/test_logging.py::TestCorrelationContext::test_correlation_context_nested",
+          "state": "passed"
+        },
+        {
+          "name": "test_full_logging_flow",
+          "fullName": "tests/foundation/test_logging.py::TestIntegration::test_full_logging_flow",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\Andrew\\\\AppData\\\\Local\\\\Temp\\\\tmpumdg17yk\\\\test.log'\n\nDuring handling of the above exception, another exception occurred:\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\Andrew\\\\AppData\\\\Local\\\\Temp\\\\tmpumdg17yk\\\\test.log'"
+            }
+          ]
+        },
+        {
+          "name": "test_sensitive_data_filtering_integration",
+          "fullName": "tests/foundation/test_logging.py::TestIntegration::test_sensitive_data_filtering_integration",
+          "state": "failed",
+          "errors": [
+            {
+              "message": "E   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\Andrew\\\\AppData\\\\Local\\\\Temp\\\\tmpl2qdf3a3\\\\sensitive.log'\n\nDuring handling of the above exception, another exception occurred:\nE   PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\\\Users\\\\Andrew\\\\AppData\\\\Local\\\\Temp\\\\tmpl2qdf3a3\\\\sensitive.log'"
+            }
+          ]
+        },
+        {
+          "name": "test_auto_configuration_from_config_system",
+          "fullName": "tests/foundation/test_logging.py::TestIntegration::test_auto_configuration_from_config_system",
+          "state": "passed"
+        },
+        {
+          "name": "test_json_formatter_serialization_error",
+          "fullName": "tests/foundation/test_logging.py::TestErrorHandling::test_json_formatter_serialization_error",
+          "state": "passed"
+        },
+        {
+          "name": "test_file_handler_emit_error",
+          "fullName": "tests/foundation/test_logging.py::TestErrorHandling::test_file_handler_emit_error",
+          "state": "passed"
+        }
+      ]
+    },
+    {
       "moduleId": "tests/foundation/test_utils.py",
       "tests": [
         {
@@ -596,61 +1876,6 @@
         {
           "name": "test_retry_async_failure",
           "fullName": "tests/foundation/test_utils.py::TestRetryAsync::test_retry_async_failure",
-          "state": "passed"
-        }
-      ]
-    },
-    {
-      "moduleId": "tests/integration/test_project_structure.py",
-      "tests": [
-        {
-          "name": "test_package_imports",
-          "fullName": "tests/integration/test_project_structure.py::test_package_imports",
-          "state": "passed"
-        },
-        {
-          "name": "test_utility_function_imports",
-          "fullName": "tests/integration/test_project_structure.py::test_utility_function_imports",
-          "state": "passed"
-        },
-        {
-          "name": "test_exception_hierarchy",
-          "fullName": "tests/integration/test_project_structure.py::test_exception_hierarchy",
-          "state": "passed"
-        },
-        {
-          "name": "test_project_structure",
-          "fullName": "tests/integration/test_project_structure.py::test_project_structure",
-          "state": "passed"
-        },
-        {
-          "name": "test_critical_files_exist",
-          "fullName": "tests/integration/test_project_structure.py::test_critical_files_exist",
-          "state": "passed"
-        },
-        {
-          "name": "test_foundation_layer_integration",
-          "fullName": "tests/integration/test_project_structure.py::test_foundation_layer_integration",
-          "state": "passed"
-        },
-        {
-          "name": "test_async_functionality",
-          "fullName": "tests/integration/test_project_structure.py::test_async_functionality",
-          "state": "passed"
-        },
-        {
-          "name": "test_package_metadata",
-          "fullName": "tests/integration/test_project_structure.py::test_package_metadata",
-          "state": "passed"
-        },
-        {
-          "name": "test_comprehensive_utility_workflow",
-          "fullName": "tests/integration/test_project_structure.py::test_comprehensive_utility_workflow",
-          "state": "passed"
-        },
-        {
-          "name": "test_error_handling_integration",
-          "fullName": "tests/integration/test_project_structure.py::test_error_handling_integration",
           "state": "passed"
         }
       ]
