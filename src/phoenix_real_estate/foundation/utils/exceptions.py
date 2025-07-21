@@ -63,16 +63,48 @@ class ConfigurationError(PhoenixREError):
     including missing configuration files, invalid settings, or environment
     variable issues.
     
+    Attributes:
+        config_key: The configuration key that caused the error.
+        expected_type: The expected type/format for the configuration value.
+    
     Examples:
-        >>> raise ConfigurationError("Missing API key", context={"key": "PHOENIX_API_KEY"})
-        ConfigurationError: Missing API key (context: key=PHOENIX_API_KEY)
+        >>> raise ConfigurationError("Missing API key", config_key="PHOENIX_API_KEY")
+        ConfigurationError: Missing API key (context: config_key=PHOENIX_API_KEY)
         
         >>> raise ConfigurationError(
         ...     "Invalid proxy configuration",
-        ...     context={"proxy_url": "invalid-url", "expected_format": "http://host:port"}
+        ...     config_key="proxy_url",
+        ...     expected_type="URL format",
+        ...     context={"actual_value": "invalid-url", "expected_format": "http://host:port"}
         ... )
     """
-    pass
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        config_key: Optional[str] = None,
+        expected_type: Optional[str] = None
+    ) -> None:
+        """Initialize the ConfigurationError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            config_key: The configuration key that caused the error.
+            expected_type: The expected type/format for the configuration value.
+        """
+        context = context or {}
+        if config_key is not None:
+            context['config_key'] = config_key
+        if expected_type is not None:
+            context['expected_type'] = expected_type
+            
+        super().__init__(message, context, original_error)
+        self.config_key = config_key
+        self.expected_type = expected_type
 
 
 class DatabaseError(PhoenixREError):
@@ -100,16 +132,52 @@ class ValidationError(PhoenixREError):
     type, or business rules. It's commonly used for validating property data,
     addresses, and API responses.
     
+    Attributes:
+        field_name: The name of the field that failed validation.
+        expected_value: The expected value or format.
+        actual_value: The actual value that failed validation.
+    
     Examples:
-        >>> raise ValidationError("Invalid zipcode format", context={"zipcode": "8500", "expected": "5 digits"})
-        ValidationError: Invalid zipcode format (context: zipcode=8500, expected=5 digits)
+        >>> raise ValidationError("Invalid zipcode format", field_name="zipcode", expected_value="5 digits", actual_value="8500")
+        ValidationError: Invalid zipcode format (context: field_name=zipcode, expected_value=5 digits, actual_value=8500)
         
         >>> raise ValidationError(
         ...     "Property missing required fields",
         ...     context={"missing_fields": ["address", "price"], "property_id": "123"}
         ... )
     """
-    pass
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        field_name: Optional[str] = None,
+        expected_value: Optional[Any] = None,
+        actual_value: Optional[Any] = None
+    ) -> None:
+        """Initialize the ValidationError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            field_name: The name of the field that failed validation.
+            expected_value: The expected value or format.
+            actual_value: The actual value that failed validation.
+        """
+        context = context or {}
+        if field_name is not None:
+            context['field_name'] = field_name
+        if expected_value is not None:
+            context['expected_value'] = expected_value
+        if actual_value is not None:
+            context['actual_value'] = actual_value
+            
+        super().__init__(message, context, original_error)
+        self.field_name = field_name
+        self.expected_value = expected_value
+        self.actual_value = actual_value
 
 
 class DataCollectionError(PhoenixREError):
@@ -119,16 +187,48 @@ class DataCollectionError(PhoenixREError):
     data retrieval operations. It includes network errors, parsing failures,
     and rate limiting issues.
     
+    Attributes:
+        operation: The specific operation that failed (e.g., 'collect_zipcode', 'get_property_details').
+        source: The data source where the error occurred (e.g., 'maricopa_api', 'phoenix_mls').
+    
     Examples:
         >>> raise DataCollectionError("Failed to scrape MLS data", context={"url": "https://example.com", "status_code": 404})
         DataCollectionError: Failed to scrape MLS data (context: url=https://example.com, status_code=404)
         
         >>> raise DataCollectionError(
         ...     "Rate limit exceeded",
-        ...     context={"source": "PhoenixMLS", "retry_after": 3600, "requests_made": 1000}
+        ...     operation="collect_zipcode",
+        ...     source="maricopa_api",
+        ...     context={"retry_after": 3600, "requests_made": 1000}
         ... )
     """
-    pass
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        operation: Optional[str] = None,
+        source: Optional[str] = None
+    ) -> None:
+        """Initialize the DataCollectionError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            operation: The specific operation that failed.
+            source: The data source where the error occurred.
+        """
+        context = context or {}
+        if operation is not None:
+            context['operation'] = operation
+        if source is not None:
+            context['source'] = source
+            
+        super().__init__(message, context, original_error)
+        self.operation = operation
+        self.source = source
 
 
 class ProcessingError(PhoenixREError):
@@ -138,16 +238,47 @@ class ProcessingError(PhoenixREError):
     enrichment, or any processing pipeline operations. It includes LLM
     processing failures and data normalization errors.
     
+    Attributes:
+        stage: The processing stage where the error occurred (e.g., 'transformation', 'validation').
+        data_context: Context about the data being processed when error occurred.
+    
     Examples:
-        >>> raise ProcessingError("Failed to parse property features", context={"raw_data": "3BR/2BA", "parser": "feature_extractor"})
-        ProcessingError: Failed to parse property features (context: raw_data=3BR/2BA, parser=feature_extractor)
+        >>> raise ProcessingError("Failed to parse property features", stage="transformation", context={"raw_data": "3BR/2BA", "parser": "feature_extractor"})
+        ProcessingError: Failed to parse property features (context: stage=transformation, raw_data=3BR/2BA, parser=feature_extractor)
         
         >>> raise ProcessingError(
         ...     "LLM processing timeout",
-        ...     context={"property_id": "123", "timeout_seconds": 30, "model": "local-llm"}
+        ...     stage="llm_processing",
+        ...     data_context={"property_id": "123", "timeout_seconds": 30, "model": "local-llm"}
         ... )
     """
-    pass
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        stage: Optional[str] = None,
+        data_context: Optional[dict[str, Any]] = None
+    ) -> None:
+        """Initialize the ProcessingError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            stage: The processing stage where the error occurred.
+            data_context: Context about the data being processed when error occurred.
+        """
+        context = context or {}
+        if stage is not None:
+            context['stage'] = stage
+        if data_context is not None:
+            context.update(data_context)
+            
+        super().__init__(message, context, original_error)
+        self.stage = stage
+        self.data_context = data_context or {}
 
 
 class OrchestrationError(PhoenixREError):
@@ -167,3 +298,107 @@ class OrchestrationError(PhoenixREError):
         ... )
     """
     pass
+
+
+class RateLimitError(DataCollectionError):
+    """Raised when rate limiting constraints are violated.
+    
+    This exception is a specialized DataCollectionError for rate limiting
+    scenarios, including API rate limits, request throttling, and quota
+    exceeded situations.
+    
+    Attributes:
+        retry_after: Seconds to wait before retrying, if known.
+        current_rate: Current request rate when limit was hit.
+        limit: The rate limit that was exceeded.
+    
+    Examples:
+        >>> raise RateLimitError("API rate limit exceeded", context={"retry_after": 60, "limit": "1000/hour"})
+        RateLimitError: API rate limit exceeded (context: retry_after=60, limit=1000/hour)
+        
+        >>> raise RateLimitError(
+        ...     "Request throttled",
+        ...     context={"current_rate": 15.2, "limit": 10.0, "window": "per_second"}
+        ... )
+    """
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        retry_after: Optional[int] = None,
+        current_rate: Optional[float] = None,
+        limit: Optional[str] = None
+    ) -> None:
+        """Initialize the RateLimitError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            retry_after: Seconds to wait before retrying.
+            current_rate: Current request rate when limit was hit.
+            limit: The rate limit that was exceeded.
+        """
+        context = context or {}
+        if retry_after is not None:
+            context['retry_after'] = retry_after
+        if current_rate is not None:
+            context['current_rate'] = current_rate
+        if limit is not None:
+            context['limit'] = limit
+            
+        super().__init__(message, context, original_error)
+        self.retry_after = retry_after
+        self.current_rate = current_rate
+        self.limit = limit
+
+
+class AuthenticationError(DataCollectionError):
+    """Raised when authentication or authorization fails.
+    
+    This exception is used for authentication failures, expired tokens,
+    invalid API keys, and authorization issues when accessing external
+    data sources.
+    
+    Attributes:
+        auth_type: Type of authentication that failed (e.g., 'bearer_token', 'api_key').
+        endpoint: The endpoint or service where auth failed.
+    
+    Examples:
+        >>> raise AuthenticationError("Invalid API key", context={"auth_type": "api_key", "endpoint": "maricopa_api"})
+        AuthenticationError: Invalid API key (context: auth_type=api_key, endpoint=maricopa_api)
+        
+        >>> raise AuthenticationError(
+        ...     "Token expired",
+        ...     context={"auth_type": "bearer_token", "expires_at": "2025-01-20T10:00:00Z"}
+        ... )
+    """
+    
+    def __init__(
+        self, 
+        message: str,
+        context: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
+        auth_type: Optional[str] = None,
+        endpoint: Optional[str] = None
+    ) -> None:
+        """Initialize the AuthenticationError.
+        
+        Args:
+            message: The error message.
+            context: Optional dictionary with additional context information.
+            original_error: The original exception that caused this error.
+            auth_type: Type of authentication that failed.
+            endpoint: The endpoint or service where auth failed.
+        """
+        context = context or {}
+        if auth_type is not None:
+            context['auth_type'] = auth_type
+        if endpoint is not None:
+            context['endpoint'] = endpoint
+            
+        super().__init__(message, context, original_error)
+        self.auth_type = auth_type
+        self.endpoint = endpoint
