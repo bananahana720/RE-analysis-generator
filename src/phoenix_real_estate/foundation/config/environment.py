@@ -283,13 +283,13 @@ def get_config(environment: Optional[Environment] = None) -> BaseConfig:
         Singleton BaseConfig instance
     """
     global _current_environment
-    
+
     with _config_lock:
         # If no explicit environment given and we have a current environment, use it
         # This ensures that once an environment is set, it stays until reset
         if environment is None and _current_environment is not None:
             environment = _current_environment
-        
+
         # Otherwise determine environment from env var or default
         if environment is None:
             env_str = os.environ.get("ENVIRONMENT", "development")
@@ -309,7 +309,7 @@ def get_config(environment: Optional[Environment] = None) -> BaseConfig:
             # Remove oldest entry
             oldest_env = next(iter(_config_instances))
             del _config_instances[oldest_env]
-        
+
         _config_instances[environment] = config
         _current_environment = environment
 
@@ -323,7 +323,7 @@ def reset_config_cache() -> None:
     to be created on next get_config() call.
     """
     global _current_environment
-    
+
     with _config_lock:
         _config_instances.clear()
         _current_environment = None

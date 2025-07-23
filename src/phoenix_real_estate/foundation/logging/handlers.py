@@ -5,7 +5,6 @@ environment-specific configuration, and proper resource management.
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -16,26 +15,26 @@ from phoenix_real_estate.foundation.logging.formatters import get_formatter
 
 class ConsoleHandler(logging.StreamHandler):
     """Enhanced console handler with environment-aware formatting.
-    
+
     Automatically selects appropriate formatter based on environment:
     - Development: Colored text formatter with readable output
     - Production: JSON formatter for structured logging
-    
+
     Attributes:
         environment: Current environment (development, staging, production)
         use_colors: Whether to use ANSI colors in output
     """
-    
+
     def __init__(
         self,
         stream: Optional[Any] = None,
         environment: str = "development",
         use_colors: Optional[bool] = None,
         format_type: Optional[str] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize console handler.
-        
+
         Args:
             stream: Output stream (defaults to sys.stdout)
             environment: Current environment name
@@ -46,56 +45,56 @@ class ConsoleHandler(logging.StreamHandler):
         # Use stdout by default for better compatibility
         if stream is None:
             stream = sys.stdout
-            
+
         super().__init__(stream, **kwargs)
-        
+
         self.environment = environment.lower()
         self.use_colors = use_colors
-        
+
         # Auto-select formatter based on environment
         if format_type is None:
             if self.environment in ("production", "prod"):
                 format_type = "json"
             else:
                 format_type = "text"
-        
+
         # Set appropriate formatter
         formatter = get_formatter(
             format_type=format_type,
             use_colors=use_colors,
-            include_location=(self.environment in ("development", "dev", "local"))
+            include_location=(self.environment in ("development", "dev", "local")),
         )
         self.setFormatter(formatter)
 
 
 class FileHandler(RotatingFileHandler):
     """Enhanced file handler with automatic directory creation and rotation.
-    
+
     Provides file-based logging with:
     - Automatic parent directory creation
     - Size-based rotation with configurable limits
     - Backup file management
     - Environment-specific formatting
-    
+
     Attributes:
         log_dir: Directory containing log files
         environment: Current environment name
     """
-    
+
     def __init__(
         self,
         filename: Union[str, Path],
-        mode: str = 'a',
+        mode: str = "a",
         maxBytes: int = 10 * 1024 * 1024,  # 10MB default
         backupCount: int = 5,
-        encoding: Optional[str] = 'utf-8',
+        encoding: Optional[str] = "utf-8",
         delay: bool = True,
         environment: str = "development",
         format_type: Optional[str] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize file handler with rotation.
-        
+
         Args:
             filename: Path to log file
             mode: File open mode
@@ -111,7 +110,7 @@ class FileHandler(RotatingFileHandler):
         log_path = Path(filename)
         self.log_dir = log_path.parent
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize parent with absolute path
         super().__init__(
             str(log_path.absolute()),
@@ -120,27 +119,27 @@ class FileHandler(RotatingFileHandler):
             backupCount=backupCount,
             encoding=encoding,
             delay=delay,
-            **kwargs
+            **kwargs,
         )
-        
+
         self.environment = environment.lower()
-        
+
         # Auto-select formatter based on environment
         if format_type is None:
             # Use JSON for production, text for others
             format_type = "json" if self.environment in ("production", "prod") else "text"
-        
+
         # Set formatter (no colors for file output)
         formatter = get_formatter(
             format_type=format_type,
             use_colors=False,  # Never use colors in files
-            include_location=True  # Always include location in files
+            include_location=True,  # Always include location in files
         )
         self.setFormatter(formatter)
-    
+
     def emit(self, record: logging.LogRecord) -> None:
         """Emit a record with error handling.
-        
+
         Args:
             record: Log record to emit
         """
@@ -159,7 +158,7 @@ class FileHandler(RotatingFileHandler):
                     lineno=0,
                     msg=f"File handler failed: {e}",
                     args=(),
-                    exc_info=None
+                    exc_info=None,
                 )
                 fallback_handler.emit(error_record)
             except Exception:
@@ -169,33 +168,33 @@ class FileHandler(RotatingFileHandler):
 
 class TimedFileHandler(TimedRotatingFileHandler):
     """Time-based rotating file handler with automatic directory creation.
-    
+
     Rotates log files based on time intervals:
     - 'midnight': Roll over at midnight
     - 'H': Hourly
     - 'D': Daily
     - 'W0'-'W6': Weekly (0=Monday, 6=Sunday)
-    
+
     Attributes:
         log_dir: Directory containing log files
         environment: Current environment name
     """
-    
+
     def __init__(
         self,
         filename: Union[str, Path],
-        when: str = 'midnight',
+        when: str = "midnight",
         interval: int = 1,
         backupCount: int = 7,
-        encoding: Optional[str] = 'utf-8',
+        encoding: Optional[str] = "utf-8",
         delay: bool = True,
         utc: bool = True,
         environment: str = "development",
         format_type: Optional[str] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize time-based rotating file handler.
-        
+
         Args:
             filename: Path to log file
             when: Type of time interval
@@ -212,7 +211,7 @@ class TimedFileHandler(TimedRotatingFileHandler):
         log_path = Path(filename)
         self.log_dir = log_path.parent
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize parent with absolute path
         super().__init__(
             str(log_path.absolute()),
@@ -222,49 +221,43 @@ class TimedFileHandler(TimedRotatingFileHandler):
             encoding=encoding,
             delay=delay,
             utc=utc,
-            **kwargs
+            **kwargs,
         )
-        
+
         self.environment = environment.lower()
-        
+
         # Auto-select formatter
         if format_type is None:
             format_type = "json" if self.environment in ("production", "prod") else "text"
-        
+
         # Set formatter
-        formatter = get_formatter(
-            format_type=format_type,
-            use_colors=False,
-            include_location=True
-        )
+        formatter = get_formatter(format_type=format_type, use_colors=False, include_location=True)
         self.setFormatter(formatter)
 
 
 def create_console_handler(
-    level: Union[int, str] = logging.INFO,
-    environment: str = "development",
-    **kwargs: Any
+    level: Union[int, str] = logging.INFO, environment: str = "development", **kwargs: Any
 ) -> ConsoleHandler:
     """Create a configured console handler.
-    
+
     Args:
         level: Logging level
         environment: Current environment
         **kwargs: Additional handler configuration
-        
+
     Returns:
         Configured console handler
-        
+
     Example:
         >>> handler = create_console_handler(level=logging.DEBUG)
         >>> logger.addHandler(handler)
     """
     handler = ConsoleHandler(environment=environment, **kwargs)
-    
+
     # Convert string level to int if needed
     if isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
-    
+
     handler.setLevel(level)
     return handler
 
@@ -276,10 +269,10 @@ def create_file_handler(
     backup_count: int = 5,
     environment: str = "development",
     rotation_type: str = "size",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Union[FileHandler, TimedFileHandler]:
     """Create a configured file handler with rotation.
-    
+
     Args:
         filename: Path to log file
         level: Logging level
@@ -288,10 +281,10 @@ def create_file_handler(
         environment: Current environment
         rotation_type: Type of rotation ("size" or "time")
         **kwargs: Additional handler configuration
-        
+
     Returns:
         Configured file handler
-        
+
     Example:
         >>> # Size-based rotation
         >>> handler = create_file_handler(
@@ -299,7 +292,7 @@ def create_file_handler(
         ...     max_bytes=50*1024*1024,  # 50MB
         ...     backup_count=10
         ... )
-        
+
         >>> # Time-based rotation
         >>> handler = create_file_handler(
         ...     "logs/app.log",
@@ -311,13 +304,13 @@ def create_file_handler(
     # Convert string level to int if needed
     if isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
-    
+
     if rotation_type == "time":
         # Extract time-specific kwargs
-        when = kwargs.pop('when', 'midnight')
-        interval = kwargs.pop('interval', 1)
-        utc = kwargs.pop('utc', True)
-        
+        when = kwargs.pop("when", "midnight")
+        interval = kwargs.pop("interval", 1)
+        utc = kwargs.pop("utc", True)
+
         handler = TimedFileHandler(
             filename=filename,
             when=when,
@@ -325,7 +318,7 @@ def create_file_handler(
             backupCount=backup_count,
             utc=utc,
             environment=environment,
-            **kwargs
+            **kwargs,
         )
     else:
         # Size-based rotation (default)
@@ -334,25 +327,25 @@ def create_file_handler(
             maxBytes=max_bytes,
             backupCount=backup_count,
             environment=environment,
-            **kwargs
+            **kwargs,
         )
-    
+
     handler.setLevel(level)
     return handler
 
 
 def create_handler_from_config(config: Dict[str, Any]) -> logging.Handler:
     """Create a handler from configuration dictionary.
-    
+
     Args:
         config: Handler configuration with 'type' and handler-specific settings
-        
+
     Returns:
         Configured handler instance
-        
+
     Raises:
         ValueError: If handler type is not recognized
-        
+
     Example:
         >>> config = {
         ...     "type": "console",
@@ -361,26 +354,26 @@ def create_handler_from_config(config: Dict[str, Any]) -> logging.Handler:
         ... }
         >>> handler = create_handler_from_config(config)
     """
-    handler_type = config.get('type', 'console').lower()
-    
+    handler_type = config.get("type", "console").lower()
+
     # Remove type from config to pass remaining as kwargs
     handler_config = config.copy()
-    handler_config.pop('type', None)
-    
-    if handler_type == 'console':
+    handler_config.pop("type", None)
+
+    if handler_type == "console":
         return create_console_handler(**handler_config)
-    elif handler_type in ('file', 'rotating_file', 'timed_file'):
+    elif handler_type in ("file", "rotating_file", "timed_file"):
         # Determine rotation type
-        if handler_type == 'timed_file' or handler_config.get('when'):
-            handler_config['rotation_type'] = 'time'
+        if handler_type == "timed_file" or handler_config.get("when"):
+            handler_config["rotation_type"] = "time"
         else:
-            handler_config['rotation_type'] = 'size'
-        
+            handler_config["rotation_type"] = "size"
+
         # Filename is required for file handlers
-        filename = handler_config.pop('filename', None)
+        filename = handler_config.pop("filename", None)
         if not filename:
             raise ValueError("File handlers require 'filename' configuration")
-        
+
         return create_file_handler(filename, **handler_config)
     else:
         raise ValueError(

@@ -7,9 +7,6 @@ for the Phoenix Real Estate Data Collector application.
 
 import os
 import threading
-from pathlib import Path
-from typing import Any, Dict
-from unittest.mock import MagicMock, patch, mock_open
 
 import pytest
 

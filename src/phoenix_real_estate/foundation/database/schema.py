@@ -271,9 +271,7 @@ class DailyReport(BaseModel):
     properties_by_zipcode: Dict[str, int] = Field(default_factory=dict)
 
     # Price analysis
-    price_statistics: Dict[str, float] = Field(
-        default_factory=dict
-    )  # min, max, avg, median
+    price_statistics: Dict[str, float] = Field(default_factory=dict)  # min, max, avg, median
 
     # Quality metrics
     data_quality_score: Optional[float] = Field(None, ge=0, le=1)

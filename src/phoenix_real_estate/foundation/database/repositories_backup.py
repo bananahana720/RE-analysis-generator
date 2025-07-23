@@ -282,9 +282,7 @@ class PropertyRepository(BaseRepository):
 
                 if existing:
                     # Update existing
-                    await collection.replace_one(
-                        {"property_id": property_id}, property_data
-                    )
+                    await collection.replace_one({"property_id": property_id}, property_data)
                     self._logger.info("Updated existing property: %s", property_id)
                     return property_id, False
                 else:
@@ -519,7 +517,10 @@ class PropertyRepository(BaseRepository):
                     {"property_id": property_id},
                     {
                         "$push": {"price_history": price_entry},
-                        "$set": {"current_price": price, "last_updated": datetime.now(timezone.utc)},
+                        "$set": {
+                            "current_price": price,
+                            "last_updated": datetime.now(timezone.utc),
+                        },
                     },
                 )
 

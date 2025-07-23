@@ -29,7 +29,7 @@ __all__ = [
     "EnvironmentConfigProvider",
     # Environment management
     "Environment",
-    "BaseConfig", 
+    "BaseConfig",
     "EnvironmentFactory",
     "ConfigurationValidator",
     "InvalidEnvironmentError",

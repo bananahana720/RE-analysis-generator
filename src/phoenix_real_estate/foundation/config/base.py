@@ -9,17 +9,21 @@ import os
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar, Union, cast, Set
+from typing import Any, Dict, List, Optional, TypeVar, Union, cast
 import yaml
+
 # Try to import python-dotenv with fallback
 try:
     from dotenv import load_dotenv
+
     HAS_DOTENV = True
 except ImportError:
     HAS_DOTENV = False
+
     # Define a no-op function
     def load_dotenv(*args, **kwargs):
         pass
+
 
 from phoenix_real_estate.foundation.utils.exceptions import ConfigurationError
 from phoenix_real_estate.foundation.utils.helpers import is_valid_zipcode, safe_int, safe_float
@@ -138,7 +142,7 @@ class ConfigProvider(ABC):
             List of validation error messages. Empty list if validation passes.
         """
         ...
-    
+
     @abstractmethod
     def validate_and_raise(self) -> None:
         """Validate the configuration and raise on errors.
@@ -203,6 +207,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             if dotenv_path.exists():
                 # Import here to avoid shadowing the parameter name
                 from dotenv import load_dotenv as dotenv_load
+
                 dotenv_load(dotenv_path)
                 logger.info(f"Loaded environment variables from {dotenv_path}")
 
@@ -314,8 +319,10 @@ class EnvironmentConfigProvider(ConfigProvider):
             "LLM_MODEL": "processing.llm_model",
             "LLM_TIMEOUT": "processing.llm_timeout",
             "SECRET_KEY": "security.secret_key",
+            "CAPTCHA_API_KEY": "sources.phoenix_mls.captcha.api_key",
+            "CAPTCHA_SERVICE": "sources.phoenix_mls.captcha.service",
         }
-        
+
         # First, load direct environment variables
         for env_key, config_key in direct_mappings.items():
             if env_key in os.environ:
@@ -324,7 +331,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                 self._set_nested_value(self.config, config_key, env_value)
                 self._set_nested_value(self.config, env_key.lower(), env_value)
                 logger.debug(f"Loaded {config_key} from direct environment variable {env_key}")
-        
+
         # Also support direct environment variables as lowercase keys
         for env_key, env_value in os.environ.items():
             # Skip if already handled by direct mappings or is PHOENIX_ prefixed
@@ -335,16 +342,16 @@ class EnvironmentConfigProvider(ConfigProvider):
                 if "_" in lowercase_key or lowercase_key in ["debug", "environment"]:
                     self._set_nested_value(self.config, lowercase_key, env_value)
                     logger.debug(f"Loaded {lowercase_key} from environment variable {env_key}")
-        
+
         # Then, load PHOENIX_ prefixed variables (these take precedence)
         prefix = "PHOENIX_"
-        
+
         # First pass: collect all env vars and sort by key depth to avoid nested overwrites
         phoenix_vars = []
         for env_key, env_value in os.environ.items():
             if env_key.startswith(prefix):
-                remaining = env_key[len(prefix):]
-                
+                remaining = env_key[len(prefix) :]
+
                 # Map specific patterns that need special handling
                 special_mappings = {
                     "COLLECTION_TARGET_ZIPCODES": "collection.target_zipcodes",
@@ -369,7 +376,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                     # Add special mappings for test boolean values
                     "BOOL_N": "bool.n",
                     "BOOL_N_UPPER": "bool.n.upper",  # This will nest under bool.n
-                    "BOOL_Y": "bool.y", 
+                    "BOOL_Y": "bool.y",
                     "BOOL_Y_UPPER": "bool.y.upper",  # This will nest under bool.y
                     "BOOL_ENABLED": "bool.enabled",
                     "BOOL_ENABLE": "bool.enable",
@@ -379,19 +386,19 @@ class EnvironmentConfigProvider(ConfigProvider):
                     "BOOL_INACTIVE": "bool.inactive",
                     "BOOL_EMPTY": "bool.empty",
                 }
-                
+
                 if remaining in special_mappings:
                     config_key = special_mappings[remaining]
                 else:
                     # Default conversion: replace _ with .
                     config_key = remaining.lower().replace("_", ".")
-                
+
                 phoenix_vars.append((config_key, env_value, env_key))
-        
+
         # Sort by key depth (fewer dots first) AND by key name to ensure consistent order
         # This ensures that 'bool.n' is processed before 'bool.n.upper'
-        phoenix_vars.sort(key=lambda x: (x[0].count('.'), x[0]))
-        
+        phoenix_vars.sort(key=lambda x: (x[0].count("."), x[0]))
+
         # Second pass: apply the values
         for config_key, env_value, env_key in phoenix_vars:
             self._set_nested_value(self.config, config_key, env_value)
@@ -416,7 +423,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                 # preserve the original value under a special '_value' key
                 # This allows both 'bool.n' = 'n' and 'bool.n.upper' = 'N' to coexist
                 original_value = current[part]
-                current[part] = {'_value': original_value}
+                current[part] = {"_value": original_value}
             current = current[part]
 
         current[parts[-1]] = value
@@ -439,11 +446,11 @@ class EnvironmentConfigProvider(ConfigProvider):
                 current = current[part]
                 # If this is the last part and current is a dict with '_value',
                 # return the preserved value
-                if i == len(parts) - 1 and isinstance(current, dict) and '_value' in current:
+                if i == len(parts) - 1 and isinstance(current, dict) and "_value" in current:
                     # Only return _value if there are other keys besides _value
                     # This means we preserved the original value when nesting was added
-                    if any(k != '_value' for k in current.keys()):
-                        return current['_value']
+                    if any(k != "_value" for k in current.keys()):
+                        return current["_value"]
             else:
                 return None
 
@@ -470,7 +477,9 @@ class EnvironmentConfigProvider(ConfigProvider):
                 error_msg += f" for key '{key}'"
             raise ConfigurationError(
                 error_msg,
-                context={"key": key, "type": expected_type.__name__} if key else {"type": expected_type.__name__}
+                context={"key": key, "type": expected_type.__name__}
+                if key
+                else {"type": expected_type.__name__},
             )
 
         # Already the correct type
@@ -485,7 +494,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                     error_msg += f" for key '{key}'"
                 raise ConfigurationError(
                     error_msg,
-                    context={"key": key, "value": repr(value), "type": expected_type.__name__}
+                    context={"key": key, "value": repr(value), "type": expected_type.__name__},
                 )
             elif expected_type is list:
                 return cast(T, [])  # Empty string becomes empty list
@@ -504,7 +513,9 @@ class EnvironmentConfigProvider(ConfigProvider):
                         error_msg += f" for key '{key}'"
                     raise ConfigurationError(
                         error_msg,
-                        context={"key": key, "value": value, "type": "int"} if key else {"value": value, "type": "int"}
+                        context={"key": key, "value": value, "type": "int"}
+                        if key
+                        else {"value": value, "type": "int"},
                     )
                 return cast(T, result)
             elif expected_type is float:
@@ -515,7 +526,9 @@ class EnvironmentConfigProvider(ConfigProvider):
                         error_msg += f" for key '{key}'"
                     raise ConfigurationError(
                         error_msg,
-                        context={"key": key, "value": value, "type": "float"} if key else {"value": value, "type": "float"}
+                        context={"key": key, "value": value, "type": "float"}
+                        if key
+                        else {"value": value, "type": "float"},
                     )
                 return cast(T, result)
             elif expected_type is list:
@@ -527,13 +540,14 @@ class EnvironmentConfigProvider(ConfigProvider):
                     items = value.split(";")
                 else:
                     items = value.split(",")
-                
+
                 # Clean and filter items
                 return cast(T, [item.strip() for item in items if item.strip()])
             elif expected_type is dict:
                 # Try to parse JSON-like strings
                 try:
                     import json
+
                     return cast(T, json.loads(value))
                 except json.JSONDecodeError:
                     # Try key=value pairs
@@ -546,7 +560,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                         return cast(T, result)
                     raise ConfigurationError(
                         f"Cannot parse '{value}' as dict",
-                        context={"key": key, "value": value, "format": "JSON or key=value pairs"}
+                        context={"key": key, "value": value, "format": "JSON or key=value pairs"},
                     )
 
         # Numeric conversions between int and float
@@ -561,7 +575,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                     raise ConfigurationError(
                         error_msg,
                         context={"key": key, "value": value, "type": expected_type.__name__},
-                        original_error=e
+                        original_error=e,
                     ) from e
 
         # List to other conversions
@@ -585,7 +599,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                     "key": key,
                     "value": repr(value),
                     "value_type": type(value).__name__,
-                    "expected_type": expected_type.__name__
+                    "expected_type": expected_type.__name__,
                 },
                 original_error=e,
             ) from e
@@ -604,9 +618,9 @@ class EnvironmentConfigProvider(ConfigProvider):
         """
         if not isinstance(value, str):
             value = str(value)
-            
+
         value_lower = value.lower().strip()
-        
+
         # True values
         if value_lower in ("true", "yes", "y", "1", "on", "enabled", "enable", "active"):
             return True
@@ -619,8 +633,8 @@ class EnvironmentConfigProvider(ConfigProvider):
                 context={
                     "value": value,
                     "valid_true": "true, yes, y, 1, on, enabled, enable, active",
-                    "valid_false": "false, no, n, 0, off, disabled, disable, inactive, (empty string)"
-                }
+                    "valid_false": "false, no, n, 0, off, disabled, disable, inactive, (empty string)",
+                },
             )
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
@@ -739,7 +753,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             List of validation error messages. Empty list if validation passes.
         """
         validation_errors: List[Dict[str, Any]] = []
-        
+
         # Collect all validation errors for comprehensive reporting
         try:
             self._validate_required_keys(validation_errors)
@@ -750,12 +764,14 @@ class EnvironmentConfigProvider(ConfigProvider):
             self._validate_custom_rules(validation_errors)
         except Exception as e:
             # Catch unexpected errors during validation
-            validation_errors.append({
-                "type": "unexpected_error",
-                "message": f"Unexpected error during validation: {str(e)}",
-                "error": e
-            })
-        
+            validation_errors.append(
+                {
+                    "type": "unexpected_error",
+                    "message": f"Unexpected error during validation: {str(e)}",
+                    "error": e,
+                }
+            )
+
         # Convert validation errors to list of strings
         error_messages = []
         for error in validation_errors:
@@ -765,20 +781,22 @@ class EnvironmentConfigProvider(ConfigProvider):
                 # Handle missing required keys
                 for key in error.get("keys", []):
                     if "empty" in key:
-                        error_messages.append(f"{key.replace(' (empty)', '')}: Required configuration is empty")
+                        error_messages.append(
+                            f"{key.replace(' (empty)', '')}: Required configuration is empty"
+                        )
                     else:
                         error_messages.append(f"{key}: Required configuration key missing")
             elif "dependency" in error:
                 # Handle dependency errors with clear messaging
                 error_messages.append(f"{error['message']} ({error['dependency']})")
             else:
-                error_messages.append(error['message'])
-        
+                error_messages.append(error["message"])
+
         if not validation_errors:
             logger.info(f"Configuration validation passed for {self.environment} environment")
-        
+
         return error_messages
-    
+
     def validate_and_raise(self) -> None:
         """Validate the configuration and raise on errors.
 
@@ -794,7 +812,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             ConfigurationError: If validation fails.
         """
         validation_errors: List[Dict[str, Any]] = []
-        
+
         # Collect all validation errors for comprehensive reporting
         try:
             self._validate_required_keys(validation_errors)
@@ -805,12 +823,14 @@ class EnvironmentConfigProvider(ConfigProvider):
             self._validate_custom_rules(validation_errors)
         except Exception as e:
             # Catch unexpected errors during validation
-            validation_errors.append({
-                "type": "unexpected_error",
-                "message": f"Unexpected error during validation: {str(e)}",
-                "error": e
-            })
-        
+            validation_errors.append(
+                {
+                    "type": "unexpected_error",
+                    "message": f"Unexpected error during validation: {str(e)}",
+                    "error": e,
+                }
+            )
+
         # Report all validation errors at once
         if validation_errors:
             error_summary = self._format_validation_errors(validation_errors)
@@ -820,33 +840,23 @@ class EnvironmentConfigProvider(ConfigProvider):
                     "environment": self.environment,
                     "error_count": len(validation_errors),
                     "errors": validation_errors,
-                    "summary": error_summary
-                }
+                    "summary": error_summary,
+                },
             )
-        
+
         logger.info(f"Configuration validation passed for {self.environment} environment")
 
     def _validate_required_keys(self, errors: List[Dict[str, Any]]) -> None:
         """Validate that all required keys are present."""
         # Base required keys for all environments
-        required_keys = [
-            "database.uri",
-            "logging.level"
-        ]
-        
+        required_keys = ["database.uri", "logging.level"]
+
         # Environment-specific required keys
         if self.environment == "production":
-            required_keys.extend([
-                "security.secret_key",
-                "api.key",
-                "monitoring.enabled"
-            ])
+            required_keys.extend(["security.secret_key", "api.key", "monitoring.enabled"])
         elif self.environment == "staging":
-            required_keys.extend([
-                "api.key",
-                "monitoring.enabled"
-            ])
-        
+            required_keys.extend(["api.key", "monitoring.enabled"])
+
         # Check for missing keys
         missing_keys = []
         for key in required_keys:
@@ -855,13 +865,15 @@ class EnvironmentConfigProvider(ConfigProvider):
                 missing_keys.append(key)
             elif isinstance(value, str) and value.strip() == "":
                 missing_keys.append(f"{key} (empty)")
-        
+
         if missing_keys:
-            errors.append({
-                "type": "missing_required_keys",
-                "message": f"Required configuration keys missing for {self.environment}",
-                "keys": missing_keys
-            })
+            errors.append(
+                {
+                    "type": "missing_required_keys",
+                    "message": f"Required configuration keys missing for {self.environment}",
+                    "keys": missing_keys,
+                }
+            )
 
     def _validate_environment_specific(self, errors: List[Dict[str, Any]]) -> None:
         """Validate environment-specific requirements."""
@@ -869,22 +881,26 @@ class EnvironmentConfigProvider(ConfigProvider):
             # Production must have secure settings
             secret_key = self.get("security.secret_key")
             if secret_key and len(str(secret_key)) < 32:
-                errors.append({
-                    "type": "weak_secret_key",
-                    "message": "Production secret key must be at least 32 characters",
-                    "current_length": len(str(secret_key))
-                })
-            
+                errors.append(
+                    {
+                        "type": "weak_secret_key",
+                        "message": "Production secret key must be at least 32 characters",
+                        "current_length": len(str(secret_key)),
+                    }
+                )
+
             # Production must have proxy authentication
             if self.get("proxy.enabled", False):
                 proxy_user = self.get("proxy.username")
                 proxy_pass = self.get("proxy.password")
                 if not proxy_user or not proxy_pass:
-                    errors.append({
-                        "type": "missing_proxy_auth",
-                        "message": "Production proxy requires authentication credentials"
-                    })
-        
+                    errors.append(
+                        {
+                            "type": "missing_proxy_auth",
+                            "message": "Production proxy requires authentication credentials",
+                        }
+                    )
+
         elif self.environment == "development":
             # Development warnings (non-fatal)
             if self.get("debug", False) and self.get("monitoring.enabled", False):
@@ -899,27 +915,29 @@ class EnvironmentConfigProvider(ConfigProvider):
             ("logging.level", str, "Logging level must be a string"),
             ("features.cache_enabled", bool, "Cache enabled must be a boolean"),
             ("monitoring.enabled", bool, "Monitoring enabled must be a boolean"),
-            ("collection.target_zipcodes", list, "Target ZIP codes must be a list")
+            ("collection.target_zipcodes", list, "Target ZIP codes must be a list"),
         ]
-        
+
         for key, expected_types, error_msg in type_validations:
             value = self.get(key)
             if value is not None:
                 if not isinstance(expected_types, tuple):
                     expected_types = (expected_types,)
-                
+
                 if not isinstance(value, expected_types):
                     try:
                         # Try to convert to expected type
                         self.get_typed(key, expected_types[0])
                     except ConfigurationError:
-                        errors.append({
-                            "type": "invalid_type",
-                            "key": key,
-                            "message": error_msg,
-                            "expected": [t.__name__ for t in expected_types],
-                            "actual": type(value).__name__
-                        })
+                        errors.append(
+                            {
+                                "type": "invalid_type",
+                                "key": key,
+                                "message": error_msg,
+                                "expected": [t.__name__ for t in expected_types],
+                                "actual": type(value).__name__,
+                            }
+                        )
 
     def _validate_formats(self, errors: List[Dict[str, Any]]) -> None:
         """Validate format requirements for specific configuration values."""
@@ -929,105 +947,127 @@ class EnvironmentConfigProvider(ConfigProvider):
             invalid_zips = []
             for i, zip_code in enumerate(zip_codes):
                 if not is_valid_zipcode(str(zip_code)):
-                    invalid_zips.append({
-                        "index": i,
-                        "value": zip_code,
-                        "type": type(zip_code).__name__
-                    })
-            
+                    invalid_zips.append(
+                        {"index": i, "value": zip_code, "type": type(zip_code).__name__}
+                    )
+
             if invalid_zips:
-                errors.append({
-                    "type": "invalid_zipcodes",
-                    "message": "Invalid ZIP codes in configuration",
-                    "invalid_entries": invalid_zips
-                })
-        
+                errors.append(
+                    {
+                        "type": "invalid_zipcodes",
+                        "message": "Invalid ZIP codes in configuration",
+                        "invalid_entries": invalid_zips,
+                    }
+                )
+
         # Validate database URI format
         db_uri = self.get("database.uri")
         if db_uri and isinstance(db_uri, str):
-            if not any(db_uri.startswith(prefix) for prefix in ["mongodb://", "mongodb+srv://", "postgresql://", "sqlite:///"]):
-                errors.append({
-                    "type": "invalid_uri_format",
-                    "key": "database.uri",
-                    "message": "Database URI must start with a valid protocol",
-                    "valid_protocols": ["mongodb://", "mongodb+srv://", "postgresql://", "sqlite:///"]
-                })
-        
+            if not any(
+                db_uri.startswith(prefix)
+                for prefix in ["mongodb://", "mongodb+srv://", "postgresql://", "sqlite:///"]
+            ):
+                errors.append(
+                    {
+                        "type": "invalid_uri_format",
+                        "key": "database.uri",
+                        "message": "Database URI must start with a valid protocol",
+                        "valid_protocols": [
+                            "mongodb://",
+                            "mongodb+srv://",
+                            "postgresql://",
+                            "sqlite:///",
+                        ],
+                    }
+                )
+
         # Validate logging level
         log_level = self.get("logging.level")
         if log_level and isinstance(log_level, str):
             valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
             if log_level.upper() not in valid_levels:
-                errors.append({
-                    "type": "invalid_log_level",
-                    "key": "logging.level",
-                    "message": "Invalid logging level",
-                    "value": log_level,
-                    "valid_levels": valid_levels
-                })
-        
+                errors.append(
+                    {
+                        "type": "invalid_log_level",
+                        "key": "logging.level",
+                        "message": "Invalid logging level",
+                        "value": log_level,
+                        "valid_levels": valid_levels,
+                    }
+                )
+
         # Validate file paths exist
         path_configs = [
             ("logging.file_path", "Log file directory"),
-            ("data.output_dir", "Data output directory")
+            ("data.output_dir", "Data output directory"),
         ]
-        
+
         for key, description in path_configs:
             path_value = self.get(key)
             if path_value and isinstance(path_value, str):
                 path = Path(path_value)
                 if path.is_absolute() and not path.parent.exists():
-                    errors.append({
-                        "type": "invalid_path",
-                        "key": key,
-                        "message": f"{description} parent directory does not exist",
-                        "path": str(path),
-                        "parent": str(path.parent)
-                    })
+                    errors.append(
+                        {
+                            "type": "invalid_path",
+                            "key": key,
+                            "message": f"{description} parent directory does not exist",
+                            "path": str(path),
+                            "parent": str(path.parent),
+                        }
+                    )
 
     def _validate_ranges(self, errors: List[Dict[str, Any]]) -> None:
         """Validate numeric ranges and constraints."""
         # Port number validation
         port = self.get_typed("database.port", int)
         if port is not None and not (1 <= port <= 65535):
-            errors.append({
-                "type": "invalid_range",
-                "key": "database.port",
-                "message": "Port number out of valid range",
-                "value": port,
-                "valid_range": "1-65535"
-            })
-        
+            errors.append(
+                {
+                    "type": "invalid_range",
+                    "key": "database.port",
+                    "message": "Port number out of valid range",
+                    "value": port,
+                    "valid_range": "1-65535",
+                }
+            )
+
         # Timeout validation
         timeout = self.get_typed("api.timeout", float)
         if timeout is not None and timeout <= 0:
-            errors.append({
-                "type": "invalid_range",
-                "key": "api.timeout",
-                "message": "API timeout must be positive",
-                "value": timeout
-            })
-        
+            errors.append(
+                {
+                    "type": "invalid_range",
+                    "key": "api.timeout",
+                    "message": "API timeout must be positive",
+                    "value": timeout,
+                }
+            )
+
         # Retry count validation
         retries = self.get_typed("api.retries", int)
         if retries is not None and retries < 0:
-            errors.append({
-                "type": "invalid_range",
-                "key": "api.retries",
-                "message": "API retries cannot be negative",
-                "value": retries
-            })
-        
+            errors.append(
+                {
+                    "type": "invalid_range",
+                    "key": "api.retries",
+                    "message": "API retries cannot be negative",
+                    "value": retries,
+                }
+            )
+
         # Worker count validation
         workers = self.get_typed("processing.max_workers", int)
         if workers is not None and not (1 <= workers <= 100):
-            errors.append({
-                "type": "invalid_range",
-                "key": "processing.max_workers",
-                "message": "Worker count out of reasonable range",
-                "value": workers,
-                "valid_range": "1-100"
-            })
+            errors.append(
+                {
+                    "type": "invalid_range",
+                    "key": "processing.max_workers",
+                    "message": "Worker count out of reasonable range",
+                    "value": workers,
+                    "valid_range": "1-100",
+                }
+            )
 
     def _validate_custom_rules(self, errors: List[Dict[str, Any]]) -> None:
         """Validate custom business rules and dependencies."""
@@ -1035,43 +1075,49 @@ class EnvironmentConfigProvider(ConfigProvider):
         if self.get_typed("features.cache_enabled", bool, False):
             cache_dir = self.get("cache.directory")
             if not cache_dir:
-                errors.append({
-                    "type": "missing_dependency",
-                    "message": "Cache directory must be specified when caching is enabled",
-                    "dependency": "cache.directory required when features.cache_enabled=true"
-                })
-        
+                errors.append(
+                    {
+                        "type": "missing_dependency",
+                        "message": "Cache directory must be specified when caching is enabled",
+                        "dependency": "cache.directory required when features.cache_enabled=true",
+                    }
+                )
+
         # If monitoring is enabled, endpoint should be specified
         if self.get_typed("monitoring.enabled", bool, False):
             endpoint = self.get("monitoring.endpoint")
             if not endpoint:
-                errors.append({
-                    "type": "missing_dependency",
-                    "message": "Monitoring endpoint must be specified when monitoring is enabled",
-                    "dependency": "monitoring.endpoint required when monitoring.enabled=true"
-                })
-        
+                errors.append(
+                    {
+                        "type": "missing_dependency",
+                        "message": "Monitoring endpoint must be specified when monitoring is enabled",
+                        "dependency": "monitoring.endpoint required when monitoring.enabled=true",
+                    }
+                )
+
         # Validate collection schedule format if present
         schedule = self.get("collection.schedule")
         if schedule and isinstance(schedule, str):
             # Simple cron expression validation
             parts = schedule.split()
             if len(parts) not in [5, 6]:  # Standard cron or with seconds
-                errors.append({
-                    "type": "invalid_format",
-                    "key": "collection.schedule",
-                    "message": "Invalid cron expression format",
-                    "value": schedule,
-                    "expected": "5 or 6 space-separated fields"
-                })
+                errors.append(
+                    {
+                        "type": "invalid_format",
+                        "key": "collection.schedule",
+                        "message": "Invalid cron expression format",
+                        "value": schedule,
+                        "expected": "5 or 6 space-separated fields",
+                    }
+                )
 
     def _format_validation_errors(self, errors: List[Dict[str, Any]]) -> str:
         """Format validation errors into a readable summary."""
         if not errors:
             return "No validation errors"
-        
+
         summary_lines = [f"Found {len(errors)} validation error(s):"]
-        
+
         # Group errors by type
         error_groups: Dict[str, List[Dict[str, Any]]] = {}
         for error in errors:
@@ -1079,7 +1125,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             if error_type not in error_groups:
                 error_groups[error_type] = []
             error_groups[error_type].append(error)
-        
+
         # Format each error group
         for error_type, group_errors in error_groups.items():
             summary_lines.append(f"\n{error_type.replace('_', ' ').title()}:")
@@ -1088,14 +1134,14 @@ class EnvironmentConfigProvider(ConfigProvider):
                     summary_lines.append(f"  - {error['key']}: {error['message']}")
                 else:
                     summary_lines.append(f"  - {error['message']}")
-        
+
         return "\n".join(summary_lines)
 
     # Configuration Helper Methods
-    
+
     def get_database_config(self) -> Dict[str, Any]:
         """Get database configuration settings.
-        
+
         Returns a dictionary with database connection settings including:
         - uri: Database connection URI
         - name: Database name
@@ -1104,15 +1150,15 @@ class EnvironmentConfigProvider(ConfigProvider):
         - username: Database username (if applicable)
         - password: Database password (if applicable)
         - options: Additional connection options
-        
+
         Returns:
             Dict containing database configuration.
-            
+
         Raises:
             ConfigurationError: If required database settings are missing.
         """
         db_config = {}
-        
+
         # Get URI or individual components
         uri = self.get("database.uri")
         if uri:
@@ -1122,7 +1168,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             host = self.get("database.host")
             port = self.get_typed("database.port", int)
             name = self.get("database.name")
-            
+
             if not host or not name:
                 raise ConfigurationError(
                     "Database configuration incomplete",
@@ -1130,93 +1176,97 @@ class EnvironmentConfigProvider(ConfigProvider):
                         "message": "Either database.uri or database.host/name must be specified",
                         "has_uri": bool(uri),
                         "has_host": bool(host),
-                        "has_name": bool(name)
-                    }
+                        "has_name": bool(name),
+                    },
                 )
-            
-            db_config.update({
-                "host": host,
-                "port": port or 27017,  # MongoDB default
-                "name": name
-            })
-        
+
+            db_config.update(
+                {
+                    "host": host,
+                    "port": port or 27017,  # MongoDB default
+                    "name": name,
+                }
+            )
+
         # Optional authentication
         username = self.get("database.username")
         password = self.get("database.password")
         if username:
             db_config["username"] = username
             db_config["password"] = password
-        
+
         # Additional options
         options = self.get("database.options", {})
         if isinstance(options, dict):
             db_config["options"] = options
-        
+
         # Connection pool settings
         pool_size = self.get_typed("database.pool_size", int)
         if pool_size:
             db_config["pool_size"] = pool_size
-            
+
         timeout = self.get_typed("database.timeout", int)
         if timeout:
             db_config["timeout"] = timeout
-        
+
         return db_config
-    
+
     def get_logging_config(self) -> Dict[str, Any]:
         """Get logging configuration settings.
-        
+
         Returns a dictionary with logging settings including:
         - level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         - format: Log message format
         - file_path: Path to log file (if file logging enabled)
         - console: Whether to log to console
         - rotation: Log rotation settings
-        
+
         Returns:
             Dict containing logging configuration.
         """
         log_config = {
             "level": self.get("logging.level", "INFO").upper(),
-            "format": self.get("logging.format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"),
-            "console": self.get_typed("logging.console", bool, True)
+            "format": self.get(
+                "logging.format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            ),
+            "console": self.get_typed("logging.console", bool, True),
         }
-        
+
         # File logging configuration
         file_path = self.get("logging.file_path")
         if file_path:
             log_config["file_path"] = file_path
-            
+
             # Rotation settings
             max_bytes = self.get_typed("logging.max_bytes", int)
             if max_bytes:
                 log_config["max_bytes"] = max_bytes
-                
+
             backup_count = self.get_typed("logging.backup_count", int)
             if backup_count:
                 log_config["backup_count"] = backup_count
-                
+
             rotation = self.get("logging.rotation")
             if rotation:
                 log_config["rotation"] = rotation
-        
+
         # Handler-specific settings
         handlers = self.get("logging.handlers", {})
         if isinstance(handlers, dict):
             log_config["handlers"] = handlers
-        
+
         return log_config
-    
+
     def get_collection_config(self) -> Dict[str, Any]:
         """Get data collection configuration settings.
-        
+
         Returns a dictionary with collection settings including:
         - target_zipcodes: List of ZIP codes to collect data for
         - schedule: Collection schedule (cron expression)
         - sources: Data sources configuration
         - retry_policy: Retry settings for failed collections
         - batch_size: Number of properties to process in batch
-        
+
         Returns:
             Dict containing collection configuration.
         """
@@ -1224,9 +1274,9 @@ class EnvironmentConfigProvider(ConfigProvider):
             "target_zipcodes": self.get_typed("collection.target_zipcodes", list, []),
             "schedule": self.get("collection.schedule", "0 0 * * *"),  # Daily at midnight
             "batch_size": self.get_typed("collection.batch_size", int, 100),
-            "max_workers": self.get_typed("collection.max_workers", int, 4)
+            "max_workers": self.get_typed("collection.max_workers", int, 4),
         }
-        
+
         # Data sources
         sources = self.get("collection.sources", {})
         if isinstance(sources, dict):
@@ -1235,17 +1285,17 @@ class EnvironmentConfigProvider(ConfigProvider):
             # Default sources
             collection_config["sources"] = {
                 "maricopa": {"enabled": True},
-                "phoenix_mls": {"enabled": True}
+                "phoenix_mls": {"enabled": True},
             }
-        
+
         # Retry policy
         retry_config = {
             "max_retries": self.get_typed("collection.retry.max_retries", int, 3),
             "delay": self.get_typed("collection.retry.delay", float, 1.0),
-            "backoff": self.get_typed("collection.retry.backoff", float, 2.0)
+            "backoff": self.get_typed("collection.retry.backoff", float, 2.0),
         }
         collection_config["retry_policy"] = retry_config
-        
+
         # Proxy settings
         if self.get_typed("proxy.enabled", bool, False):
             proxy_config = {
@@ -1253,31 +1303,31 @@ class EnvironmentConfigProvider(ConfigProvider):
                 "url": self.get("proxy.url"),
                 "username": self.get("proxy.username"),
                 "password": self.get("proxy.password"),
-                "rotation": self.get_typed("proxy.rotation", bool, True)
+                "rotation": self.get_typed("proxy.rotation", bool, True),
             }
             collection_config["proxy"] = proxy_config
-        
+
         return collection_config
-    
+
     def is_development(self) -> bool:
         """Check if running in development environment.
-        
+
         Returns:
             True if environment is development.
         """
         return self.environment.lower() in ("development", "dev", "local")
-    
+
     def is_testing(self) -> bool:
         """Check if running in testing environment.
-        
+
         Returns:
             True if environment is testing or test.
         """
         return self.environment.lower() in ("testing", "test", "ci")
-    
+
     def is_production(self) -> bool:
         """Check if running in production environment.
-        
+
         Returns:
             True if environment is production or prod.
         """

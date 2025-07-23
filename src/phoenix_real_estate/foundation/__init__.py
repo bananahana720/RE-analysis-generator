@@ -22,13 +22,15 @@ from phoenix_real_estate.foundation.config import (
     get_secret,
     get_required_secret,
 )
-from phoenix_real_estate.foundation.database.repositories import PropertyRepository as PropertyRepositoryImpl
+from phoenix_real_estate.foundation.database.repositories import (
+    PropertyRepository as PropertyRepositoryImpl,
+)
 from phoenix_real_estate.foundation.logging.factory import get_logger
 
 __all__ = [
     # Protocols
     "ConfigProvider",
-    "PropertyRepository", 
+    "PropertyRepository",
     "Logger",
     # Implementations
     "ConfigProviderImpl",

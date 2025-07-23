@@ -234,7 +234,9 @@ class PropertyRepository(BaseRepository):
                 updates["last_updated"] = datetime.now(timezone.utc)
 
                 # Perform update
-                result = await collection.update_one({"property_id": property_id}, {"$set": updates})
+                result = await collection.update_one(
+                    {"property_id": property_id}, {"$set": updates}
+                )
 
                 if result.modified_count > 0:
                     self._logger.info(
@@ -282,9 +284,7 @@ class PropertyRepository(BaseRepository):
 
                 if existing:
                     # Update existing
-                    await collection.replace_one(
-                        {"property_id": property_id}, property_data
-                    )
+                    await collection.replace_one({"property_id": property_id}, property_data)
                     self._logger.info("Updated existing property: %s", property_id)
                     return property_id, False
                 else:
@@ -449,7 +449,12 @@ class PropertyRepository(BaseRepository):
                             "avg_price": {"$round": ["$avg_price", 2]},
                             "min_price": 1,
                             "max_price": 1,
-                            "median_price": {"$arrayElemAt": ["$prices", {"$floor": {"$divide": [{"$size": "$prices"}, 2]}}]},
+                            "median_price": {
+                                "$arrayElemAt": [
+                                    "$prices",
+                                    {"$floor": {"$divide": [{"$size": "$prices"}, 2]}},
+                                ]
+                            },
                         }
                     },
                 ]
@@ -519,7 +524,10 @@ class PropertyRepository(BaseRepository):
                     {"property_id": property_id},
                     {
                         "$push": {"price_history": price_entry},
-                        "$set": {"current_price": price, "last_updated": datetime.now(timezone.utc)},
+                        "$set": {
+                            "current_price": price,
+                            "last_updated": datetime.now(timezone.utc),
+                        },
                     },
                 )
 
