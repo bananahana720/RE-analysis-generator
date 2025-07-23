@@ -15,13 +15,13 @@ class TestValidationPatterns:
     def test_property_id_pattern(self):
         """Test property ID pattern matching."""
         pattern = ValidationPatterns.PROPERTY_ID_PATTERN
-        
+
         # Valid patterns
         assert pattern.match("abc123")
         assert pattern.match("property_123")
         assert pattern.match("PROP-123-ABC")
         assert pattern.match("123_abc_DEF")
-        
+
         # Invalid patterns
         assert not pattern.match("property id with spaces")
         assert not pattern.match("prop@123")
@@ -32,12 +32,12 @@ class TestValidationPatterns:
         """Test URL validation patterns."""
         https_pattern = ValidationPatterns.HTTPS_URL_PATTERN
         http_pattern = ValidationPatterns.HTTP_URL_PATTERN
-        
+
         # HTTPS pattern
         assert https_pattern.match("https://example.com")
         assert not https_pattern.match("http://example.com")
         assert not https_pattern.match("ftp://example.com")
-        
+
         # HTTP pattern
         assert http_pattern.match("http://example.com")
         assert not http_pattern.match("https://example.com")
@@ -45,7 +45,7 @@ class TestValidationPatterns:
     def test_sensitive_field_pattern(self):
         """Test sensitive field detection pattern."""
         pattern = ValidationPatterns.SENSITIVE_FIELD_PATTERN
-        
+
         # Should match
         assert pattern.search("api_key")
         assert pattern.search("API_KEY")
@@ -53,7 +53,7 @@ class TestValidationPatterns:
         assert pattern.search("auth_token")
         assert pattern.search("password")
         assert pattern.search("secret_key")
-        
+
         # Should not match
         assert not pattern.search("username")
         assert not pattern.search("email")
@@ -75,11 +75,11 @@ class TestCommonValidators:
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_property_id("")
         assert "Property ID cannot be empty" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_property_id("   ")
         assert "Property ID cannot be empty" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_property_id(None)
         assert "Property ID cannot be empty" in str(exc_info.value)
@@ -89,7 +89,7 @@ class TestCommonValidators:
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_property_id("property with spaces")
         assert "Invalid property ID format" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_property_id("prop@123")
         assert "Invalid property ID format" in str(exc_info.value)
@@ -106,11 +106,11 @@ class TestCommonValidators:
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_zipcode("")
         assert "ZIP code cannot be empty" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_zipcode("850")
         assert "Invalid ZIP code format" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_zipcode("abcde")
         assert "Invalid ZIP code format" in str(exc_info.value)
@@ -127,11 +127,11 @@ class TestCommonValidators:
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_days_back(0)
         assert "days_back must be positive" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_days_back(-10)
         assert "days_back must be positive" in str(exc_info.value)
-        
+
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_days_back(366)
         assert "days_back cannot exceed 365" in str(exc_info.value)
@@ -141,16 +141,16 @@ class TestCommonValidators:
         # Valid HTTPS URLs
         url = CommonValidators.validate_base_url("https://api.example.com", require_https=True)
         assert url == "https://api.example.com"
-        
+
         # With trailing slash
         url = CommonValidators.validate_base_url("https://api.example.com/", require_https=True)
         assert url == "https://api.example.com"
-        
+
         # HTTP not allowed
         with pytest.raises(ConfigurationError) as exc_info:
             CommonValidators.validate_base_url("http://api.example.com", require_https=True)
         assert "HTTPS-only communication required" in str(exc_info.value)
-        
+
         # Invalid format
         with pytest.raises(ConfigurationError) as exc_info:
             CommonValidators.validate_base_url("not-a-url", require_https=True)
@@ -167,12 +167,12 @@ class TestCommonValidators:
         # Valid config
         CommonValidators.validate_required_config("api_key_value", "API_KEY")
         CommonValidators.validate_required_config(123, "PORT")
-        
+
         # Missing config
         with pytest.raises(ConfigurationError) as exc_info:
             CommonValidators.validate_required_config(None, "API_KEY")
         assert "Missing required config: API_KEY" in str(exc_info.value)
-        
+
         with pytest.raises(ConfigurationError) as exc_info:
             CommonValidators.validate_required_config("", "DATABASE_URL")
         assert "Missing required config: DATABASE_URL" in str(exc_info.value)
@@ -181,15 +181,15 @@ class TestCommonValidators:
         """Test raw data structure validation."""
         # Valid dict
         CommonValidators.validate_raw_data_structure({"key": "value"}, dict)
-        
+
         # Valid list
         CommonValidators.validate_raw_data_structure([1, 2, 3], list)
-        
+
         # Wrong type
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_raw_data_structure("string", dict)
         assert "Raw data must be a dict" in str(exc_info.value)
-        
+
         # Empty data
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_raw_data_structure({}, dict)
@@ -197,19 +197,12 @@ class TestCommonValidators:
 
     def test_validate_required_fields(self):
         """Test required fields validation."""
-        data = {
-            "name": "Test",
-            "value": 123,
-            "empty": "",
-            "none": None
-        }
-        
+        data = {"name": "Test", "value": 123, "empty": "", "none": None}
+
         # All fields present
-        missing = CommonValidators.validate_required_fields(
-            data, ["name", "value"], "test_data"
-        )
+        missing = CommonValidators.validate_required_fields(data, ["name", "value"], "test_data")
         assert missing == []
-        
+
         # Missing fields
         with pytest.raises(ValidationError) as exc_info:
             CommonValidators.validate_required_fields(
@@ -231,11 +224,11 @@ class TestErrorHandlingUtils:
             "token": "auth_token",
             "password": "my_password",
             "auth_header": "Bearer token",
-            "normal_field": "normal_value"
+            "normal_field": "normal_value",
         }
-        
+
         sanitized = ErrorHandlingUtils.sanitize_context(context)
-        
+
         assert sanitized["property_id"] == "prop_123"
         assert sanitized["api_key"] == "[REDACTED]"
         assert sanitized["token"] == "[REDACTED]"
@@ -250,12 +243,12 @@ class TestErrorHandlingUtils:
         sanitized = ErrorHandlingUtils.sanitize_url_for_logging(url)
         assert "api_key=[REDACTED]" in sanitized
         assert "other=value" in sanitized
-        
+
         url = "https://api.example.com?token=auth456&password=pass789"
         sanitized = ErrorHandlingUtils.sanitize_url_for_logging(url)
         assert "token=[REDACTED]" in sanitized
         assert "password=[REDACTED]" in sanitized
-        
+
         # Clean URL
         url = "https://api.example.com/endpoint?id=123"
         sanitized = ErrorHandlingUtils.sanitize_url_for_logging(url)
@@ -264,14 +257,11 @@ class TestErrorHandlingUtils:
     def test_wrap_error_new_exception(self):
         """Test error wrapping with new exception type."""
         original = ValueError("Original error")
-        
+
         wrapped = ErrorHandlingUtils.wrap_error(
-            original,
-            "test_operation",
-            ValidationError,
-            context={"key": "value"}
+            original, "test_operation", ValidationError, context={"key": "value"}
         )
-        
+
         assert isinstance(wrapped, ValidationError)
         assert "test_operation failed" in str(wrapped)
         assert "Original error" in str(wrapped)
@@ -282,50 +272,32 @@ class TestErrorHandlingUtils:
     def test_wrap_error_same_type(self):
         """Test error wrapping with same exception type."""
         original = ValidationError("Already wrapped")
-        
-        wrapped = ErrorHandlingUtils.wrap_error(
-            original,
-            "test_operation",
-            ValidationError
-        )
-        
+
+        wrapped = ErrorHandlingUtils.wrap_error(original, "test_operation", ValidationError)
+
         # Should return the same exception
         assert wrapped is original
 
     def test_wrap_error_with_sanitization(self):
         """Test error wrapping with context sanitization."""
         original = ValueError("Error")
-        context = {
-            "api_key": "secret",
-            "normal": "value"
-        }
-        
+        context = {"api_key": "secret", "normal": "value"}
+
         wrapped = ErrorHandlingUtils.wrap_error(
-            original,
-            "test_operation",
-            ValidationError,
-            context=context,
-            sanitize=True
+            original, "test_operation", ValidationError, context=context, sanitize=True
         )
-        
+
         assert wrapped.context["api_key"] == "[REDACTED]"
         assert wrapped.context["normal"] == "value"
 
     def test_wrap_error_without_sanitization(self):
         """Test error wrapping without context sanitization."""
         original = ValueError("Error")
-        context = {
-            "api_key": "secret",
-            "normal": "value"
-        }
-        
+        context = {"api_key": "secret", "normal": "value"}
+
         wrapped = ErrorHandlingUtils.wrap_error(
-            original,
-            "test_operation",
-            ValidationError,
-            context=context,
-            sanitize=False
+            original, "test_operation", ValidationError, context=context, sanitize=False
         )
-        
+
         assert wrapped.context["api_key"] == "secret"
         assert wrapped.context["normal"] == "value"

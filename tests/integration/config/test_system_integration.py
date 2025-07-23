@@ -14,49 +14,38 @@ This module tests the configuration system's integration with:
 import asyncio
 import logging
 import os
-import tempfile
 import time
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
+from typing import Any, Dict, List
+from unittest.mock import Mock, patch, AsyncMock
 
 import pytest
-import motor.motor_asyncio
-from pymongo.errors import ConnectionFailure, OperationFailure
 
 from phoenix_real_estate.foundation import (
     ConfigProvider,
     Environment,
-    EnvironmentFactory,
     PropertyRepository,
-    PropertyRepositoryImpl,
     get_logger,
-    get_config,
-    reset_config_cache,
-    SecretManager,
-    get_secret,
-    get_required_secret,
 )
 from phoenix_real_estate.foundation.config import (
     EnvironmentConfigProvider,
 )
+
+
 # Create a simple test config provider
 class SimpleConfigProvider:
     """Simple configuration provider for testing."""
-    
+
     def __init__(self):
         self._values = {}
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value."""
         return self._values.get(key, default)
-    
+
     def set(self, key: str, value: Any) -> None:
         """Set configuration value."""
         self._values[key] = value
-    
+
     def get_int(self, key: str, default: int = 0) -> int:
         """Get integer configuration value."""
         value = self.get(key, default)
@@ -64,7 +53,7 @@ class SimpleConfigProvider:
             return int(value)
         except (TypeError, ValueError):
             return default
-    
+
     def get_bool(self, key: str, default: bool = False) -> bool:
         """Get boolean configuration value."""
         value = self.get(key, default)
@@ -73,6 +62,8 @@ class SimpleConfigProvider:
         if isinstance(value, str):
             return value.lower() in ("true", "yes", "1", "on")
         return bool(value)
+
+
 from phoenix_real_estate.foundation.database.connection import (
     DatabaseConnection,
     get_database_connection,
@@ -80,12 +71,10 @@ from phoenix_real_estate.foundation.database.connection import (
 )
 from phoenix_real_estate.foundation.database.repositories import (
     RepositoryFactory,
-    DailyReportRepository,
 )
 from phoenix_real_estate.foundation.utils.exceptions import (
     ConfigurationError,
     DatabaseError,
-    ValidationError,
 )
 
 
@@ -132,7 +121,9 @@ class TestDatabaseConfigurationIntegration:
         config.set("MONGODB_DATABASE", "test_phoenix")
 
         # Mock database connection
-        with patch("phoenix_real_estate.foundation.database.repositories.DatabaseConnection") as mock_conn:
+        with patch(
+            "phoenix_real_estate.foundation.database.repositories.DatabaseConnection"
+        ) as mock_conn:
             mock_db = AsyncMock()
             mock_conn.get_instance.return_value.get_database.return_value.__aenter__.return_value = mock_db
 
@@ -150,12 +141,14 @@ class TestDatabaseConfigurationIntegration:
         # Don't set MONGODB_URI
 
         # Patch the ConfigProvider import in repositories module
-        with patch("phoenix_real_estate.foundation.config.provider.ConfigProvider") as mock_provider:
+        with patch(
+            "phoenix_real_estate.foundation.config.provider.ConfigProvider"
+        ) as mock_provider:
             # Create a mock instance that returns None for MONGODB_URI
             mock_instance = Mock()
             mock_instance.get.return_value = None
             mock_provider.return_value = mock_instance
-            
+
             with pytest.raises(ConfigurationError) as exc_info:
                 repo = RepositoryFactory.get_property_repository()
 
@@ -171,9 +164,7 @@ class TestDatabaseConfigurationIntegration:
         try:
             # Create config provider that reads from environment
             config = EnvironmentConfigProvider(
-                config_dir=None,
-                environment=Environment.TESTING.value,
-                load_dotenv=False
+                config_dir=None, environment=Environment.TESTING.value, load_dotenv=False
             )
 
             # Create database connection
@@ -216,7 +207,7 @@ class TestLoggingConfigurationIntegration:
 
         # Create logger with custom level
         logger = get_logger("test.warning.logger")
-        
+
         # Configure logger level based on config
         if hasattr(logger, "setLevel"):
             logger.setLevel(getattr(logging, config.get("LOG_LEVEL", "INFO")))
@@ -268,6 +259,7 @@ class TestDataCollectionConfigurationIntegration:
 
     def test_data_collector_initialization(self, collection_config):
         """Test data collector initialization with configuration."""
+
         # Simulate data collector initialization
         class MockDataCollector:
             def __init__(self, config: ConfigProvider):
@@ -290,6 +282,7 @@ class TestDataCollectionConfigurationIntegration:
 
     def test_proxy_configuration_integration(self, collection_config):
         """Test proxy configuration for data collection."""
+
         # Simulate proxy manager
         class MockProxyManager:
             def __init__(self, config: ConfigProvider):
@@ -333,7 +326,7 @@ class TestDataCollectionConfigurationIntegration:
                 """Collect and store data."""
                 if not self.repository:
                     await self.initialize()
-                
+
                 # Simulate storing data
                 await self.repository.create(data)
 
@@ -343,7 +336,7 @@ class TestDataCollectionConfigurationIntegration:
 
         assert collector.db_connection is not None
         assert collector.repository is not None
-        
+
         # Cleanup
         DatabaseConnection.reset_instance()
 
@@ -361,7 +354,7 @@ class TestCrossComponentConfigurationConsistency:
 
         # Simulate different components reading config
         components = []
-        
+
         class Component:
             def __init__(self, name: str, config: ConfigProvider):
                 self.name = name
@@ -433,13 +426,13 @@ class TestCrossComponentConfigurationConsistency:
             """Simulate component accessing configuration."""
             try:
                 await asyncio.sleep(delay)
-                
+
                 # Read configuration
                 value = config.get(f"COMPONENT_{component_id}_VALUE", f"default_{component_id}")
-                
+
                 # Write configuration
                 config.set(f"COMPONENT_{component_id}_RESULT", f"processed_{value}")
-                
+
                 results.append((component_id, value))
             except Exception as e:
                 errors.append((component_id, str(e)))
@@ -492,9 +485,9 @@ class TestEnvironmentSwitchingScenarios:
             config = EnvironmentConfigProvider(
                 config_dir=None,  # Use default
                 environment=env.value,  # Convert enum to string
-                load_dotenv=False  # Don't load .env in tests
+                load_dotenv=False,  # Don't load .env in tests
             )
-            
+
             # Override with test values - EnvironmentConfigProvider uses .config dict
             for key, value in expected_values.items():
                 config.config[key] = value
@@ -609,6 +602,7 @@ class TestConfigurationReloadImpact:
 
     def test_configuration_reload_notification(self):
         """Test components can be notified of configuration reloads."""
+
         # Create configuration with observers
         class ObservableConfig(SimpleConfigProvider):
             def __init__(self):
@@ -623,10 +617,12 @@ class TestConfigurationReloadImpact:
                 """Reload configuration and notify observers."""
                 # Simulate reload
                 self._values.clear()
-                self._values.update({
-                    "RELOADED": True,
-                    "RELOAD_TIME": time.time(),
-                })
+                self._values.update(
+                    {
+                        "RELOADED": True,
+                        "RELOAD_TIME": time.time(),
+                    }
+                )
 
                 # Notify observers
                 for observer in self.observers:
@@ -647,7 +643,7 @@ class TestConfigurationReloadImpact:
         # Setup
         config = ObservableConfig()
         observers = [ConfigObserver(f"observer_{i}") for i in range(3)]
-        
+
         for observer in observers:
             config.add_observer(observer)
 
@@ -684,7 +680,7 @@ class TestConfigurationReloadImpact:
                     return False
 
                 batch_size = self.config.get("BATCH_SIZE", 5)
-                
+
                 try:
                     # Simulate processing
                     await asyncio.sleep(0.1)
@@ -706,7 +702,7 @@ class TestConfigurationReloadImpact:
 
         # Create and start component
         component = ProcessingComponent(config)
-        
+
         # Run processing for a short time
         process_task = asyncio.create_task(component.run())
         await asyncio.sleep(0.3)
@@ -733,6 +729,7 @@ class TestErrorPropagationAndRecovery:
 
     def test_configuration_error_propagation(self):
         """Test how configuration errors propagate through components."""
+
         class StrictComponent:
             def __init__(self, config: ConfigProvider):
                 self.config = config
@@ -784,26 +781,26 @@ class TestErrorPropagationAndRecovery:
                     try:
                         uri = self.config.get("MONGODB_URI")
                         db_name = self.config.get("MONGODB_DATABASE")
-                        
+
                         # Simulate connection attempt
                         if uri.startswith("invalid://"):
                             raise DatabaseError("Invalid URI scheme")
-                        
+
                         self.connection = Mock()
                         return True
-                    except DatabaseError as e:
+                    except DatabaseError:
                         self.retry_count += 1
                         if self.retry_count >= self.max_retries:
                             raise
-                        
+
                         # Wait before retry
                         await asyncio.sleep(0.1 * self.retry_count)
-                        
+
                         # Check if configuration was updated
                         new_uri = self.config.get("MONGODB_URI")
                         if new_uri != uri:
                             continue
-                        
+
                 return False
 
         # Create component
@@ -880,7 +877,7 @@ class TestPerformanceImpact:
     def test_configuration_lookup_performance(self):
         """Test performance of configuration lookups."""
         config = SimpleConfigProvider()
-        
+
         # Populate with many configuration values
         for i in range(1000):
             config.set(f"KEY_{i}", f"value_{i}")
@@ -903,10 +900,10 @@ class TestPerformanceImpact:
     def test_configuration_with_caching_performance(self):
         """Test performance with configuration caching."""
         config = SimpleConfigProvider()
-        
+
         # Expensive configuration computation
         call_count = 0
-        
+
         def expensive_config_value():
             nonlocal call_count
             call_count += 1
@@ -956,7 +953,7 @@ class TestPerformanceImpact:
     async def test_concurrent_configuration_performance(self):
         """Test configuration performance under concurrent load."""
         config = SimpleConfigProvider()
-        
+
         # Populate initial configuration
         for i in range(100):
             config.set(f"CONCURRENT_KEY_{i}", f"value_{i}")
@@ -992,7 +989,7 @@ class TestPerformanceImpact:
 
         # Run concurrent tasks
         start_time = time.time()
-        
+
         tasks = []
         # Create readers
         for i in range(10):
@@ -1002,23 +999,24 @@ class TestPerformanceImpact:
             tasks.append(writer_task(i, 20))
 
         await asyncio.gather(*tasks)
-        
+
         elapsed = time.time() - start_time
 
         # Verify results
         assert len(errors) == 0
         assert read_count == 1000  # 10 readers * 100 iterations
-        assert write_count == 100   # 5 writers * 20 iterations
-        
+        assert write_count == 100  # 5 writers * 20 iterations
+
         # Performance check (should handle concurrent access efficiently)
         assert elapsed < 2.0  # Should complete within 2 seconds
 
     def test_configuration_memory_impact(self):
         """Test memory impact of configuration storage."""
         config = SimpleConfigProvider()
-        
+
         # Measure baseline memory (approximate)
         import sys
+
         baseline_size = sys.getsizeof(config._values)
 
         # Add many configuration values
@@ -1028,7 +1026,7 @@ class TestPerformanceImpact:
 
         # Measure memory after population
         populated_size = sys.getsizeof(config._values)
-        
+
         # Calculate approximate memory per entry
         memory_per_entry = (populated_size - baseline_size) / 1000
 
@@ -1038,7 +1036,7 @@ class TestPerformanceImpact:
         # Test memory cleanup
         config._values.clear()
         cleaned_size = sys.getsizeof(config._values)
-        
+
         # Should return to near baseline
         assert cleaned_size < baseline_size * 2
 
@@ -1051,16 +1049,16 @@ class TestRealWorldIntegrationScenarios:
         """Test full property collection stack with configuration."""
         # Setup comprehensive configuration
         config = SimpleConfigProvider()
-        
+
         # Database configuration
         config.set("MONGODB_URI", "mongodb://localhost:27017")
         config.set("MONGODB_DATABASE", "test_integration")
-        
+
         # Collection configuration
         config.set("COLLECTION_BATCH_SIZE", 25)
         config.set("COLLECTION_TIMEOUT", 30)
         config.set("API_KEY_MARICOPA", "test-api-key")
-        
+
         # Logging configuration
         config.set("LOG_LEVEL", "DEBUG")
         config.set("LOG_FILE", "test_integration.log")
@@ -1082,7 +1080,7 @@ class TestRealWorldIntegrationScenarios:
 
                 # Initialize components
                 batch_size = self.config.get("COLLECTION_BATCH_SIZE", 50)
-                
+
                 # Simulate data collection
                 for batch in range(3):
                     properties = await self._collect_batch(batch, batch_size)
@@ -1098,29 +1096,31 @@ class TestRealWorldIntegrationScenarios:
             async def _collect_batch(self, batch_num: int, size: int):
                 """Simulate collecting a batch of properties."""
                 self.logger.debug("Collecting batch %d (size: %d)", batch_num, size)
-                
+
                 # Simulate API call with timeout
                 timeout = self.config.get("COLLECTION_TIMEOUT", 60)
-                
+
                 try:
                     # Simulate collection
                     await asyncio.sleep(0.1)  # Simulate API delay
-                    
+
                     properties = []
                     for i in range(size):
-                        properties.append({
-                            "property_id": f"test_{batch_num}_{i}",
-                            "address": {
-                                "street": f"{i} Test St",
-                                "city": "Phoenix",
-                                "zipcode": "85001",
-                            },
-                            "current_price": 100000 + (i * 1000),
-                        })
-                    
+                        properties.append(
+                            {
+                                "property_id": f"test_{batch_num}_{i}",
+                                "address": {
+                                    "street": f"{i} Test St",
+                                    "city": "Phoenix",
+                                    "zipcode": "85001",
+                                },
+                                "current_price": 100000 + (i * 1000),
+                            }
+                        )
+
                     self.stats["collected"] += len(properties)
                     return properties
-                    
+
                 except Exception as e:
                     self.logger.error("Collection failed: %s", str(e))
                     self.stats["errors"] += 1
@@ -1134,10 +1134,10 @@ class TestRealWorldIntegrationScenarios:
                 try:
                     # Simulate database storage
                     await asyncio.sleep(0.05)  # Simulate DB delay
-                    
+
                     self.stats["stored"] += len(properties)
                     self.logger.debug("Stored %d properties", len(properties))
-                    
+
                 except Exception as e:
                     self.logger.error("Storage failed: %s", str(e))
                     self.stats["errors"] += len(properties)
@@ -1153,6 +1153,7 @@ class TestRealWorldIntegrationScenarios:
 
     def test_configuration_validation_pipeline(self):
         """Test configuration validation across the entire pipeline."""
+
         # Create configuration validator
         class ConfigurationValidator:
             def __init__(self):
@@ -1165,44 +1166,33 @@ class TestRealWorldIntegrationScenarios:
             def validate(self, config: ConfigProvider) -> List[str]:
                 """Run all validations and return errors."""
                 errors = []
-                
+
                 for name, validator in self.validations:
                     try:
                         if not validator(config):
                             errors.append(f"{name}: validation failed")
                     except Exception as e:
                         errors.append(f"{name}: {str(e)}")
-                
+
                 return errors
 
         # Define validation rules
         validator = ConfigurationValidator()
-        
+
         # Database validations
         validator.add_validation(
-            "MongoDB URI",
-            lambda c: c.get("MONGODB_URI", "").startswith("mongodb://")
+            "MongoDB URI", lambda c: c.get("MONGODB_URI", "").startswith("mongodb://")
         )
-        validator.add_validation(
-            "Database name",
-            lambda c: bool(c.get("MONGODB_DATABASE"))
-        )
-        
+        validator.add_validation("Database name", lambda c: bool(c.get("MONGODB_DATABASE")))
+
         # Collection validations
         validator.add_validation(
-            "Batch size",
-            lambda c: 1 <= c.get("COLLECTION_BATCH_SIZE", 0) <= 1000
+            "Batch size", lambda c: 1 <= c.get("COLLECTION_BATCH_SIZE", 0) <= 1000
         )
-        validator.add_validation(
-            "Timeout",
-            lambda c: 1 <= c.get("COLLECTION_TIMEOUT", 0) <= 300
-        )
-        
+        validator.add_validation("Timeout", lambda c: 1 <= c.get("COLLECTION_TIMEOUT", 0) <= 300)
+
         # API validations
-        validator.add_validation(
-            "API key",
-            lambda c: bool(c.get("API_KEY_MARICOPA"))
-        )
+        validator.add_validation("API key", lambda c: bool(c.get("API_KEY_MARICOPA")))
 
         # Test with valid configuration
         valid_config = SimpleConfigProvider()

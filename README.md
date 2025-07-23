@@ -44,16 +44,47 @@ make quality
 The project follows clean architecture principles with clear separation of concerns:
 
 ```
-src/phoenix_real_estate/
-├── foundation/          # Core infrastructure (Epic 1)
-│   ├── config/         # Configuration management
-│   ├── database/       # Repository pattern implementation
-│   ├── logging/        # Structured logging system
-│   └── utils/          # Shared utilities and exceptions
-├── collectors/         # Data collection engines (Epic 2)
-├── processors/         # LLM and data processing (Epic 2)
-├── orchestration/      # Automation workflows (Epic 3)
-└── api/               # API endpoints (future)
+├── src/phoenix_real_estate/    # Main application code
+│   ├── foundation/             # Core infrastructure (Epic 1)
+│   │   ├── config/            # Configuration management
+│   │   ├── database/          # Repository pattern implementation
+│   │   ├── logging/           # Structured logging
+│   │   ├── monitoring/        # Metrics and observability
+│   │   └── utils/             # Common utilities
+│   ├── collectors/            # Data collection modules (Epic 2)
+│   │   ├── base/              # Base collector classes
+│   │   ├── maricopa/          # Maricopa County API collector
+│   │   └── phoenix_mls/       # Phoenix MLS scraper
+│   └── processors/            # Data processing pipeline
+├── tests/                     # Test suite
+│   ├── collectors/            # Collector tests
+│   ├── foundation/            # Foundation layer tests
+│   └── integration/           # Integration tests
+├── scripts/                   # Utility scripts
+│   ├── setup/                 # Environment setup scripts
+│   ├── validation/            # Validation and testing scripts
+│   └── testing/               # Testing utilities
+├── config/                    # Configuration files
+│   ├── monitoring/            # Prometheus/Grafana configs
+│   └── selectors/             # CSS selectors for scraping
+├── docs/                      # Documentation
+│   ├── api/                   # API documentation
+│   ├── architecture/          # Architecture diagrams
+│   └── summaries/             # Implementation summaries
+├── reports/                   # Generated reports
+│   ├── production/            # Production readiness reports
+│   ├── testing/               # Test results and metrics
+│   └── validation/            # Validation reports
+├── tools/                     # Development tools
+│   └── validation/            # Validation utilities
+├── examples/                  # Usage examples and demos
+├── research/                  # Research and findings
+├── PRPs/                      # Project Requirements & Planning
+│   ├── epics/                 # Epic-level documentation
+│   ├── tasks/                 # Task-specific documentation
+│   ├── workflows/             # Implementation workflows
+│   └── architecture/          # Architecture decisions
+└── logs/                      # Runtime logs (auto-managed)
 ```
 
 ## 🛠️ Development Workflow
