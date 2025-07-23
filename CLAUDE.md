@@ -1,4 +1,10 @@
-# Phoenix Real Estate Data Collector - Development Guide
+# Phoenix Real Estate Data Collector - Claude Development Guide
+
+## CRITICAL PROJECT CONTEXT
+- **Purpose**: Automated real estate data collection for Phoenix, AZ (zip codes: 85031, 85033, 85035)
+- **Budget**: $25/month maximum (currently ~$1/month with free tiers)
+- **Status**: Epic 1 Foundation 95% complete - Maricopa API ready, Phoenix MLS needs selectors
+- **Windows Environment**: Always use Windows paths with backslashes
 
 ## RULES (violating ANY invalidates your response):
 ❌ No new files without exhaustive reuse analysis
@@ -7,11 +13,9 @@
 ❌ No ignoring existing codebase architecture
 ✅ Extend existing services and components
 ✅ Consolidate duplicate code
-✅ Reference specific file paths
-✅ Provide migration strategies
-✅ **WIDNOWS** - Project directory in windows, use ""C:\Users\.."
-✅ Adhere closely to KISS, DRY, YAGNI, SOLID, and the Zen Of Python. 
-✅ **And clean up after yourself**
+✅ Reference specific file paths with Windows backslashes
+✅ Test-driven development is MANDATORY
+✅ Clean up after yourself (temp files, unused imports, etc.)
 
 ## Environment Setup
 - **Package Management**: ALWAYS use uv with pyproject.toml, never pip
@@ -20,106 +24,70 @@
 - **Database**: MongoDB (local - localhost:27017)
 - **Testing**: pytest, tox, ruff, pyright
 
-## Essential Commands
+## Most Used Commands
 
 ```bash
-# Code quality
-make ruff                    # Format, lint, and autofix code
-make pyright                # Type checking (slow first run)
-make quick_pyright          # Type check only changed files
+# MongoDB (Windows - run as Administrator)
+net start MongoDB                                        # Start service
+python scripts/testing/test_mongodb_connection.py       # Test & setup database
 
-# Testing
-uv run pytest                 # Run all tests
-uv run pytest path/to/tests/  # Run specific tests
-pytest python_modules/tests/  # Run core tests
-tox -e py39-pytest            # Test in isolated environment
+# Code Quality (run before commits)
+uv run ruff check . --fix                               # Lint and auto-fix
+uv run pytest tests/                                    # Run tests
+make security-check                                     # Check for exposed secrets
 
-# Development
-make rebuild_ui             # Rebuild React UI after changes
-make graphql               # Regenerate GraphQL schema
-make sanity_check          # Check for non-editable installs
-make dev_install            # Full development environment setup
-make dev_install_win        # Full development environment setup for windows
+# Data Collection Testing
+python scripts/test_maricopa_api.py --api-key KEY      # Test Maricopa API
+python scripts/testing/discover_phoenix_mls_selectors.py --headless  # Find MLS selectors
 ```
 
-## MongoDB Setup and Management
+## Key Architecture Points
 
-- **MongoDB Service Commands**:
-  - Start MongoDB: `net start MongoDB` (Windows - run as Administrator)
-  - Stop MongoDB: `net stop MongoDB` (Windows - run as Administrator)
-- **MongoDB Connection Test**: `python scripts/testing/test_mongodb_connection.py`
-- **MongoDB Setup Script**: `scripts/setup/start_mongodb_service.bat` (run as Administrator)
-- **MongoDB Connection String**: `mongodb://localhost:27017`
-- **Database Name**: `phoenix_real_estate`
+- **MongoDB**: Local instance on `localhost:27017`, database: `phoenix_real_estate`
+- **Data Sources**: 
+  - Maricopa County API (working with 84% success rate)
+  - Phoenix MLS (needs selector configuration from live site)
+- **Project Structure**:
+  - `src/collection/` - Data collectors (Maricopa API, Phoenix MLS scraper)
+  - `src/database/` - MongoDB models and connections
+  - `src/processing/` - LLM data processing (Epic 2)
+  - `src/api/` - FastAPI backend (Epic 3)
+  - `config/` - Configuration files (use .example templates)
 
-## Data Collection Commands
+## Critical Configuration Files
 
-```bash
-# Maricopa County API Testing
-python scripts/test_maricopa_api.py                      # Test API connection
-python scripts/test_maricopa_api.py --api-key YOUR_KEY   # Test with specific API key
+- **`.env`**: Create from `.env.sample` - contains API keys, never commit!
+- **`config/proxies.yaml`**: Create from `config/proxies.yaml.example` - proxy credentials
+- **`config/selectors/phoenix_mls.yaml`**: CSS selectors for Phoenix MLS (needs update)
+- **Security**: Run `make security-check` before commits to scan for exposed secrets
 
-# Phoenix MLS Scraping
-python scripts/testing/discover_phoenix_mls_selectors.py --headless  # Selector discovery
+## Common Issues & Solutions
 
-# Database Testing
-python scripts/testing/test_db_connection.py             # Test database connection
-```
+1. **MongoDB Connection Refused**: Run `net start MongoDB` as Administrator
+2. **Import Errors**: Use `uv sync` to ensure all dependencies are installed
+3. **Maricopa API 403**: Check API key in `.env` file
+4. **Phoenix MLS Blocked**: Need proxy service (Webshare.io) and updated selectors
+5. **Test Failures**: Check MongoDB is running and `.env` is configured
 
-## Development Workflow
+## Next Steps for Completion
 
--   **Orchestration**: Daily data collection is managed by GitHub Actions (see `.github/workflows/`).
--   **Data Collection**: Primary scripts are in `src/collection/`. They target the Maricopa County API and PhoenixMLSSearch.com.
--   **Data Processing**: Raw data is processed by a local LLM (see `src/processing/`) into a structured format.
--   **Database**: Processed data is stored in MongoDB running locally on localhost:27017. The schema is defined in `src/database/schema.py`.
--   **Proxies**: Proxy configurations for scraping are managed in `config/proxies.yaml`.
--   **API**: The backend API is built with FastAPI and is defined in `src/api/`.
--   **Frontend**: The frontend is built with React and is located in `frontend/`.
+1. **Configure Phoenix MLS Selectors** (2-3 hours)
+   - Run `python scripts/testing/discover_phoenix_mls_selectors.py`
+   - Update `config/selectors/phoenix_mls.yaml`
+   
+2. **Set Up Proxy Service** (1 hour)
+   - Sign up for Webshare.io ($1/month)
+   - Copy `config/proxies.yaml.example` to `config/proxies.yaml`
+   - Add credentials to `.env`
+   
+3. **Begin Data Collection**
+   - Run `python src/main.py` for manual test
+   - Deploy to GitHub Actions for daily runs
 
+## Code Quality Standards
 
-## Data Schema (MongoDB)
-
-- **Database Name**: `phoenix_real_estate`
-- **Collections**: 
-  - `properties` - Main property data
-  - `collection_history` - Data collection logs
-  - `errors` - Error tracking and debugging
-
-The core data structure for each property is as follows:
-
-```javascript
-{
-  property_id: "unique_identifier",
-  address: { street, city, zip },
-  prices: [{ date, amount, source }],
-  features: { beds, baths, sqft, lot_size },
-  listing_details: { /* flexible fields from scraping */ },
-  last_updated: "2025-01-20T10:00:00Z"
-}
-```
-
-## API Keys and Credentials
-
-- **Maricopa API Key**: Available and working (84% success rate)
-- **Required Environment Variables**: Store in `.env` file in project root
-- **Phoenix MLS**: Requires proxy service and captcha handling for scraping
-- **Note**: All credentials should be stored securely and never committed to version control
-
-## Testing 
-
--   Use **pytest** for all tests.
--   Write tests **before** implementing new features. test driven development is **mandatory**.
--   Use **tox** for environment isolation when running tests.
--   Aim for **100% test coverage** for all Python code.
-
-## Code Style and Quality
-
-* All code must pass `make ruff` and `make pyright` checks
-* All new features must have corresponding tests
-* Follow Google-style docstrings for all functions and classes
-* Use type hints for all functions and methods
-* Adhere to a line width of 100 characters
-* Use `ruff` for formatting, linting, and import sorting
-* Proper exception chaining with `raise ... from`
-* Clear return statements - no implicit `None` returns
-* Consistent naming following PEP 8 conventions
+- **Before ANY commit**: Run `uv run ruff check . --fix` and `make security-check`
+- **Test-driven development**: Write tests FIRST, always
+- **Type hints**: Required for all functions
+- **Exception handling**: Always use `raise ... from` for proper chaining
+- **Documentation**: Google-style docstrings mandatory
