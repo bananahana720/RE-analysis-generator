@@ -1,7 +1,7 @@
 """Test configuration for Phoenix MLS collector tests."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from pathlib import Path
 import tempfile
 import shutil
@@ -17,15 +17,15 @@ def mock_proxy_config():
                 "port": 8080,
                 "username": "user1",
                 "password": "pass1",
-                "type": "http"
+                "type": "http",
             },
             {
                 "host": "proxy2.test.com",
                 "port": 8081,
-                "username": "user2", 
+                "username": "user2",
                 "password": "pass2",
-                "type": "socks5"
-            }
+                "type": "socks5",
+            },
         ]
     }
 
@@ -38,10 +38,7 @@ def mock_phoenix_mls_config():
         "search_endpoint": "/search",
         "max_retries": 3,
         "timeout": 30,
-        "rate_limit": {
-            "requests_per_minute": 60,
-            "burst_size": 10
-        }
+        "rate_limit": {"requests_per_minute": 60, "burst_size": 10},
     }
 
 
@@ -76,7 +73,7 @@ def mock_browser_context():
 @pytest.fixture
 def sample_property_html():
     """Sample HTML for a property listing."""
-    return '''
+    return """
     <div class="property-listing">
         <h2 class="address">123 Main St, Phoenix, AZ 85001</h2>
         <span class="price">$450,000</span>
@@ -87,13 +84,13 @@ def sample_property_html():
         </div>
         <div class="description">Beautiful home in central Phoenix</div>
     </div>
-    '''
+    """
 
 
 @pytest.fixture
 def sample_search_results_html():
     """Sample HTML for search results page."""
-    return '''
+    return """
     <div class="search-results">
         <div class="property-card" data-property-id="123">
             <a href="/property/123" class="property-link">
@@ -108,4 +105,4 @@ def sample_search_results_html():
             </a>
         </div>
     </div>
-    '''
+    """
