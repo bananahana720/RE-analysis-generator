@@ -75,6 +75,40 @@ sources:
     timeout: 30
     stealth_mode: true
     
+    # Captcha handling configuration
+    captcha:
+      enabled: false  # Enable only if API key available
+      service: "2captcha"  # Options: 2captcha, anti-captcha
+      timeout: 120  # Maximum seconds to wait for solution
+      max_retries: 3
+      screenshot_on_detection: true
+      screenshot_dir: "data/captcha_screenshots"
+      
+      # Detection configuration
+      detection:
+        # CSS selectors to detect captcha presence
+        selectors:
+          - "iframe[src*='recaptcha']"
+          - ".g-recaptcha"
+          - "[data-sitekey]"
+          - "iframe[src*='hcaptcha']"
+          - ".h-captcha"
+          - "#captcha"
+          - ".captcha"
+          - "img[src*='captcha']"
+        
+        # Keywords in page content that indicate captcha
+        keywords:
+          - "captcha"
+          - "verification"
+          - "verify you're human"
+          - "i'm not a robot"
+          
+        # HTTP response codes that often indicate captcha
+        response_codes:
+          - 403
+          - 429
+    
   particle_space:
     enabled: false  # Only enable if API key available
     base_url: "https://api.particle.space"
