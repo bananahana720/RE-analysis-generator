@@ -14,7 +14,6 @@ from phoenix_real_estate.foundation import Logger, get_logger, ConfigProvider
 from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ConfigurationError,
-    ValidationError,
 )
 from phoenix_real_estate.foundation.utils.helpers import retry_async
 from phoenix_real_estate.collectors.base.rate_limiter import RateLimiter, RateLimitObserver
@@ -32,26 +31,37 @@ class MaricopaAPIClient(RateLimitObserver):
     to respond to rate limit status changes.
 
     Key Features:
-    - Bearer token authentication with secure credential handling
+    - Custom AUTHORIZATION header authentication format
     - Rate limiting with connection pooling (limit=10, limit_per_host=5)
     - Epic 1's retry_async utility for exponential backoff
     - Comprehensive HTTP status code handling (401, 403, 429, 5xx)
     - Request/response logging with security compliance
     - Integration with Epic 1 configuration and logging
+    - APN-based property lookup instead of property_id
 
     Configuration Required:
-    - MARICOPA_API_KEY: Bearer token for authentication
-    - MARICOPA_BASE_URL: API base URL (default: https://api.assessor.maricopa.gov/v1)
+    - MARICOPA_API_KEY: API token for authentication (custom header format)
+    - MARICOPA_BASE_URL: API base URL (default: https://mcassessor.maricopa.gov)
     - MARICOPA_RATE_LIMIT: Rate limit per hour (default: 1000)
     - MARICOPA_TIMEOUT: Request timeout in seconds (default: 30)
     """
 
     # API endpoints
     ENDPOINTS = {
-        "search_by_zipcode": "/properties/search/zipcode/{zipcode}",
-        "property_details": "/properties/{property_id}",
-        "recent_sales": "/sales/recent",
-        "property_history": "/properties/{property_id}/history",
+        "search_property": "/search/property/",
+        "search_subdivisions": "/search/sub/",
+        "search_rentals": "/search/rental/",
+        "parcel_details": "/parcel/{apn}",
+        "property_info": "/parcel/{apn}/propertyinfo",
+        "property_address": "/parcel/{apn}/address",
+        "valuations": "/parcel/{apn}/valuations",
+        "residential_details": "/parcel/{apn}/residential-details",
+        "commercial_details": "/parcel/{apn}/commercial-details",
+        "owner_details": "/parcel/{apn}/owner-details",
+        "legal_details": "/parcel/{apn}/legal",
+        "building_details": "/parcel/{apn}/building-details",
+        "dwelling_details": "/parcel/{apn}/dwelling-details",
+        "mapid": "/mapid/parcel/{apn}",
     }
 
     def __init__(self, config: ConfigProvider, requests_per_hour: Optional[int] = None) -> None:
@@ -100,7 +110,7 @@ class MaricopaAPIClient(RateLimitObserver):
             # Epic 1 configuration keys
             self.api_key = self.config.get("MARICOPA_API_KEY")
             self.base_url = self.config.get(
-                "MARICOPA_BASE_URL", "https://api.assessor.maricopa.gov/v1"
+                "MARICOPA_BASE_URL", "https://mcassessor.maricopa.gov"
             )
             self.rate_limit = self.config.get_int("MARICOPA_RATE_LIMIT", 1000)
             self.timeout_seconds = self.config.get_int("MARICOPA_TIMEOUT", 30)
@@ -120,14 +130,200 @@ class MaricopaAPIClient(RateLimitObserver):
     def _get_default_headers(self) -> Dict[str, str]:
         """Get default HTTP headers for requests with secure authentication."""
         return {
-            "Authorization": f"Bearer {self.api_key}",
+            "AUTHORIZATION": self.api_key,  # Custom header format for Maricopa API
             "Content-Type": "application/json",
             "Accept": "application/json",
             "User-Agent": "Phoenix-RE-Data-Collector/1.0",
         }
 
+    async def search_property(self, query: str, page: int = 1) -> Dict[str, Any]:
+        """Search properties by query string with pagination support.
+
+        Args:
+            query: Search query (address, owner name, APN, etc.)
+            page: Page number for pagination (default: 1, 25 results per page)
+
+        Returns:
+            Dictionary containing search results and metadata
+
+        Raises:
+            DataCollectionError: If search request fails
+            ValidationError: If query is invalid
+        """
+        # Validate query
+        if not query or not query.strip():
+            raise ValidationError("Search query cannot be empty")
+
+        try:
+            params = {
+                "query": query.strip(),
+                "page": page
+            }
+            response_data = await self._make_request("GET", self.ENDPOINTS["search_property"], params=params)
+
+            # Log search results
+            result_count = len(response_data.get("results", []))
+            self.logger.info(
+                f"Property search returned {result_count} results for page {page}",
+                extra={"query": query[:50], "page": page, "result_count": result_count},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "search_property", query=query[:50], page=page)
+
+    async def get_parcel_details(self, apn: str) -> Optional[Dict[str, Any]]:
+        """Get all parcel information for a given APN.
+
+        Args:
+            apn: Assessor's Parcel Number (APN)
+
+        Returns:
+            Complete parcel data dictionary or None if not found
+
+        Raises:
+            DataCollectionError: If request fails
+            ValidationError: If APN is invalid
+        """
+        # Basic APN validation (format varies by county)
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+
+        try:
+            endpoint = self.ENDPOINTS["parcel_details"].format(apn=apn.strip())
+            response_data = await self._make_request("GET", endpoint)
+
+            self.logger.debug(
+                "Retrieved parcel details",
+                extra={"apn": "[SANITIZED]", "has_data": bool(response_data)},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "get_parcel_details", apn="[SANITIZED]")
+
+    async def get_property_info(self, apn: str) -> Optional[Dict[str, Any]]:
+        """Get property info section for a given APN.
+
+        Args:
+            apn: Assessor's Parcel Number (APN)
+
+        Returns:
+            Property info data dictionary or None if not found
+
+        Raises:
+            DataCollectionError: If request fails
+            ValidationError: If APN is invalid
+        """
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+
+        try:
+            endpoint = self.ENDPOINTS["property_info"].format(apn=apn.strip())
+            response_data = await self._make_request("GET", endpoint)
+
+            self.logger.debug(
+                "Retrieved property info",
+                extra={"apn": "[SANITIZED]", "has_data": bool(response_data)},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "get_property_info", apn="[SANITIZED]")
+
+    async def get_valuations(self, apn: str) -> Optional[Dict[str, Any]]:
+        """Get valuation history for a given APN.
+
+        Args:
+            apn: Assessor's Parcel Number (APN)
+
+        Returns:
+            Valuation history data dictionary or None if not found
+
+        Raises:
+            DataCollectionError: If request fails
+            ValidationError: If APN is invalid
+        """
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+
+        try:
+            endpoint = self.ENDPOINTS["valuations"].format(apn=apn.strip())
+            response_data = await self._make_request("GET", endpoint)
+
+            self.logger.debug(
+                "Retrieved valuations",
+                extra={"apn": "[SANITIZED]", "has_data": bool(response_data)},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "get_valuations", apn="[SANITIZED]")
+
+    async def get_residential_details(self, apn: str) -> Optional[Dict[str, Any]]:
+        """Get residential characteristics for a given APN.
+
+        Args:
+            apn: Assessor's Parcel Number (APN)
+
+        Returns:
+            Residential details data dictionary or None if not found
+
+        Raises:
+            DataCollectionError: If request fails
+            ValidationError: If APN is invalid
+        """
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+
+        try:
+            endpoint = self.ENDPOINTS["residential_details"].format(apn=apn.strip())
+            response_data = await self._make_request("GET", endpoint)
+
+            self.logger.debug(
+                "Retrieved residential details",
+                extra={"apn": "[SANITIZED]", "has_data": bool(response_data)},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "get_residential_details", apn="[SANITIZED]")
+
+    async def get_owner_details(self, apn: str) -> Optional[Dict[str, Any]]:
+        """Get owner information for a given APN.
+
+        Args:
+            apn: Assessor's Parcel Number (APN)
+
+        Returns:
+            Owner details data dictionary or None if not found
+
+        Raises:
+            DataCollectionError: If request fails
+            ValidationError: If APN is invalid
+        """
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+
+        try:
+            endpoint = self.ENDPOINTS["owner_details"].format(apn=apn.strip())
+            response_data = await self._make_request("GET", endpoint)
+
+            self.logger.debug(
+                "Retrieved owner details",
+                extra={"apn": "[SANITIZED]", "has_data": bool(response_data)},
+            )
+            return response_data
+
+        except Exception as e:
+            await self._handle_request_error(e, "get_owner_details", apn="[SANITIZED]")
+
+    # Backward compatibility methods - these wrap the new API methods
     async def search_by_zipcode(self, zipcode: str) -> List[Dict[str, Any]]:
-        """Search properties by ZIP code with validation and logging.
+        """Search properties by ZIP code - backward compatibility wrapper.
+
+        This method provides backward compatibility by wrapping the new search_property
+        method. It searches for properties in the given ZIP code.
 
         Args:
             zipcode: Valid US ZIP code (5-digit or ZIP+4 format)
@@ -143,11 +339,11 @@ class MaricopaAPIClient(RateLimitObserver):
         CommonValidators.validate_zipcode(zipcode)
 
         try:
-            endpoint = self.ENDPOINTS["search_by_zipcode"].format(zipcode=zipcode.strip())
-            response_data = await self._make_request("GET", endpoint)
-
-            # Extract properties from response
-            properties = response_data.get("properties", [])
+            # Use the new search_property method with zipcode as query
+            response_data = await self.search_property(f"zipcode:{zipcode}")
+            
+            # Extract properties from response for backward compatibility
+            properties = response_data.get("results", [])
             if isinstance(properties, dict):
                 properties = [properties]  # Handle single result
 
@@ -161,10 +357,13 @@ class MaricopaAPIClient(RateLimitObserver):
             await self._handle_request_error(e, "search_by_zipcode", zipcode=zipcode)
 
     async def get_property_details(self, property_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed property information with error handling.
+        """Get detailed property information - backward compatibility wrapper.
+
+        This method provides backward compatibility. If property_id looks like an APN,
+        it will use get_parcel_details. Otherwise, it will attempt to search for the property.
 
         Args:
-            property_id: Unique property identifier
+            property_id: Unique property identifier or APN
 
         Returns:
             Detailed property data dictionary or None if not found
@@ -176,60 +375,24 @@ class MaricopaAPIClient(RateLimitObserver):
         CommonValidators.validate_property_id(property_id)
 
         try:
-            endpoint = self.ENDPOINTS["property_details"].format(property_id=property_id.strip())
-            response_data = await self._make_request("GET", endpoint)
-
-            self.logger.debug(
-                "Retrieved property details",
-                extra={"property_id": "[SANITIZED]", "has_data": bool(response_data)},
-            )
-            return response_data
+            # Check if property_id looks like an APN (contains dashes)
+            if "-" in property_id:
+                # Likely an APN, use get_parcel_details
+                return await self.get_parcel_details(property_id)
+            else:
+                # Try to search for the property and return first result
+                search_results = await self.search_property(property_id)
+                results = search_results.get("results", [])
+                if results:
+                    # Get full details for the first result
+                    first_result = results[0]
+                    if "apn" in first_result:
+                        return await self.get_parcel_details(first_result["apn"])
+                    return first_result
+                return None
 
         except Exception as e:
             await self._handle_request_error(e, "get_property_details", property_id="[SANITIZED]")
-
-    async def get_recent_sales(
-        self, days_back: int = 30, zip_codes: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
-        """Get recent property sales data.
-
-        Args:
-            days_back: Number of days back to search
-            zip_codes: Optional list of zip codes to filter by
-
-        Returns:
-            List of recent sales data
-
-        Raises:
-            DataCollectionError: If request fails
-            ValidationError: If parameters are invalid
-        """
-        CommonValidators.validate_days_back(days_back)
-
-        params = {"days_back": days_back}
-        if zip_codes:
-            params["zip_codes"] = ",".join(zip_codes)
-
-        try:
-            response_data = await self._make_request("GET", "recent_sales", params=params)
-
-            sales = response_data.get("sales", [])
-            if isinstance(sales, dict):
-                sales = [sales]
-
-            self.logger.info(
-                "Retrieved recent sales data",
-                extra={"days_back": days_back, "result_count": len(sales)},
-            )
-            return sales
-
-        except Exception as e:
-            await self._handle_request_error(
-                e,
-                "get_recent_sales",
-                days_back=days_back,
-                zip_codes="[SANITIZED]" if zip_codes else None,
-            )
 
     async def _ensure_session(self) -> aiohttp.ClientSession:
         """Ensure aiohttp session is initialized with proper connection pooling."""
@@ -450,7 +613,7 @@ class MaricopaAPIClient(RateLimitObserver):
             f"Maricopa API operation '{operation}'",
             DataCollectionError,
             context=sanitized_context,
-            sanitize=False  # Already sanitized
+            sanitize=False,  # Already sanitized
         )
         raise wrapped_error from error
 

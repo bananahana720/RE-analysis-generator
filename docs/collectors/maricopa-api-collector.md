@@ -32,7 +32,7 @@ MaricopaAPICollector
 maricopa:
   api:
     base_url: "https://api.maricopa.gov/v1"
-    bearer_token: "your-api-token"
+    # API key is configured via MARICOPA_API_KEY environment variable
     rate_limit: 900  # requests per hour
     rate_window_seconds: 3600
     safety_margin: 0.1  # 10% safety margin
@@ -45,7 +45,7 @@ maricopa:
 
 ### Environment Variables
 
-- `MARICOPA_API_KEY`: Bearer token for API authentication (required)
+- `MARICOPA_API_KEY`: API key for authentication (required, no Bearer prefix)
 - `MARICOPA_API_URL`: Base URL for API (optional, defaults to production)
 
 ## Usage Examples

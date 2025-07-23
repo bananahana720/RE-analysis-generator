@@ -1,0 +1,87 @@
+{
+  "apn": "123-45-678",
+  "valuation_history": [
+    {
+      "tax_year": 2024,
+      "assessment_date": "2024-01-01",
+      "assessed_value": 300000,
+      "market_value": 350000,
+      "land_value": 100000,
+      "improvement_value": 250000,
+      "personal_property_value": 0,
+      "total_value": 350000,
+      "exemptions": [],
+      "tax_amount": 3500,
+      "tax_rate": 0.01,
+      "mill_levy": 10.0
+    },
+    {
+      "tax_year": 2023,
+      "assessment_date": "2023-01-01",
+      "assessed_value": 285000,
+      "market_value": 335000,
+      "land_value": 95000,
+      "improvement_value": 240000,
+      "personal_property_value": 0,
+      "total_value": 335000,
+      "exemptions": [],
+      "tax_amount": 3325,
+      "tax_rate": 0.00993,
+      "mill_levy": 9.93
+    },
+    {
+      "tax_year": 2022,
+      "assessment_date": "2022-01-01",
+      "assessed_value": 270000,
+      "market_value": 320000,
+      "land_value": 90000,
+      "improvement_value": 230000,
+      "personal_property_value": 0,
+      "total_value": 320000,
+      "exemptions": [],
+      "tax_amount": 3168,
+      "tax_rate": 0.0099,
+      "mill_levy": 9.9
+    },
+    {
+      "tax_year": 2021,
+      "assessment_date": "2021-01-01",
+      "assessed_value": 260000,
+      "market_value": 310000,
+      "land_value": 85000,
+      "improvement_value": 225000,
+      "personal_property_value": 0,
+      "total_value": 310000,
+      "exemptions": [],
+      "tax_amount": 3069,
+      "tax_rate": 0.0099,
+      "mill_levy": 9.9
+    },
+    {
+      "tax_year": 2020,
+      "assessment_date": "2020-01-01",
+      "assessed_value": 250000,
+      "market_value": 300000,
+      "land_value": 80000,
+      "improvement_value": 220000,
+      "personal_property_value": 0,
+      "total_value": 300000,
+      "exemptions": [],
+      "tax_amount": 2970,
+      "tax_rate": 0.0099,
+      "mill_levy": 9.9
+    }
+  ],
+  "assessment_methodology": {
+    "approach": "Market Approach",
+    "comparable_sales_count": 5,
+    "adjustment_factors": [
+      "Location",
+      "Size",
+      "Condition",
+      "Age"
+    ],
+    "assessor_notes": "Property assessed using recent sales of similar properties in the area."
+  },
+  "appeals_history": []
+}

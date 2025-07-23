@@ -1,0 +1,24 @@
+# Updated configuration for real Maricopa County API
+
+sources:
+  maricopa_county:
+    enabled: true
+    base_url: "https://mcassessor.maricopa.gov"  # CORRECTED URL
+    rate_limit: 1000  # requests per hour
+    timeout: 10
+    pagination_size: 25  # Search results per page
+    
+    # Authentication configuration
+    auth:
+      header_name: "AUTHORIZATION"  # NOT "Authorization: Bearer"
+      api_key_env: "MARICOPA_API_KEY"
+      
+    # Endpoint configuration
+    endpoints:
+      search_property: "/search/property/?q={query}"
+      search_paged: "/search/property/?q={query}&page={page}"
+      parcel_details: "/parcel/{apn}"
+      property_info: "/parcel/{apn}/propertyinfo"
+      property_address: "/parcel/{apn}/address"
+      property_valuations: "/parcel/{apn}/valuations"
+      owner_details: "/parcel/{apn}/owner-details"

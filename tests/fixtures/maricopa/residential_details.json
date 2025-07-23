@@ -1,0 +1,135 @@
+{
+  "apn": "123-45-678",
+  "property_type": "Single Family Residential",
+  "dwelling_characteristics": {
+    "bedrooms": 4,
+    "bathrooms": 3.5,
+    "half_bathrooms": 1,
+    "powder_rooms": 0,
+    "living_area_sqft": 2850,
+    "finished_basement_sqft": 0,
+    "unfinished_basement_sqft": 0,
+    "garage_sqft": 600,
+    "covered_patio_sqft": 200,
+    "enclosed_patio_sqft": 0,
+    "total_sqft": 3650
+  },
+  "lot_information": {
+    "lot_size_sqft": 9600,
+    "lot_size_acres": 0.22,
+    "frontage_feet": 80,
+    "depth_feet": 120,
+    "shape": "Rectangular",
+    "topography": "Level",
+    "drainage": "Good"
+  },
+  "construction_details": {
+    "year_built": 2005,
+    "effective_year": 2005,
+    "floors": 2.0,
+    "foundation": "Slab",
+    "exterior_wall": "Stucco",
+    "roof_material": "Tile",
+    "roof_type": "Hip",
+    "construction_quality": "Good",
+    "construction_class": "Class B"
+  },
+  "interior_features": {
+    "flooring": {
+      "hardwood_sqft": 800,
+      "tile_sqft": 1200,
+      "carpet_sqft": 850,
+      "total_sqft": 2850
+    },
+    "kitchen": {
+      "cabinets": "Custom Wood",
+      "countertops": "Granite",
+      "appliances": "Built-in",
+      "island": true
+    },
+    "bathrooms": {
+      "master_bath": {
+        "tub": "Garden Tub",
+        "shower": "Separate Shower",
+        "vanity": "Double Vanity",
+        "countertops": "Granite"
+      },
+      "other_baths": "Standard"
+    }
+  },
+  "mechanical_systems": {
+    "heating": {
+      "type": "Gas Forced Air",
+      "units": 2,
+      "efficiency": "High Efficiency",
+      "year_installed": 2018
+    },
+    "cooling": {
+      "type": "Central Air",
+      "units": 2,
+      "tonnage": 5.0,
+      "efficiency": "SEER 16",
+      "year_installed": 2018
+    },
+    "water_heater": {
+      "type": "Gas",
+      "capacity": 50,
+      "efficiency": "High Efficiency",
+      "year_installed": 2020
+    },
+    "electrical": {
+      "service": "200 Amp",
+      "panel": "Circuit Breaker",
+      "wiring": "Copper"
+    }
+  },
+  "garage_and_parking": {
+    "garage_spaces": 3,
+    "garage_type": "Attached",
+    "garage_door": "Automatic",
+    "driveway": "Concrete",
+    "additional_parking": 2
+  },
+  "amenities": {
+    "pool": "Yes",
+    "pool_type": "In-Ground",
+    "spa": "Yes",
+    "fireplace": "No",
+    "fireplace_count": 0,
+    "patio": "Covered",
+    "fencing": "Block Wall",
+    "landscaping": "Desert",
+    "irrigation": "Drip System"
+  },
+  "energy_efficiency": {
+    "insulation": "R-30 Ceiling, R-13 Walls",
+    "windows": "Dual Pane",
+    "energy_star_appliances": true,
+    "solar_panels": false,
+    "estimated_energy_rating": "B+"
+  },
+  "special_features": [
+    "Vaulted Ceilings",
+    "Walk-in Closets",
+    "Pantry",
+    "Laundry Room",
+    "Security System Pre-wired",
+    "Ceiling Fans Throughout"
+  ],
+  "condition_notes": {
+    "overall_condition": "Good",
+    "depreciation_factors": [],
+    "recent_improvements": [
+      {
+        "improvement": "HVAC System Replacement",
+        "year": 2018,
+        "cost": 8500
+      },
+      {
+        "improvement": "Water Heater Replacement", 
+        "year": 2020,
+        "cost": 1200
+      }
+    ]
+  }
+}

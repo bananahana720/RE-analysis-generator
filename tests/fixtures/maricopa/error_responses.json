@@ -1,0 +1,51 @@
+{
+  "authentication_error": {
+    "error": "Unauthorized",
+    "message": "Invalid API key or token",
+    "status_code": 401,
+    "timestamp": "2024-01-20T10:30:00Z"
+  },
+  "rate_limit_error": {
+    "error": "Too Many Requests",
+    "message": "Rate limit exceeded. Please wait before making another request",
+    "status_code": 429,
+    "retry_after": 60,
+    "limit": 1000,
+    "remaining": 0,
+    "reset_time": "2024-01-20T11:00:00Z"
+  },
+  "not_found_error": {
+    "error": "Not Found",
+    "message": "The requested parcel was not found",
+    "status_code": 404,
+    "apn": "999-99-999",
+    "timestamp": "2024-01-20T10:30:00Z"
+  },
+  "server_error": {
+    "error": "Internal Server Error",
+    "message": "An unexpected error occurred while processing your request",
+    "status_code": 500,
+    "request_id": "req_123456789",
+    "timestamp": "2024-01-20T10:30:00Z"
+  },
+  "validation_error": {
+    "error": "Bad Request",
+    "message": "Invalid request parameters",
+    "status_code": 400,
+    "details": {
+      "apn": ["APN format is invalid. Expected format: XXX-XX-XXX"],
+      "query": ["Query parameter is required"]
+    },
+    "timestamp": "2024-01-20T10:30:00Z"
+  },
+  "maintenance_error": {
+    "error": "Service Unavailable",
+    "message": "The API is currently under maintenance. Please try again later",
+    "status_code": 503,
+    "maintenance_window": {
+      "start": "2024-01-20T02:00:00Z",
+      "end": "2024-01-20T06:00:00Z"
+    },
+    "timestamp": "2024-01-20T03:30:00Z"
+  }
+}

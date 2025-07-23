@@ -106,7 +106,7 @@ class MaricopaAPICollector(DataCollector):
         """
         try:
             # Validate API client can be configured
-            required_fields = ["maricopa.api.base_url", "maricopa.api.bearer_token"]
+            required_fields = ["maricopa.api.base_url"]  # API key is validated by client
 
             missing_fields = []
             for field in required_fields:

@@ -1,0 +1,104 @@
+{
+  "apn": "123-45-678",
+  "parcel_id": "12345678",
+  "book": "123",
+  "map": "45", 
+  "parcel": "678",
+  "property_type": "Residential",
+  "property_class": "Single Family",
+  "use_code": "1110",
+  "use_description": "Single Family Residential",
+  "legal_description": "Lot 1 Block 2 Desert Estates Phase II, as recorded in Book 456 of Maps, Page 78, Official Records of Maricopa County, Arizona",
+  "subdivision": "Desert Estates",
+  "phase": "Phase II",
+  "lot": "1",
+  "block": "2",
+  "tract": "12345",
+  "section": "12",
+  "township": "1N",
+  "range": "3E",
+  "quarter_section": "NE",
+  "municipality": "Phoenix",
+  "school_district": "Phoenix Elementary School District",
+  "fire_district": "Phoenix Fire Department",
+  "flood_zone": "X",
+  "zoning": {
+    "zoning_code": "R1-6",
+    "zoning_description": "Single Family Residential, 6 units per acre",
+    "overlay_districts": [],
+    "special_districts": []
+  },
+  "platted_information": {
+    "plat_name": "Desert Estates",
+    "plat_book": "456",
+    "plat_page": "78",
+    "recording_date": "1995-03-15",
+    "surveyor": "ABC Surveying Inc"
+  },
+  "easements": [
+    {
+      "type": "Utility Easement",
+      "location": "Rear 10 feet",
+      "beneficiary": "APS/Southwest Gas/Cox Communications",
+      "purpose": "Utility lines and access"
+    },
+    {
+      "type": "Drainage Easement", 
+      "location": "Southwest corner 15x20",
+      "beneficiary": "City of Phoenix",
+      "purpose": "Storm water drainage"
+    }
+  ],
+  "restrictions": [
+    {
+      "type": "CC&R",
+      "description": "Desert Estates Homeowners Association restrictions",
+      "recorded_date": "1995-03-15",
+      "document_number": "95-123456"
+    }
+  ],
+  "special_assessments": [],
+  "liens": [],
+  "environmental_factors": {
+    "flood_zone": "X - Minimal Flood Hazard",
+    "earthquake_zone": "Zone 2B",
+    "soil_type": "Desert soil, well-drained",
+    "environmental_hazards": []
+  },
+  "access": {
+    "street_name": "Desert Willow Lane",
+    "street_type": "Public",
+    "access_type": "Direct",
+    "frontage_feet": 80,
+    "corner_lot": false,
+    "cul_de_sac": false
+  },
+  "utilities_available": {
+    "water": "City of Phoenix",
+    "sewer": "City of Phoenix",
+    "electric": "APS",
+    "gas": "Southwest Gas",
+    "cable": "Cox Communications",
+    "internet": "Available",
+    "trash": "City of Phoenix"
+  },
+  "hoa_information": {
+    "hoa_name": "Desert Estates Homeowners Association",
+    "management_company": "ABC Property Management",
+    "annual_dues": 480,
+    "amenities": [
+      "Community Pool",
+      "Playground",
+      "Walking Trails",
+      "Clubhouse"
+    ]
+  },
+  "tax_information": {
+    "tax_id": "123-45-678",
+    "taxing_authority": "Maricopa County",
+    "special_districts": [
+      "Municipal Improvement District",
+      "Library District"
+    ]
+  }
+}

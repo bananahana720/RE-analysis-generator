@@ -1,0 +1,41 @@
+{
+  "Real Property": [
+    {
+      "apn": "123-45-678",
+      "property_type": "Residential",
+      "situs_address": "123 Main St, Phoenix, AZ 85001",
+      "owner_name": "John Doe",
+      "assessed_value": 300000,
+      "legal_description": "Lot 1 Block 2 Main Subdivision"
+    },
+    {
+      "apn": "123-45-679",
+      "property_type": "Residential", 
+      "situs_address": "125 Main St, Phoenix, AZ 85001",
+      "owner_name": "Jane Smith",
+      "assessed_value": 285000,
+      "legal_description": "Lot 2 Block 2 Main Subdivision"
+    },
+    {
+      "apn": "123-45-680",
+      "property_type": "Commercial",
+      "situs_address": "127 Main St, Phoenix, AZ 85001",
+      "owner_name": "ABC Properties LLC",
+      "assessed_value": 450000,
+      "legal_description": "Lot 3 Block 2 Main Subdivision"
+    }
+  ],
+  "BPP": [],
+  "MH": [],
+  "Rentals": [],
+  "Subdivisions": [],
+  "Content": [],
+  "totals": {
+    "Real Property": 3,
+    "BPP": 0,
+    "MH": 0,
+    "Rentals": 0,
+    "Subdivisions": 0,
+    "Content": 0
+  }
+}

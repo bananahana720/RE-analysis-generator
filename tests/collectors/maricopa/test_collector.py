@@ -13,13 +13,12 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
 
-from phoenix_real_estate.foundation.config.base import ConfigProvider
 from phoenix_real_estate.foundation import PropertyRepository
 from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ConfigurationError,
     ValidationError,
-    ProcessingError
+    ProcessingError,
 )
 from phoenix_real_estate.collectors.maricopa.collector import MaricopaAPICollector
 from phoenix_real_estate.collectors.maricopa.client import MaricopaAPIClient
@@ -40,21 +39,17 @@ class TestMaricopaAPICollector:
             "maricopa.collection.max_retries": 3,
             "maricopa.collection.retry_delay_seconds": 5,
             "MARICOPA_RATE_LIMIT": 1000,
-            "MARICOPA_TIMEOUT": 30
+            "MARICOPA_TIMEOUT": 30,
         }.get(key, default)
         config.get.side_effect = lambda key, default=None: {
             "maricopa.api.base_url": "https://api.example.com",
-            "maricopa.api.bearer_token": "test_token",
+            # API key is handled by MARICOPA_API_KEY environment variable
             "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com"
+            "MARICOPA_BASE_URL": "https://api.example.com",
         }.get(key, default)
         # Add get_typed method that's used in initialization
         config.get_typed.side_effect = lambda key, expected_type, default=None: {
-            "maricopa.collection": {
-                "batch_size": 100,
-                "max_retries": 3,
-                "retry_delay_seconds": 5
-            }
+            "maricopa.collection": {"batch_size": 100, "max_retries": 3, "retry_delay_seconds": 5}
         }.get(key, default)
         return config
 
@@ -89,14 +84,10 @@ class TestMaricopaAPICollector:
                 "street": "123 Test St",
                 "city": "Phoenix",
                 "state": "AZ",
-                "zipcode": "85001"
+                "zipcode": "85001",
             },
-            "features": {
-                "bedrooms": 3,
-                "bathrooms": 2,
-                "square_footage": 1500
-            },
-            "last_updated": datetime.now().isoformat()
+            "features": {"bedrooms": 3, "bathrooms": 2, "square_footage": 1500},
+            "last_updated": datetime.now().isoformat(),
         }
         adapter.transform_batch.return_value = [adapter.transform.return_value]
         return adapter
@@ -111,24 +102,24 @@ class TestMaricopaAPICollector:
     @pytest.fixture
     def collector(self, mock_config, mock_repository, mock_client, mock_adapter):
         """Create collector instance with mocked dependencies."""
-        with patch('phoenix_real_estate.collectors.maricopa.collector.DataValidator'):
+        with patch("phoenix_real_estate.collectors.maricopa.collector.DataValidator"):
             return MaricopaAPICollector(
                 config=mock_config,
                 repository=mock_repository,
                 logger_name="test.collector",
                 client=mock_client,
-                adapter=mock_adapter
+                adapter=mock_adapter,
             )
 
     def test_initialization(self, mock_config, mock_repository, mock_client, mock_adapter):
         """Test collector initialization."""
-        with patch('phoenix_real_estate.collectors.maricopa.collector.DataValidator'):
+        with patch("phoenix_real_estate.collectors.maricopa.collector.DataValidator"):
             collector = MaricopaAPICollector(
                 config=mock_config,
                 repository=mock_repository,
                 logger_name="test.collector",
                 client=mock_client,
-                adapter=mock_adapter
+                adapter=mock_adapter,
             )
 
         assert collector.config == mock_config
@@ -150,31 +141,31 @@ class TestMaricopaAPICollector:
 
     def test_validate_config_missing_fields(self, collector, mock_config):
         """Test configuration validation with missing required fields."""
-        mock_config.get.side_effect = lambda key: None if "bearer_token" in key else "test_value"
-        
+        mock_config.get.side_effect = lambda key: None if "base_url" in key else "test_value"
+
         with pytest.raises(ConfigurationError) as excinfo:
             collector.validate_config()
-        
+
         assert "Missing required configuration fields" in str(excinfo.value)
-        assert "maricopa.api.bearer_token" in str(excinfo.value)
+        assert "maricopa.api.base_url" in str(excinfo.value)
 
     def test_validate_config_invalid_batch_size(self, collector, mock_config):
         """Test configuration validation with invalid batch size."""
         mock_config.get_int.side_effect = lambda key, default: 0 if "batch_size" in key else default
         collector.batch_size = 0
-        
+
         with pytest.raises(ConfigurationError) as excinfo:
             collector.validate_config()
-        
+
         assert "Invalid batch_size" in str(excinfo.value)
 
     def test_validate_config_repository_error(self, collector, mock_repository):
         """Test configuration validation with repository connection failure."""
         mock_repository.find_updated_since.side_effect = Exception("DB connection failed")
-        
+
         with pytest.raises(ConfigurationError) as excinfo:
             collector.validate_config()
-        
+
         assert "Repository connection test failed" in str(excinfo.value)
 
     @pytest.mark.asyncio
@@ -182,7 +173,7 @@ class TestMaricopaAPICollector:
         """Test successful zipcode collection."""
         mock_properties = [
             {"property_id": "prop_1", "address": {"zipcode": "85001"}},
-            {"property_id": "prop_2", "address": {"zipcode": "85001"}}
+            {"property_id": "prop_2", "address": {"zipcode": "85001"}},
         ]
         mock_client.search_by_zipcode.return_value = mock_properties
 
@@ -218,7 +209,7 @@ class TestMaricopaAPICollector:
         """Test successful property details collection."""
         mock_raw_data = {"property_id": "prop_123", "details": "test"}
         mock_transformed_data = {"property_id": "prop_123", "transformed": True}
-        
+
         mock_client.get_property_details.return_value = mock_raw_data
         mock_adapter.transform.return_value = mock_transformed_data
 
@@ -256,25 +247,23 @@ class TestMaricopaAPICollector:
             "property_id": "prop_123",
             "address": {
                 "street": "123 Test St",
-                "city": "Phoenix", 
+                "city": "Phoenix",
                 "state": "AZ",
-                "zipcode": "85001"
+                "zipcode": "85001",
             },
-            "features": {
-                "bedrooms": 3,
-                "bathrooms": 2,
-                "square_footage": 1500
-            },
-            "last_updated": datetime.now().isoformat()
+            "features": {"bedrooms": 3, "bathrooms": 2, "square_footage": 1500},
+            "last_updated": datetime.now().isoformat(),
         }
-        
+
         mock_adapter.transform.return_value = transformed_data
-        
-        with patch('phoenix_real_estate.collectors.maricopa.collector.Property') as mock_property_class:
+
+        with patch(
+            "phoenix_real_estate.collectors.maricopa.collector.Property"
+        ) as mock_property_class:
             mock_property_obj = MagicMock()
             mock_property_obj.property_id = "prop_123"
             mock_property_class.return_value = mock_property_obj
-            
+
             collector.validator = mock_validator
 
             result = await collector.adapt_property(raw_data)
@@ -289,15 +278,17 @@ class TestMaricopaAPICollector:
         """Test property adaptation with validation failure."""
         raw_data = {"property_id": "prop_123"}
         transformed_data = {"property_id": "prop_123", "invalid": "data"}
-        
+
         mock_adapter.transform.return_value = transformed_data
         mock_validator.validate_property.return_value = False
-        
-        with patch('phoenix_real_estate.collectors.maricopa.collector.Property') as mock_property_class:
+
+        with patch(
+            "phoenix_real_estate.collectors.maricopa.collector.Property"
+        ) as mock_property_class:
             mock_property_obj = MagicMock()
             mock_property_obj.property_id = "prop_123"
             mock_property_class.return_value = mock_property_obj
-            
+
             collector.validator = mock_validator
 
             with pytest.raises(ValidationError) as excinfo:
@@ -320,7 +311,7 @@ class TestMaricopaAPICollector:
     def test_get_collection_status(self, collector):
         """Test collection status reporting."""
         status = collector.get_collection_status()
-        
+
         assert status["collector_name"] == "MaricopaAPICollector"
         assert status["config_valid"] is True
         assert status["status"] == "ready"
@@ -369,28 +360,29 @@ class TestMaricopaCollectorIntegration:
             "maricopa.collection.max_retries": 2,
             "maricopa.collection.retry_delay_seconds": 1,
             "MARICOPA_RATE_LIMIT": 1000,
-            "MARICOPA_TIMEOUT": 30
+            "MARICOPA_TIMEOUT": 30,
         }.get(key, default)
         config.get.side_effect = lambda key, default=None: {
             "maricopa.api.base_url": "https://api.example.com",
-            "maricopa.api.bearer_token": "test_token",
+            # API key is handled by MARICOPA_API_KEY environment variable
             "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com"
+            "MARICOPA_BASE_URL": "https://api.example.com",
         }.get(key, default)
+
         # Add get_typed method to handle both dict and individual key access
         def get_typed_mock(key, expected_type, default=None):
             values = {
                 "maricopa.collection": {
                     "batch_size": 50,
                     "max_retries": 2,
-                    "retry_delay_seconds": 1
+                    "retry_delay_seconds": 1,
                 },
                 "maricopa.collection.batch_size": 50,
                 "maricopa.collection.max_retries": 2,
-                "maricopa.collection.retry_delay_seconds": 1
+                "maricopa.collection.retry_delay_seconds": 1,
             }
             return values.get(key, default)
-        
+
         config.get_typed.side_effect = get_typed_mock
 
         repository = MagicMock(spec=PropertyRepository)
@@ -407,13 +399,13 @@ class TestMaricopaCollectorIntegration:
         # Create mock adapter to avoid real initialization
         mock_adapter = MagicMock(spec=MaricopaDataAdapter)
 
-        with patch('phoenix_real_estate.collectors.maricopa.collector.DataValidator'):
+        with patch("phoenix_real_estate.collectors.maricopa.collector.DataValidator"):
             return MaricopaAPICollector(
                 config=config,
                 repository=repository,
                 logger_name="integration.test",
                 client=mock_client,
-                adapter=mock_adapter
+                adapter=mock_adapter,
             )
 
     @pytest.mark.asyncio
@@ -424,13 +416,13 @@ class TestMaricopaCollectorIntegration:
             {
                 "property_id": "maricopa_001",
                 "address": {"street": "123 Main St", "city": "Phoenix", "zipcode": "85001"},
-                "details": {"bedrooms": 3, "bathrooms": 2}
+                "details": {"bedrooms": 3, "bathrooms": 2},
             },
             {
-                "property_id": "maricopa_002", 
+                "property_id": "maricopa_002",
                 "address": {"street": "456 Oak Ave", "city": "Phoenix", "zipcode": "85001"},
-                "details": {"bedrooms": 4, "bathrooms": 3}
-            }
+                "details": {"bedrooms": 4, "bathrooms": 3},
+            },
         ]
 
         integration_collector.client.search_by_zipcode = AsyncMock(return_value=test_properties)
@@ -442,15 +434,11 @@ class TestMaricopaCollectorIntegration:
                 "address": {
                     "street": "123 Main St",
                     "city": "Phoenix",
-                    "state": "AZ", 
-                    "zipcode": "85001"
+                    "state": "AZ",
+                    "zipcode": "85001",
                 },
-                "features": {
-                    "bedrooms": 3,
-                    "bathrooms": 2,
-                    "square_footage": 1500
-                },
-                "last_updated": datetime.now().isoformat()
+                "features": {"bedrooms": 3, "bathrooms": 2, "square_footage": 1500},
+                "last_updated": datetime.now().isoformat(),
             },
             {
                 "property_id": "maricopa_002",
@@ -458,15 +446,11 @@ class TestMaricopaCollectorIntegration:
                     "street": "456 Oak Ave",
                     "city": "Phoenix",
                     "state": "AZ",
-                    "zipcode": "85001"
-                }, 
-                "features": {
-                    "bedrooms": 4,
-                    "bathrooms": 3,
-                    "square_footage": 2000
+                    "zipcode": "85001",
                 },
-                "last_updated": datetime.now().isoformat()
-            }
+                "features": {"bedrooms": 4, "bathrooms": 3, "square_footage": 2000},
+                "last_updated": datetime.now().isoformat(),
+            },
         ]
 
         integration_collector.adapter.transform.side_effect = lambda x: transformed_properties[0]
@@ -477,7 +461,7 @@ class TestMaricopaCollectorIntegration:
         # Verify results
         assert len(result) == 2
         assert result == test_properties
-        
+
         # Verify API client was called correctly
         integration_collector.client.search_by_zipcode.assert_called_once_with("85001")
 
