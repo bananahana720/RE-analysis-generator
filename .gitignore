@@ -311,6 +311,7 @@ cache/
 data/raw/
 data/processed/
 data/sensitive/
+data/cookies/
 *.csv
 *.xlsx
 *.xls
@@ -332,6 +333,8 @@ config.local.json
 !*.local.template
 config/production-secrets.yaml
 !config/production-secrets.yaml.template
+config/proxies.yaml
+!config/proxies.yaml.example
 
 # API response caches
 api_cache/
@@ -341,6 +344,7 @@ response_cache/
 # Proxy lists (may contain paid proxy info)
 proxies.txt
 paid_proxies.yaml
+config/proxies.yaml
 !config/proxies.yaml.example
 
 ############################
@@ -521,3 +525,9 @@ metrics/
 # TDD Guard data
 .claude/tdd-guard/data/
 !.claude/tdd-guard/data/.gitkeep
+
+# Windows null device (accidental file)
+nul
+
+# Machine-specific startup scripts
+start_mongodb.bat
