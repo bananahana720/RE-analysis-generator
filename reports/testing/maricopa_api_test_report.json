@@ -1,0 +1,1978 @@
+{
+  "test_summary": {
+    "timestamp": "2025-07-23T17:16:48.860695",
+    "total_requests": 32,
+    "successful_requests": 27,
+    "failed_requests": 5,
+    "success_rate_percent": 84.38,
+    "average_response_time_ms": 404.2,
+    "status_code_distribution": {
+      "200": 27,
+      "404": 5
+    }
+  },
+  "api_analysis": {
+    "base_url": "https://mcassessor.maricopa.gov",
+    "authentication_method": "AUTHORIZATION header",
+    "tested_endpoints": 32,
+    "response_formats": "JSON",
+    "pagination_supported": false
+  },
+  "endpoint_analyses": [
+    {
+      "endpoint": "/search/property/",
+      "sample_count": 7,
+      "response_fields": [
+        "Results",
+        "Results.APN",
+        "Results.MCR",
+        "Results.Ownership",
+        "Results.PropertyType",
+        "Results.RentalID",
+        "Results.SectionTownshipRange",
+        "Results.SitusAddress",
+        "Results.SitusCity",
+        "Results.SitusZip",
+        "Results.SubdivisonName",
+        "TOTAL"
+      ],
+      "data_types": {
+        "TOTAL": "int",
+        "Results.MCR": "str",
+        "Results.SubdivisonName": "str",
+        "Results.SectionTownshipRange": "str",
+        "Results.APN": "str",
+        "Results.Ownership": "str",
+        "Results.SitusAddress": "str",
+        "Results.SitusCity": "str",
+        "Results.SitusZip": "str",
+        "Results.PropertyType": "str",
+        "Results.RentalID": "NoneType"
+      },
+      "nested_structures": [
+        "Results",
+        "Results",
+        "Results",
+        "Results",
+        "Results",
+        "Results",
+        "Results"
+      ],
+      "pagination_info": null,
+      "common_errors": []
+    },
+    {
+      "endpoint": "/search/sub/",
+      "sample_count": 1,
+      "response_fields": [
+        "Results",
+        "Results.ParcelCount",
+        "Results.SubdivisionName",
+        "TOTAL"
+      ],
+      "data_types": {
+        "TOTAL": "int",
+        "Results.SubdivisionName": "str",
+        "Results.ParcelCount": "int"
+      },
+      "nested_structures": [
+        "Results"
+      ],
+      "pagination_info": null,
+      "common_errors": []
+    },
+    {
+      "endpoint": "/search/rental/",
+      "sample_count": 1,
+      "response_fields": [
+        "Results",
+        "TOTAL"
+      ],
+      "data_types": {
+        "TOTAL": "int"
+      },
+      "nested_structures": [
+        "Results"
+      ],
+      "pagination_info": null,
+      "common_errors": []
+    },
+    {
+      "endpoint": "/invalid/endpoint",
+      "sample_count": 1,
+      "response_fields": [
+        "raw_text"
+      ],
+      "data_types": {
+        "raw_text": "str"
+      },
+      "nested_structures": [],
+      "pagination_info": null,
+      "common_errors": []
+    }
+  ],
+  "detailed_results": [
+    {
+      "endpoint": "/search/property/?q=85031",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=85031",
+      "status_code": 200,
+      "response_time_ms": 892.7960395812988,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 6632,
+        "Results": [
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306005",
+            "Ownership": "MARTINEZ JORGE MANUEL TREJO/MARTIN SUSANA RAMIREZ",
+            "SitusAddress": "4027 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306014",
+            "Ownership": "VARGAS ERNESTO/CHRISTINA RODRIGUEZ",
+            "SitusAddress": "4004 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306019",
+            "Ownership": "MORALES WACCO ORTEGA/MARTINEZ ANA CIRENIA VARELA ",
+            "SitusAddress": "3820 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306020",
+            "Ownership": "CHAVEZ MARISELA CHAVEZ",
+            "SitusAddress": "3814 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306004",
+            "Ownership": "VELASQUEZ FRANCISCO",
+            "SitusAddress": "4021 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306001",
+            "Ownership": "DUARTE JUAN A/MEZA MARTHA L",
+            "SitusAddress": "4001 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306003",
+            "Ownership": "SALES HORACIO/DE SALES INGRID MARISOL NIX VICENTE",
+            "SitusAddress": "4015 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306007",
+            "Ownership": "PIRIR ERNESTO",
+            "SitusAddress": "4039 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306008",
+            "Ownership": "ARCINIEGA GUSTAVO A",
+            "SitusAddress": "4040 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306009",
+            "Ownership": "LOZA ROSA E SALDANA",
+            "SitusAddress": "4034 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306012",
+            "Ownership": "ROCHA JOEL HERRERA/HERRERA ALICIA",
+            "SitusAddress": "4016 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306015",
+            "Ownership": "MUTCHLER ROBERT R & DORIS LORRAINE",
+            "SitusAddress": "3844 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306018",
+            "Ownership": "TITI PROPERTIES LLC",
+            "SitusAddress": "3826 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306021",
+            "Ownership": "CASTELAN FABIOLA LOPEZ/LOPEZ JESICA ",
+            "SitusAddress": "3808 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306035",
+            "Ownership": "FASHAKIN DAVID",
+            "SitusAddress": "3837 N 55TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306032",
+            "Ownership": "TINOCO ABDIEL B ARREOLA",
+            "SitusAddress": "5518 W INDIANOLA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306037",
+            "Ownership": "BARRERA HUGO/PELAYO EVA A",
+            "SitusAddress": "3849 N 55TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306022",
+            "Ownership": "RABAGO BENIGNO FELIX ETAL",
+            "SitusAddress": "5502 W CLARENDON AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306024",
+            "Ownership": "ROBESON RICHARD/JOHN DAVID",
+            "SitusAddress": "5514 W CLARENDON AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306025",
+            "Ownership": "INVESTMENT OPPORTUNITY LLP",
+            "SitusAddress": "5520 W CLARENDON AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306026",
+            "Ownership": "AGUILAR GONZALO REYES",
+            "SitusAddress": "5526 W CLARENDON AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306027",
+            "Ownership": "RIVERA J REMEDIO/MARTINA BLANCO",
+            "SitusAddress": "5527 W INDIANOLA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306031",
+            "Ownership": "MARCONNET RONALD J/VANDANN-MARCONNET DANA L",
+            "SitusAddress": "5514 W INDIANOLA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306033",
+            "Ownership": "ARAIZA RICARDO",
+            "SitusAddress": "5522 W INDIANOLA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "6706",
+            "SubdivisonName": "MARYVALE TERRACE  3 AMD",
+            "SectionTownshipRange": "292N2E",
+            "APN": "10306011",
+            "Ownership": "WESLEY FRANKLIN ENNISS LIVING TRUST",
+            "SitusAddress": "4022 N 55TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85031",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:14 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:12 GMT",
+        "X-Powered-By": "ASP.NET",
+        "Set-Cookie": "pecan=382212362.47873.0000; path=/; Httponly; Secure",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e329a0f702732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:14.439310"
+    },
+    {
+      "endpoint": "/search/property/?q=85033",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=85033",
+      "status_code": 200,
+      "response_time_ms": 794.8267459869385,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 13097,
+        "Results": [
+          {
+            "MCR": "",
+            "SubdivisonName": "E 500F OF S 500F OF SE4 EX E 255F OF S 455F TH/OF  & EX S & E RDS",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219009F",
+            "Ownership": "EAA INVESTMENT GROUP LLC",
+            "SitusAddress": "8326 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "E 255F OF S 455F OF SE4 SEC 22 EX FOL DESC PROP BEG INTERS W LN OF E 500F OF SD SE4 WI S LN TH/OF TH",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219009G",
+            "Ownership": "FARIDA FAMILY TRUST",
+            "SitusAddress": "8316 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "81112",
+            "SubdivisonName": "AGUA FRIA CROSSING 2",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219982",
+            "Ownership": "BLUE DOOR 4860 N 83RD AVE DST",
+            "SitusAddress": "4860 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "WAREHOUSE",
+            "RentalID": null
+          },
+          {
+            "MCR": "53116",
+            "SubdivisonName": "AGUA FRIA CROSSING",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219974",
+            "Ownership": "RISAS REAL ESTATE AND EQUIPMENT LLC",
+            "SitusAddress": "4850 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "53116",
+            "SubdivisonName": "AGUA FRIA CROSSING",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219975",
+            "Ownership": "PARK ARIZONA LLC",
+            "SitusAddress": "4840 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "TH PT SE4 SEC 22 DAF BEG E4 COR SD SEC 22 TH S 217.89F TH W 470.28F TH N 214.85F TH E 470.29F TO POB",
+            "SectionTownshipRange": "222N1E",
+            "APN": "10219984B",
+            "Ownership": "GRIMES PATRICK H/SARA JO",
+            "SitusAddress": "4506 N 83RD AVE",
+            "SitusCity": "Phoenix",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "BEG AT SE COR OF SEC 23 TH N 1D 11M E 253.44F TH  W 257.20F TH S 7D 47M W 155F TH S 1D 11M W 100.03 ",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001K",
+            "Ownership": "STONEGLEN INVESTMENT LLC",
+            "SitusAddress": "7510 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "SE4 SE4 SE4 EX PT DAF BEG AT SE COR SEC TH N ALG  E LN SEC 273.44F TH W PARA TO S LN SEC 425.04F    ",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001M",
+            "Ownership": "PARK 75TH AVENUE PLAZA",
+            "SitusAddress": "4130 N 75TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT SE4 SEC 23 DAF COM SE COR LOT 101 OF NATIONAL  EMBLEM WEST UNIT ONE TH E ALG N LN INDIAN SCHOOL  ",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001N",
+            "Ownership": "NADEEN PROPERTIES LLC",
+            "SitusAddress": "7730 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT SE4 SEC 23 DAF BEG AT SE COR OF SD SEC 23 TH S 88D 13M W 1459.46F TH N 01D 46M W 52F TO PT ON E R",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001Q",
+            "Ownership": "STRR INVESTMENTS LLC",
+            "SitusAddress": "7634 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "TH PT S2 SE4 SEC 23 DAF BEG AT PT ON N R/W LN INDIAN SCHOOL RD AND ON E LN OF LOT 101 NATIONAL EMBLE",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001T",
+            "Ownership": "FUSCH EDWARD H TR/ETAL",
+            "SitusAddress": "7740 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "TH PT SE4 SEC 23 DAF BEG AT INTERSEC OF N LN OF S 40F SD SEC WI E LN OF LOT 101 NATIONAL EMBLEM WEST",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001W",
+            "Ownership": "ZAIA GROUP 7740 LLC",
+            "SitusAddress": "7740 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT SE4 DAF COM SE COR SEC TH S 88D 13M W 425.04F N 1D 46M W 53F TO TPOB TH S 87D 4M W 148.62F S 86D ",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001X",
+            "Ownership": "WESTRIDGE PHOENIX AZ LLC/COMMEND HOSPITALITY LLC",
+            "SitusAddress": "7540 W INDIAN SCHOOL RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT SE4 DAF COM SE COR SEC TH S 88D 13M W 425.04F N 1D 46M W 53F S 87D 4M W 148.62F TH S 86D 38M W 22",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220001Y",
+            "Ownership": "WESTRIDGE PHOENIX AZ LLC",
+            "SitusAddress": "7606 W INDIAN SCHOOL RD 1",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220031",
+            "Ownership": "CASTANEDA ELIZABETH",
+            "SitusAddress": "7728 W HEATHERBRAE DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT S2 NW4 DAF COM W4 COR SD SEC TH N 708.72F TO T POB TH CONTG N 150F TH E 246F TH S 150F TH W 246F ",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220009J",
+            "Ownership": "MARTINEZ JORGE GONZALEZ/CRESCENCIO YOLANDA TORRES",
+            "SitusAddress": "4637 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220016",
+            "Ownership": "VEGA CASTILLO LILIANA A",
+            "SitusAddress": "7714 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220017",
+            "Ownership": "HERNANDEZ ADRIANA",
+            "SitusAddress": "7720 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220020",
+            "Ownership": "ORNELAS MARA SARA DE/RODRIGO SANCHEZ/MARIA",
+            "SitusAddress": "7736 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220021",
+            "Ownership": "GUADALUPE O RINCON AND FELICIANA C RINCON FAMILY TRUST",
+            "SitusAddress": "7742 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220022",
+            "Ownership": "DIAZ OSVALDO",
+            "SitusAddress": "7748 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220036",
+            "Ownership": "SALGUERO DOUGLAS I",
+            "SitusAddress": "7754 W HEATHERBRAE DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220029",
+            "Ownership": "SAUCEDA AURELIANO",
+            "SitusAddress": "7727 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220034",
+            "Ownership": "PAREDES VERENICE CUEVAS",
+            "SitusAddress": "7742 W HEATHERBRAE DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "15345",
+            "SubdivisonName": "NATIONAL EMBLEM WEST UNIT 1",
+            "SectionTownshipRange": "232N1E",
+            "APN": "10220018",
+            "Ownership": "GARCIA JUAN",
+            "SitusAddress": "7726 W GLENROSA AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85033",
+            "PropertyType": "RESIDENTIAL",
+            "RentalID": null
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:15 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:13 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32a02a152732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:15.355189"
+    },
+    {
+      "endpoint": "/search/property/?q=85035",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=85035",
+      "status_code": 200,
+      "response_time_ms": 527.9622077941895,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 9921,
+        "Results": [
+          {
+            "MCR": "",
+            "SubdivisonName": "S2 NE4 NE4 SE4 NE4 SEC 34 EX E 55F TH/OF & EX ANY POR LY W/I BAILEY COMMONS CONDOMINIUM AMENDED MCR ",
+            "SectionTownshipRange": "342N1E",
+            "APN": "10236012M",
+            "Ownership": "PALM GROUP HOLDINGS LLC",
+            "SitusAddress": "2524 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND COMMERCIAL ",
+            "RentalID": null
+          },
+          {
+            "MCR": "29408",
+            "SubdivisonName": "AMBERLEA    PARCEL 1-22",
+            "SectionTownshipRange": "342N1E",
+            "APN": "10236611B",
+            "Ownership": "WILSHIRE APARTMENTS LLC",
+            "SitusAddress": "1844 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND COMMERCIAL ",
+            "RentalID": null
+          },
+          {
+            "MCR": "29408",
+            "SubdivisonName": "AMBERLEA    PARCEL 1-22",
+            "SectionTownshipRange": "342N1E",
+            "APN": "10236613A",
+            "Ownership": "WILSHIRE APARTMENTS LLC",
+            "SitusAddress": "8355 W PALM LN",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND COMMERCIAL ",
+            "RentalID": null
+          },
+          {
+            "MCR": "33623",
+            "SubdivisonName": "PLAZA AT 83RD IN PHOENIX  PARCEL A-E",
+            "SectionTownshipRange": "342N1E",
+            "APN": "10236937A",
+            "Ownership": "BARNETT FAMILY LLC",
+            "SitusAddress": "1610 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "PT N2 SW4 SW4 SEC 35 DAF COM SW COR SD SEC TH N   659.91F TO PT ON S LN N2 SW4 SW4 SD SEC E 33.02F  ",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237001B",
+            "Ownership": "PHOENIX CITY OF",
+            "SitusAddress": "8151 W PALM LN",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND COMMERCIAL ",
+            "RentalID": null
+          },
+          {
+            "MCR": "",
+            "SubdivisonName": "S2 SW4 SW4 SEC 35 EX RD P/F 07-1060848 & EX E 264F & EX W 55F RD & EX S 55F RD & EX RDS DESC P/D 88-",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237008G",
+            "Ownership": "TANGALEE LLC",
+            "SitusAddress": "1601 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "AGRICULTURAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "33823",
+            "SubdivisonName": "WESTSIDE AMPHITHEATRE LOT 1-3",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237009",
+            "Ownership": "PHOENIX CITY OF",
+            "SitusAddress": "2121 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "33823",
+            "SubdivisonName": "WESTSIDE AMPHITHEATRE LOT 1-3",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237010A",
+            "Ownership": "MMGR PROPERTIES LLC",
+            "SitusAddress": "2151 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "33823",
+            "SubdivisonName": "WESTSIDE AMPHITHEATRE LOT 1-3",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237010C",
+            "Ownership": "BCORE STORAGE ENCANTO LLC",
+            "SitusAddress": "8225 W ENCANTO BLVD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "WAREHOUSE",
+            "RentalID": null
+          },
+          {
+            "MCR": "33823",
+            "SubdivisonName": "WESTSIDE AMPHITHEATRE LOT 1-3",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237010D",
+            "Ownership": "83RD & ENCANTO PLACE LLC/LIONCUB LLC",
+            "SitusAddress": "2201 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "56342",
+            "SubdivisonName": "MOBIL OIL CORPORATION",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237012A",
+            "Ownership": "NATIONAL RETAIL PROPERTIES LP",
+            "SitusAddress": "1611 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "98731",
+            "SubdivisonName": "PLAZA MAYOR",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237193",
+            "Ownership": "2175 N 83RD LLC",
+            "SitusAddress": "1975 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND COMMERCIAL ",
+            "RentalID": null
+          },
+          {
+            "MCR": "98731",
+            "SubdivisonName": "PLAZA MAYOR",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237194",
+            "Ownership": "2175 N 83RD LLC",
+            "SitusAddress": "2175 N 83RD AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237687",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "1729 N 79TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237690",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "1717 N 79TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237691",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "1713 N 79TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237692",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "1627 N 79TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237694",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "1615 N 79TH DR",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237695",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7927 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237696",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7931 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237698",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7939 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237699",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7943 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "33733",
+            "SubdivisonName": "ASSOCIATED COMMERCIAL NO 5A WESTRIDGE MALL LOT 1",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10238009",
+            "Ownership": "FCPT GARDEN PROPERTIES LLC",
+            "SitusAddress": "2626 N 75TH AVE",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "COMMERCIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237701",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7951 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          },
+          {
+            "MCR": "180921",
+            "SubdivisonName": "SEASONS AT BAKER FARMS",
+            "SectionTownshipRange": "352N1E",
+            "APN": "10237702",
+            "Ownership": "RICHMOND AMERICAN HOMES OF ARIZONA INC",
+            "SitusAddress": "7955 W GILES RD",
+            "SitusCity": "PHOENIX",
+            "SitusZip": "85035",
+            "PropertyType": "VACANT LAND RESIDENTIAL",
+            "RentalID": null
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:16 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:14 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32a66cc92732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:16.090073"
+    },
+    {
+      "endpoint": "/search/property/?q=1234%20N%20Central%20Ave%20Phoenix%20AZ",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=1234%20N%20Central%20Ave%20Phoenix%20AZ",
+      "status_code": 200,
+      "response_time_ms": 1094.9034690856934,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 0,
+        "Results": []
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:17 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "24",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:15 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32acaf0a2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:17.657729"
+    },
+    {
+      "endpoint": "/search/property/?q=5678%20E%20Indian%20School%20Rd%20Phoenix%20AZ",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=5678%20E%20Indian%20School%20Rd%20Phoenix%20AZ",
+      "status_code": 200,
+      "response_time_ms": 145.5380916595459,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 0,
+        "Results": []
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:17 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "24",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:16 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32b38b5f2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:17.803350"
+    },
+    {
+      "endpoint": "/search/sub/?q=Ahwatukee",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/sub/?q=Ahwatukee",
+      "status_code": 200,
+      "response_time_ms": 4982.4888706207275,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 73,
+        "Results": [
+          {
+            "SubdivisionName": "AHWATUKEE ATV 1 UNIT 2",
+            "ParcelCount": 14
+          },
+          {
+            "SubdivisionName": "AHWATUKEE ATV 2           LOT 6001-6089 TR A-E",
+            "ParcelCount": 104
+          },
+          {
+            "SubdivisionName": "AHWATUKEE ATV-1",
+            "ParcelCount": 140
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CARE CENTER REPLAT",
+            "ParcelCount": 6
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM EST  6   LOT 5545-5585 TR A-D",
+            "ParcelCount": 49
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM EST  7   LOT 5586-5649 TR E F",
+            "ParcelCount": 69
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM EST  9   LOT 7000-7011 TR A",
+            "ParcelCount": 15
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM EST 10   LOT 7101-7119",
+            "ParcelCount": 28
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES",
+            "ParcelCount": 70
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES - 12",
+            "ParcelCount": 10
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES 2",
+            "ParcelCount": 53
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES 3",
+            "ParcelCount": 47
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES 4",
+            "ParcelCount": 95
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES 5",
+            "ParcelCount": 24
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES 8",
+            "ParcelCount": 111
+          },
+          {
+            "SubdivisionName": "AHWATUKEE CUSTOM ESTATES HS-4",
+            "ParcelCount": 10
+          },
+          {
+            "SubdivisionName": "AHWATUKEE E 3 PHASE 1",
+            "ParcelCount": 53
+          },
+          {
+            "SubdivisionName": "AHWATUKEE E 4",
+            "ParcelCount": 24
+          },
+          {
+            "SubdivisionName": "AHWATUKEE E-1",
+            "ParcelCount": 141
+          },
+          {
+            "SubdivisionName": "AHWATUKEE E-2 AMD",
+            "ParcelCount": 130
+          },
+          {
+            "SubdivisionName": "AHWATUKEE E-5",
+            "ParcelCount": 13
+          },
+          {
+            "SubdivisionName": "AHWATUKEE FOOTHILLS MEDICAL CENTER",
+            "ParcelCount": 4
+          },
+          {
+            "SubdivisionName": "AHWATUKEE FOOTHILLS PROFESSIONAL CENTER CONDOMINIUMS",
+            "ParcelCount": 10
+          },
+          {
+            "SubdivisionName": "AHWATUKEE FOOTHILLS TOWNE CENTER 2",
+            "ParcelCount": 5
+          },
+          {
+            "SubdivisionName": "AHWATUKEE FOOTHILLS TOWNE CENTER 3",
+            "ParcelCount": 11
+          }
+        ]
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:23 GMT",
+        "Content-Type": "application/json",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:17 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32b9cd3e2732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:23.643412"
+    },
+    {
+      "endpoint": "/search/rental/?q=85031",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/rental/?q=85031",
+      "status_code": 200,
+      "response_time_ms": 131.59799575805664,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 0,
+        "Results": []
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:23 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "24",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:22 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32d8ef232732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:23.775098"
+    },
+    {
+      "endpoint": "/parcel/101-01-001",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001",
+      "status_code": 404,
+      "response_time_ms": 180.2530288696289,
+      "success": false,
+      "error_message": "HTTP 404: [parcel]:Requested content was not found",
+      "response_data": {
+        "raw_text": ""
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:25 GMT",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:23 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32df38952732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:24.825128"
+    },
+    {
+      "endpoint": "/parcel/101-01-001/propertyinfo",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001/propertyinfo",
+      "status_code": 200,
+      "response_time_ms": 194.58460807800293,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:26 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:24 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32e57a4b2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:25.840646"
+    },
+    {
+      "endpoint": "/parcel/101-01-001/address",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001/address",
+      "status_code": 200,
+      "response_time_ms": 181.58674240112305,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:27 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:25 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32ebbc412732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:26.830831"
+    },
+    {
+      "endpoint": "/parcel/101-01-001/valuations",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001/valuations",
+      "status_code": 200,
+      "response_time_ms": 172.45221138000488,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:28 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:26 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32f1fe7b2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:27.824841"
+    },
+    {
+      "endpoint": "/parcel/101-01-001/residential-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001/residential-details",
+      "status_code": 200,
+      "response_time_ms": 175.97222328186035,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:29 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:27 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32f848842732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:28.829901"
+    },
+    {
+      "endpoint": "/parcel/101-01-001/owner-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001/owner-details",
+      "status_code": 200,
+      "response_time_ms": 178.50756645202637,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:30 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:28 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e32fe8ad92732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:29.836187"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A",
+      "status_code": 404,
+      "response_time_ms": 168.69139671325684,
+      "success": false,
+      "error_message": "HTTP 404: [parcel]:Requested content was not found",
+      "response_data": {
+        "raw_text": ""
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:31 GMT",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:29 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3304cc422732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:30.829152"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A/propertyinfo",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A/propertyinfo",
+      "status_code": 200,
+      "response_time_ms": 175.886869430542,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:32 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:30 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e330b0e082732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:31.838166"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A/address",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A/address",
+      "status_code": 200,
+      "response_time_ms": 176.25904083251953,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:33 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:31 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3311586e2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:32.840043"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A/valuations",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A/valuations",
+      "status_code": 200,
+      "response_time_ms": 181.29777908325195,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:34 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:32 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33179c1b2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:33.848806"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A/residential-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A/residential-details",
+      "status_code": 200,
+      "response_time_ms": 182.85799026489258,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:35 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:33 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e331dde462732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:34.851834"
+    },
+    {
+      "endpoint": "/parcel/101-01-001A/owner-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101-01-001A/owner-details",
+      "status_code": 200,
+      "response_time_ms": 161.4081859588623,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:36 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:34 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33241f4e2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:35.831529"
+    },
+    {
+      "endpoint": "/parcel/101.01.001",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001",
+      "status_code": 404,
+      "response_time_ms": 181.1366081237793,
+      "success": false,
+      "error_message": "HTTP 404: [parcel]:Requested content was not found",
+      "response_data": {
+        "raw_text": ""
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:37 GMT",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:35 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e332a58642732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:36.851827"
+    },
+    {
+      "endpoint": "/parcel/101.01.001/propertyinfo",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001/propertyinfo",
+      "status_code": 200,
+      "response_time_ms": 171.01621627807617,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:38 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:36 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e333099402732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:37.843990"
+    },
+    {
+      "endpoint": "/parcel/101.01.001/address",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001/address",
+      "status_code": 200,
+      "response_time_ms": 186.11884117126465,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:39 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:37 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3336ebd32732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:38.861376"
+    },
+    {
+      "endpoint": "/parcel/101.01.001/valuations",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001/valuations",
+      "status_code": 200,
+      "response_time_ms": 189.8171901702881,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:40 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:38 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e333d2e1e2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:39.868321"
+    },
+    {
+      "endpoint": "/parcel/101.01.001/residential-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001/residential-details",
+      "status_code": 200,
+      "response_time_ms": 185.9602928161621,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:41 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:39 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33437f402732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:40.876767"
+    },
+    {
+      "endpoint": "/parcel/101.01.001/owner-details",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/101.01.001/owner-details",
+      "status_code": 200,
+      "response_time_ms": 168.3356761932373,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:42 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:40 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3349b9342732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:41.860844"
+    },
+    {
+      "endpoint": "/mapid/parcel/101-01-001",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/mapid/parcel/101-01-001",
+      "status_code": 200,
+      "response_time_ms": 184.93390083312988,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:43 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:41 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33500af32732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:42.888425"
+    },
+    {
+      "endpoint": "/mapid/parcel/101-01-001A",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/mapid/parcel/101-01-001A",
+      "status_code": 200,
+      "response_time_ms": 170.7007884979248,
+      "success": true,
+      "error_message": null,
+      "response_data": [],
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:44 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "2",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:42 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33565d0b2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:43.875768"
+    },
+    {
+      "endpoint": "/parcel/INVALID-APN",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/INVALID-APN",
+      "status_code": 404,
+      "response_time_ms": 118.35026741027832,
+      "success": false,
+      "error_message": "HTTP 404: [parcel]:Requested content was not found",
+      "response_data": {
+        "raw_text": ""
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:45 GMT",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:43 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e335c9eb82732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:44.825916"
+    },
+    {
+      "endpoint": "/search/property/?q=NONEXISTENT12345",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=NONEXISTENT12345",
+      "status_code": 200,
+      "response_time_ms": 141.6923999786377,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 0,
+        "Results": []
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:46 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "24",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:44 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3362d8ae2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:45.850853"
+    },
+    {
+      "endpoint": "/search/property/?q=",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/search/property/?q=",
+      "status_code": 200,
+      "response_time_ms": 132.39121437072754,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "TOTAL": 0,
+        "Results": []
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:47 GMT",
+        "Content-Type": "application/json",
+        "Content-Length": "24",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:45 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e33691ace2732-EWR"
+      },
+      "timestamp": "2025-07-23T17:16:46.845602"
+    },
+    {
+      "endpoint": "/invalid/endpoint",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/invalid/endpoint",
+      "status_code": 200,
+      "response_time_ms": 265.90824127197266,
+      "success": true,
+      "error_message": null,
+      "response_data": {
+        "raw_text": "\ufeff<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"   \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n\t<head>\r\n\t\t<title>Maricopa County Assessor's Office</title>\r\n\t\t<meta name=\"description\" content=\"\">\r\n\t\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n\t\t<meta name=\"robots\" content=\"noodp, noydir\" />\r\n\t\t<meta charset=\"utf-8\">\r\n\t\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\r\n\t\t<meta http-equiv=\"keywords\" content=\"\" />\r\n\t\t<!--[if lt IE 9]><meta http-equiv=\"X-UA-Compatible\" content=\"IE=EmulateIE8\" /><![endif]-->\r\n\t\t<!--[if gte IE 9]><meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /> <![endif]-->\r\n<link\r\nrel=\"stylesheet\"\r\nhref=\"https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css\"\r\nintegrity=\"sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z\"\r\ncrossorigin=\"anonymous\"\r\n/>\r\n\t\t<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700\">\r\n\t\t<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Poppins:300,400,400i,700\">\r\n\t\t<link rel=\"stylesheet\" href=\"app/assets/css/vendors.min.css\" type=\"text/css\">\r\n\t\t<link rel=\"stylesheet\" href=\"app/assets/css/theme.min.css\" type=\"text/css\" id=\"theme-stylesheet\">\r\n\t\t<link rel=\"stylesheet\" href=\"app/assets/css/custom.css\" type=\"text/css\">\r\n\t\t<link rel=\"shortcut icon\" href=\"app/assets/img/coreIcon.png\" type=\"text/css\">\r\n<link id=\"dark-theme-style\" rel=\"stylesheet\" href=\"app/assets/css/bootstrap-darkly.css\" />\r\n\t\t<!--[if lt IE 9]><script src=\"app/assets/js/older.min.js\" type=\"text/javascript\"></script><![endif]-->\r\n\t\t<!-- Global site tag (gtag.js) - Google Analytics -->\r\n\t\t<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-Q4WRBHTX4H\"></script>\r\n\t\t<script>\r\n\t\t\twindow.dataLayer = window.dataLayer || [];\r\n\t\t\tfunction gtag() { dataLayer.push(arguments); }\r\n\t\t\tgtag('js', new Date());\r\n\t\t\tgtag('config', 'G-Q4WRBHTX4H');\r\n\t\t</script>\r\n\t</head>\r\n\t<body style=\"padding-top: 72px;\">\r\n\t\t<script src=\"app/assets/js/vendors.min.js\" type=\"text/javascript\"></script>\r\n\t\t\r\n<header class=\"header d-print-none\">\r\n\t<!-- Navbar-->\r\n\t<nav class=\"navbar navbar-expand-lg fixed-top shadow navbar-light bg-white\">\r\n\t\t\r\n\t\t<div class=\"container-fluid\" style=\"padding-top:0px\">\r\n\t\t\t<div class=\"d-flex align-items-center\">\r\n\t\t\t\t<a href=\"/home/\" class=\"navbar-brand py-1\">\r\n\t\t\t\t\t<div class=\"logo-dark\" alt=\"County Seal\" width=\"50px\">\r\n\t\t\t\t\t\t<img class=\"logo-img\" src=\"app/assets/img/seal-blue.png\" alt=\"Directory logo\" width=\"50px\">\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t<!--<img class=\"logo-img\" src=\"app/assets/img/coreLogo.png\" alt=\"Directory logo\" width=\"50px\">-->\r\n\t\t\t\t\t\r\n\t\t\t\t</a>\r\n\t\t\t\t<a href=\"/home/your_assessor/\" class=\"navbar-brand py-1\">\r\n\t\t\t\t\t<img class=\"logo-img\" src=\"app/assets/img/assessor-min.png\" alt=\"Directory logo\" width=\"50px\">\r\n\t\t\t\t</a>\r\n\t\t\t\t<div class=\"header-assessor-name\">\r\n\t\t\t\t\t<b>Eddie Cook</b><br />\r\n\t\t\t\t\tMaricopa County Assessor\r\n\t\t\t\t</div>\r\n\t\t\t\t<!--<div class=\"header-assessor-name\">\r\n\t\t\t\t<img src=\"/file/home/top-place-to-work-logo.png\" style=\"width:200px;\"/>\r\n\t\t\t\t</div>-->\r\n\t\t\t</div>\r\n\t\t\t<button type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarCollapse\" aria-controls=\"navbarCollapse\" aria-expanded=\"false\" aria-label=\"Toggle navigation\" class=\"navbar-toggler navbar-toggler-right\"><i class=\"fa fa-bars\"></i></button>\r\n\t\t\t<!-- Navbar Collapse -->\r\n\t\t\t<div id=\"navbarCollapse\" class=\"collapse navbar-collapse\">\r\n\t\t\t\t\r\n\t\t\t\t<ul class=\"navbar-nav ml-auto\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t\t<a id=\"homeDropdownMenuLink\" href=\"/home/\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"nav-link dropdown-toggle active\">OUR OFFICE</a>\r\n\t\t\t\t\t\t<div aria-labelledby=\"homeDropdownMenuLink\" class=\"dropdown-menu\">\r\n\t\t\t\t\t\t\t<a href=\"/home/your_assessor/\" class=\"dropdown-item\">COUNTY ASSESSOR</a>\r\n\t\t\t\t\t\t\t<a href=\"/team/\" class=\"dropdown-item\">ASSESSOR'S LEADERSHIP</a>\r\n\t\t\t\t\t\t\t<a href=\"/home/about_us/\" class=\"dropdown-item\">ABOUT US</a>\r\n\t\t\t\t\t\t\t<!--<a href=\"/home/awards/\" class=\"dropdown-item\">AWARDS</a>\r\n\t\t\t\t\t\t\t<a href=\"/home/guidelines/\" class=\"dropdown-item\">POLICY GUIDELINES</a>-->\r\n\t\t\t\t\t\t\t<a href=\"/home/educational_videos/\" class=\"dropdown-item\">EDUCATIONAL VIDEOS</a>\r\n\t\t\t\t\t\t\t<a href=\"/careers/\" class=\"dropdown-item\">CAREERS</a>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t\t<a id=\"A1\" href=\"/home/\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"nav-link dropdown-toggle active\">MAPS </a>\r\n\t\t\t\t\t\t<div aria-labelledby=\"homeDropdownMenuLink\" class=\"dropdown-menu\">\r\n\t\t\t\t\t\t\t<a href=\"http://maps.mcassessor.maricopa.gov/\" class=\"dropdown-item\" target=\"_blank\">PARCEL VIEWER (MAPS) &nbsp;<i class=\"fas fa-external-link-alt\"></i></a>\r\n\t\t\t\t\t\t\t<a href=\"http://gis.maricopa.gov/index.html\" class=\"dropdown-item\" target=\"_blank\">GIS PORTAL &nbsp;<i class=\"fas fa-external-link-alt\"></i></a>\r\n\t\t\t\t\t\t\t<a href=\"/home/help/parcel_view_help/\" class=\"dropdown-item\">PARCEL VIEWER HELP</a>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<!-- Megamenu-->\r\n\t\t\t\t\t<li class=\"nav-item dropdown position-static\">\r\n\t\t\t\t\t\t<a href=\"#\" data-toggle=\"dropdown\" class=\"nav-link dropdown-toggle\">DEPARTMENTS</a>\r\n\t\t\t\t\t\t<div class=\"dropdown-menu megamenu py-lg-0\">\r\n\t\t\t\t\t\t\t<div class=\"row\">\r\n\t\t\t\t\t\t\t\t<div class=\"col-lg-12\">\r\n\t\t\t\t\t\t\t\t\t<div class=\"row p-3 pr-lg-0 pl-lg-5 pt-lg-5\">\r\n\t\t\t\t\t\t\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- Megamenu list-->\r\n\t\t\t\t\t\t\t\t\t\t\t<h6 class=\"text-uppercase\">MAPS</h6>\r\n\t\t\t\t\t\t\t\t\t\t\t<ul class=\"megamenu-list list-unstyled\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"http://maps.mcassessor.maricopa.gov/\" class=\"megamenu-list-link\" target=\"_blank\">PARCEL VIEWER (MAPS)   </a>&nbsp;<i class=\"fas fa-external-link-alt\"></i></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"http://gis.maricopa.gov/index.html\" class=\"megamenu-list-link\" target=\"_blank\">GIS PORTAL   </a>&nbsp;<i class=\"fas fa-external-link-alt\"></i></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/home/help/parcel_view_help/\" class=\"megamenu-list-link\">PARCEL VIEWER HELP   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- Megamenu list-->\r\n\t\t\t\t\t\t\t\t\t\t\t<h6 class=\"text-uppercase\">PROPERTY</h6>\r\n\t\t\t\t\t\t\t\t\t\t\t<ul class=\"megamenu-list list-unstyled\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/appeals/\" class=\"megamenu-list-link\">APPEALS   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/appeals/notice_of_claim\" class=\"megamenu-list-link\">NOTICE OF CLAIM   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/business_property/\" class=\"megamenu-list-link\">BUSINESS PERSONAL PROPERTY   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/mobile_homes/\" class=\"megamenu-list-link\">MOBILE HOMES   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/residential_property/\" class=\"megamenu-list-link\">RESIDENTAL/RENTAL PROPERTY   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/home/enotice/\" class=\"megamenu-list-link\">E-NOTICE   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- Megamenu list-->\r\n\t\t\t\t\t\t\t\t\t\t\t<h6 class=\"text-uppercase\">SPECIAL PROPERTY</h6>\r\n\t\t\t\t\t\t\t\t\t\t\t<ul class=\"megamenu-list list-unstyled\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/agriculture/\" class=\"megamenu-list-link\">AGRICULTURE   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/home/golf-courses\" class=\"megamenu-list-link\">GOLF  </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/home/guest-ranch\" class=\"megamenu-list-link\">GUEST RANCHES   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/home/shopping-centers\" class=\"megamenu-list-link\">STATUTORY SHOPPING CENTERS   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/home/timeshare-properties\" class=\"megamenu-list-link\">TIME SHARES   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/home/lihtc-properties\" class=\"megamenu-list-link\">LIHTC   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- Megamenu list-->\r\n\t\t\t\t\t\t\t\t\t\t\t<h6 class=\"text-uppercase\">VALUATION RELIEF PROGRAMS</h6>\r\n\t\t\t\t\t\t\t\t\t\t\t<ul class=\"megamenu-list list-unstyled\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/valuation_relief/\" class=\"megamenu-list-link\">SENIOR VALUATION RELIEF   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/valuation_relief/\" class=\"megamenu-list-link\">PERSONAL EXEMPTIONS   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/common_area/\" class=\"megamenu-list-link\">COMMON AREA   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/historic_tax/\" class=\"megamenu-list-link\">HISTORIC PROPERTY TAX RECLASSIFICATION   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/org_exemptions/\" class=\"megamenu-list-link\">ORGANIZATIONAL EXEMPTIONS   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- Megamenu list-->\r\n\t\t\t\t\t\t\t\t\t\t\t<h6 class=\"text-uppercase\">REPORTS & DATA SALES</h6>\r\n\t\t\t\t\t\t\t\t\t\t\t<ul class=\"megamenu-list list-unstyled\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/reports/\" class=\"megamenu-list-link\">REPORTS   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"https://www.maricopa.gov/5160/Tax-Levy-and-Rates\" class=\"megamenu-list-link\" target=\"_blank\">TAX RATES   </a>&nbsp;<i class=\"fas fa-external-link-alt\"></i></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<li class=\"megamenu-list-item\"><a href=\"/page/data_sales/\" class=\"megamenu-list-link\">DATA SALES   </a></li>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--<li class=\"megamenu-list-item\"><a href=\"/page/data_sales/data_sharing/\" class=\"megamenu-list-link\"><span>DATA SHARING</span>   </a></li>-->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--<li class=\"megamenu-list-item\"><a href=\"/page/data_sales/service_fees/\" class=\"megamenu-list-link\"><span>SERVICE FEES</span>   </a></li>-->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--<li class=\"megamenu-list-item\"><a href=\"/page/data_sales/secured_data/\" class=\"megamenu-list-link\"><span>SECURED DATA</span>   </a></li>-->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--<li class=\"megamenu-list-item\"><a href=\"/page/data_sales/gis/\" class=\"megamenu-list-link\"><span>PARCEL DATABASE</span>   </a></li>-->\r\n\t\t\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t<div class=\"col-lg-3 d-none d-lg-block\">\r\n\t\t\t\t\t\t\t\t\t<!--<img src=\"/app/assets/img/home-bg-12-min.jpg\" alt=\"\" class=\"bg-image\">-->\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<!-- /Megamenu end-->\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t\t<a id=\"A3\" href=\"/home/\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"nav-link dropdown-toggle active\">FORMS </a>\r\n\t\t\t\t\t\t<div aria-labelledby=\"homeDropdownMenuLink\" class=\"dropdown-menu\">\r\n\t\t\t\t\t\t\t<a href=\"/forms/all/\" class=\"dropdown-item\">ALL FORMS</a>\r\n\t\t\t\t\t\t\t<div class=\"dropdown-divider\"></div>\r\n\t\t\t\t\t\t\t<a href=\"/forms/most_popular/\" class=\"dropdown-item\">MOST POPULAR</a>\r\n\t\t\t\t\t\t\t<div class=\"dropdown-divider\"></div>\r\n\t\t\t\t\t\t\t<a href=\"https://services.mcassessor.maricopa.gov/s/updatemailingaddress\" class=\"dropdown-item\">MAILING ADDRESS CHANGE</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/agriculture/\" class=\"dropdown-item\">AGRICULTURE</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/appeals/\" class=\"dropdown-item\">APPEALS</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/business_property/\" class=\"dropdown-item\">BUSINESS PROPERTY PERSONAL</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/common_area/\" class=\"dropdown-item\">COMMON AREA FORMS</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/historic_tax/\" class=\"dropdown-item\">HISTORIC PROPERTY TAX RECLASSIFICATION</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/mobile_homes/\" class=\"dropdown-item\">MOBILE HOMES</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/org_exemptions/\" class=\"dropdown-item\">ORGANIZATIONAL EXEMPTIONS</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/valuation_relief/\" class=\"dropdown-item\">PERSONAL EXEMPTIONS</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/residential_property/\" class=\"dropdown-item\">RESIDENTIAL/RENTAL PROPERTY</a>\r\n\t\t\t\t\t\t\t<a href=\"/forms/valuation_relief/\" class=\"dropdown-item\">SENIOR VALUATION RELIEF</a>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t\t<a id=\"A1\" href=\"/home/\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"nav-link dropdown-toggle active\">APPEALS </a>\r\n\t\t\t\t\t\t<div aria-labelledby=\"homeDropdownMenuLink\" class=\"dropdown-menu\">\r\n\t\t\t\t\t\t\t<a href=\"/file/appeals/forms/AppealLogin.pdf\" class=\"dropdown-item\" target=\"_blank\">ONLINE APPEAL TUTORIAL</a>\r\n\t\t\t\t\t\t\t<!--<a href=\"https://services.mcassessor.maricopa.gov/\" class=\"dropdown-item\" target=\"_blank\">FILE AN ONLINE APPEAL</a>-->\r\n\t\t\t\t\t\t\t<!--<a href=\"/page/appeals/\" class=\"dropdown-item\" target=\"_blank\">FILE AN ONLINE APPEAL</a>-->\r\n\t\t\t\t\t\t\t<a href=\"/page/appeals/notice_of_claim\" class=\"dropdown-item\" target=\"_blank\">FOUND AN ERROR</a>\r\n\t\t\t\t\t\t\t<a href=\"/page/appeals/\" class=\"dropdown-item\" target=\"_blank\">DISPUTE MY VALUE</a>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<!--<li class=\"nav-item\"><a href=\"/careers/\" class=\"nav-link\">CAREERS</a>\r\n\t\t\t\t\t</li>-->\r\n\t\t\t\t\t<!--li class=\"nav-item\"><a href=\"/contact/\" class=\"nav-link\">CONTACT</a>\r\n\t\t\t\t\t</li-->\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t\t<a id=\"A2\" href=\"/home/\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\" class=\"nav-link dropdown-toggle active\">HELP <i class=\"far fa-question-circle\"></i></a>\r\n\t\t\t\t\t\t<div aria-labelledby=\"homeDropdownMenuLink\" class=\"dropdown-menu dropdown-menu-right\">\r\n\t\t\t\t\t\t\t<a href=\"/page/home/qasimyar\" class=\"dropdown-item\">QASIMYAR COURT OF APPEALS INFORMATION</a>\r\n\t\t\t\t\t\t\t<a href=\"/faq/\" class=\"dropdown-item\">FAQ</a>\r\n\t\t\t\t\t\t\t<a href=\"/home/help/\" class=\"dropdown-item\">HOW DO I?</a>\r\n\t\t\t\t\t\t\t<a href=\"/glossary/\" class=\"dropdown-item\">GLOSSARY</a>\r\n\t\t\t\t\t\t\t<a href=\"https://services.mcassessor.maricopa.gov/s/inquiry\" class=\"dropdown-item\">CONTACT US</a>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t\t<li class=\"nav-item dropdown\">\r\n\t\t\t\t\t<a href=\"javascript:void()\" id=\"theme-toggler\" class=\"nav-link\" onclick=\"toggleTheme()\"></a>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t\t\r\n\t\t\t\t<script>\r\n\t\t\t\t\t$(function () {\r\n\t\t\t\t\t\t$('#search_search, #searchcollapsed_search').on('keypress', function (e) {\r\n\t\t\t\t\t\t\tif (e.which == 13) {\r\n\t\t\t\t\t\t\t\t//window.location = \"/mcs/?q=\" + $(this).val();\r\n\t\t\t\t\t\t\t\t// @NOTE: support for & and other URL characters such as \"\r\n\t\t\t\t\t\t\t\twindow.location = \"/mcs/?q=\" + encodeURIComponent($(this).val());\r\n\t\t\t\t\t\t\t}\r\n\t\t\t\t\t\t});\r\n\t\t\t\t\t\t$(\".btn-reset\").click(function () {\r\n\t\t\t\t\t\t\t$('.searchfield').val('');\r\n\t\t\t\t\t\t\t$('#search_search').focus();\r\n\t\t\t\t\t\t});\r\n\t\t\t\t\t});\r\n\t\t\t\t</script>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t</nav>\r\n\t<!-- /Navbar -->\r\n\t<!--\r\n\t<div class=\"class=\"container-fluid\" style=\"width:100%; background-color: yellow; color: #000; z-index: 9999; position: fixed; top:0px; padding: 10px;\"><p style=\"margin:0px!important;\">ALERT! We are currently experiencing an issue with Map Ferret Maps. We are working to resolve the issue asap! Sorry for any inconvenience this may cause.</p></div>\r\n\t-->\r\n</header>\r\n<!-- /Header end-->\r\n\r\n\r\n\t\t<div class=\"main-content\">\r\n\t\t\t<a href=\"#\" id=\"scrollup\" style=\"display: none;\"><span></span></a>\r\n\t\t\t\r\n\t\t\t\t<div id=\"core_breadcrumb\" class=\"hidden-xs visible-lg print-hide\">\r\n\t\t\t\t\t<ul class=\"uscb-layout-row uscb-top-pagination uscb-layout-align-start-center\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<!DOCTYPE html>\r\n<html>\r\n<head>\r\n\t<script type=\"text/javascript\">(window.NREUM || (NREUM = {})).loader_config = { licenseKey: \"5d68eff189\", applicationID: \"85459876\" }; window.NREUM || (NREUM = {}), __nr_require = function (e, n, t) { function r(t) { if (!n[t]) { var i = n[t] = { exports: {} }; e[t][0].call(i.exports, function (n) { var i = e[t][1][n]; return r(i || n) }, i, i.exports) } return n[t].exports } if (\"function\" == typeof __nr_require) return __nr_require; for (var i = 0; i < t.length; i++) r(t[i]); return r }({ 1: [function (e, n, t) { function r() { } function i(e, n, t) { return function () { return o(e, [u.now()].concat(f(arguments)), n ? null : this, t), n ? void 0 : this } } var o = e(\"handle\"), a = e(4), f = e(5), c = e(\"ee\").get(\"tracer\"), u = e(\"loader\"), s = NREUM; \"undefined\" == typeof window.newrelic && (newrelic = s); var p = [\"setPageViewName\", \"setCustomAttribute\", \"setErrorHandler\", \"finished\", \"addToTrace\", \"inlineHit\", \"addRelease\"], l = \"api-\", d = l + \"ixn-\"; a(p, function (e, n) { s[n] = i(l + n, !0, \"api\") }), s.addPageAction = i(l + \"addPageAction\", !0), s.setCurrentRouteName = i(l + \"routeName\", !0), n.exports = newrelic, s.interaction = function () { return (new r).get() }; var m = r.prototype = { createTracer: function (e, n) { var t = {}, r = this, i = \"function\" == typeof n; return o(d + \"tracer\", [u.now(), e, t], r), function () { if (c.emit((i ? \"\" : \"no-\") + \"fn-start\", [u.now(), r, i], t), i) try { return n.apply(this, arguments) } catch (e) { throw c.emit(\"fn-err\", [arguments, this, e], t), e } finally { c.emit(\"fn-end\", [u.now()], t) } } } }; a(\"actionText,setName,setAttribute,save,ignore,onEnd,getContext,end,get\".split(\",\"), function (e, n) { m[n] = i(d + n) }), newrelic.noticeError = function (e, n) { \"string\" == typeof e && (e = new Error(e)), o(\"err\", [e, u.now(), !1, n]) } }, {}], 2: [function (e, n, t) { function r(e, n) { var t = e.getEntries(); t.forEach(function (e) { \"first-paint\" === e.name ? c(\"timing\", [\"fp\", Math.floor(e.startTime)]) : \"first-contentful-paint\" === e.name && c(\"timing\", [\"fcp\", Math.floor(e.startTime)]) }) } function i(e, n) { var t = e.getEntries(); t.length > 0 && c(\"lcp\", [t[t.length - 1]]) } function o(e) { if (e instanceof s && !l) { var n, t = Math.round(e.timeStamp); n = t > 1e12 ? Date.now() - t : u.now() - t, l = !0, c(\"timing\", [\"fi\", t, { type: e.type, fid: n }]) } } if (!(\"init\" in NREUM && \"page_view_timing\" in NREUM.init && \"enabled\" in NREUM.init.page_view_timing && NREUM.init.page_view_timing.enabled === !1)) { var a, f, c = e(\"handle\"), u = e(\"loader\"), s = NREUM.o.EV; if (\"PerformanceObserver\" in window && \"function\" == typeof window.PerformanceObserver) { a = new PerformanceObserver(r), f = new PerformanceObserver(i); try { a.observe({ entryTypes: [\"paint\"] }), f.observe({ entryTypes: [\"largest-contentful-paint\"] }) } catch (p) { } } if (\"addEventListener\" in document) { var l = !1, d = [\"click\", \"keydown\", \"mousedown\", \"pointerdown\", \"touchstart\"]; d.forEach(function (e) { document.addEventListener(e, o, !1) }) } } }, {}], 3: [function (e, n, t) { function r(e, n) { if (!i) return !1; if (e !== i) return !1; if (!n) return !0; if (!o) return !1; for (var t = o.split(\".\"), r = n.split(\".\"), a = 0; a < r.length; a++) if (r[a] !== t[a]) return !1; return !0 } var i = null, o = null, a = /Version\\/(\\S+)\\s+Safari/; if (navigator.userAgent) { var f = navigator.userAgent, c = f.match(a); c && f.indexOf(\"Chrome\") === -1 && f.indexOf(\"Chromium\") === -1 && (i = \"Safari\", o = c[1]) } n.exports = { agent: i, version: o, match: r } }, {}], 4: [function (e, n, t) { function r(e, n) { var t = [], r = \"\", o = 0; for (r in e) i.call(e, r) && (t[o] = n(r, e[r]), o += 1); return t } var i = Object.prototype.hasOwnProperty; n.exports = r }, {}], 5: [function (e, n, t) { function r(e, n, t) { n || (n = 0), \"undefined\" == typeof t && (t = e ? e.length : 0); for (var r = -1, i = t - n || 0, o = Array(i < 0 ? 0 : i) ; ++r < i;) o[r] = e[n + r]; return o } n.exports = r }, {}], 6: [function (e, n, t) { n.exports = { exists: \"undefined\" != typeof window.performance && window.performance.timing && \"undefined\" != typeof window.performance.timing.navigationStart } }, {}], ee: [function (e, n, t) { function r() { } function i(e) { function n(e) { return e && e instanceof r ? e : e ? c(e, f, o) : o() } function t(t, r, i, o) { if (!l.aborted || o) { e && e(t, r, i); for (var a = n(i), f = v(t), c = f.length, u = 0; u < c; u++) f[u].apply(a, r); var p = s[y[t]]; return p && p.push([b, t, r, a]), a } } function d(e, n) { h[e] = v(e).concat(n) } function m(e, n) { var t = h[e]; if (t) for (var r = 0; r < t.length; r++) t[r] === n && t.splice(r, 1) } function v(e) { return h[e] || [] } function g(e) { return p[e] = p[e] || i(t) } function w(e, n) { u(e, function (e, t) { n = n || \"feature\", y[t] = n, n in s || (s[n] = []) }) } var h = {}, y = {}, b = { on: d, addEventListener: d, removeEventListener: m, emit: t, get: g, listeners: v, context: n, buffer: w, abort: a, aborted: !1 }; return b } function o() { return new r } function a() { (s.api || s.feature) && (l.aborted = !0, s = l.backlog = {}) } var f = \"nr@context\", c = e(\"gos\"), u = e(4), s = {}, p = {}, l = n.exports = i(); l.backlog = s }, {}], gos: [function (e, n, t) { function r(e, n, t) { if (i.call(e, n)) return e[n]; var r = t(); if (Object.defineProperty && Object.keys) try { return Object.defineProperty(e, n, { value: r, writable: !0, enumerable: !1 }), r } catch (o) { } return e[n] = r, r } var i = Object.prototype.hasOwnProperty; n.exports = r }, {}], handle: [function (e, n, t) { function r(e, n, t, r) { i.buffer([e], r), i.emit(e, n, t) } var i = e(\"ee\").get(\"handle\"); n.exports = r, r.ee = i }, {}], id: [function (e, n, t) { function r(e) { var n = typeof e; return !e || \"object\" !== n && \"function\" !== n ? -1 : e === window ? 0 : a(e, o, function () { return i++ }) } var i = 1, o = \"nr@id\", a = e(\"gos\"); n.exports = r }, {}], loader: [function (e, n, t) { function r() { if (!x++) { var e = E.info = NREUM.info, n = d.getElementsByTagName(\"script\")[0]; if (setTimeout(s.abort, 3e4), !(e && e.licenseKey && e.applicationID && n)) return s.abort(); u(y, function (n, t) { e[n] || (e[n] = t) }), c(\"mark\", [\"onload\", a() + E.offset], null, \"api\"); var t = d.createElement(\"script\"); t.src = \"https://\" + e.agent, n.parentNode.insertBefore(t, n) } } function i() { \"complete\" === d.readyState && o() } function o() { c(\"mark\", [\"domContent\", a() + E.offset], null, \"api\") } function a() { return O.exists && performance.now ? Math.round(performance.now()) : (f = Math.max((new Date).getTime(), f)) - E.offset } var f = (new Date).getTime(), c = e(\"handle\"), u = e(4), s = e(\"ee\"), p = e(3), l = window, d = l.document, m = \"addEventListener\", v = \"attachEvent\", g = l.XMLHttpRequest, w = g && g.prototype; NREUM.o = { ST: setTimeout, SI: l.setImmediate, CT: clearTimeout, XHR: g, REQ: l.Request, EV: l.Event, PR: l.Promise, MO: l.MutationObserver }; var h = \"\" + location, y = { beacon: \"bam.nr-data.net\", errorBeacon: \"bam.nr-data.net\", agent: \"js-agent.newrelic.com/nr-1167.min.js\" }, b = g && w && w[m] && !/CriOS/.test(navigator.userAgent), E = n.exports = { offset: f, now: a, origin: h, features: {}, xhrWrappable: b, userAgent: p }; e(1), e(2), d[m] ? (d[m](\"DOMContentLoaded\", o, !1), l[m](\"load\", r, !1)) : (d[v](\"onreadystatechange\", i), l[v](\"onload\", r)), c(\"mark\", [\"firstbyte\", f], null, \"api\"); var x = 0, O = e(6) }, {}], \"wrap-function\": [function (e, n, t) { function r(e) { return !(e && e instanceof Function && e.apply && !e[a]) } var i = e(\"ee\"), o = e(5), a = \"nr@original\", f = Object.prototype.hasOwnProperty, c = !1; n.exports = function (e, n) { function t(e, n, t, i) { function nrWrapper() { var r, a, f, c; try { a = this, r = o(arguments), f = \"function\" == typeof t ? t(r, a) : t || {} } catch (u) { l([u, \"\", [r, a, i], f]) } s(n + \"start\", [r, a, i], f); try { return c = e.apply(a, r) } catch (p) { throw s(n + \"err\", [r, a, p], f), p } finally { s(n + \"end\", [r, a, c], f) } } return r(e) ? e : (n || (n = \"\"), nrWrapper[a] = e, p(e, nrWrapper), nrWrapper) } function u(e, n, i, o) { i || (i = \"\"); var a, f, c, u = \"-\" === i.charAt(0); for (c = 0; c < n.length; c++) f = n[c], a = e[f], r(a) || (e[f] = t(a, u ? f + i : i, o, f)) } function s(t, r, i) { if (!c || n) { var o = c; c = !0; try { e.emit(t, r, i, n) } catch (a) { l([a, t, r, i]) } c = o } } function p(e, n) { if (Object.defineProperty && Object.keys) try { var t = Object.keys(e); return t.forEach(function (t) { Object.defineProperty(n, t, { get: function () { return e[t] }, set: function (n) { return e[t] = n, n } }) }), n } catch (r) { l([r]) } for (var i in e) f.call(e, i) && (n[i] = e[i]); return n } function l(n) { try { e.emit(\"internal-error\", n) } catch (t) { } } return e || (e = i), t.inPlace = u, t.flag = a, t } }, {}] }, {}, [\"loader\"]);</script>\r\n\t<title>Page not found: Maricopa County Assessor's Office</title>\r\n\t<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>\r\n\t<script src=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js\"></script>\r\n\t<link rel=\"stylesheet\" media=\"screen\" href=\"https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600\" />\r\n\t<link rel=\"stylesheet\" media=\"screen\" href=\"https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css\" />\r\n\t<style>\r\n\t\t* {\r\n\t\t\t-moz-box-sizing: border-box;\r\n\t\t\t-webkit-box-sizing: border-box;\r\n\t\t\tbox-sizing: border-box;\r\n\t\t}\r\n\r\n\t\thtml, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,\r\n\t\tabbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,\r\n\t\tsmall, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,\r\n\t\tfieldset, form, label, legend, caption, article, aside, canvas, details, figcaption, figure, footer, header, hgroup,\r\n\t\tmenu, nav, section, summary, time, mark, audio, video {\r\n\t\t\tmargin: 0;\r\n\t\t\tpadding: 0;\r\n\t\t\tborder: 0;\r\n\t\t\toutline: 0;\r\n\t\t\tvertical-align: baseline;\r\n\t\t\tbackground: transparent;\r\n\t\t}\r\n\r\n\t\tarticle, aside, details, figcaption, figure, footer, header, hgroup, nav, section {\r\n\t\t\tdisplay: block;\r\n\t\t}\r\n\r\n\t\thtml {\r\n\t\t\tfont-size: 16px;\r\n\t\t\tline-height: 24px;\r\n\t\t\twidth: 100%;\r\n\t\t\theight: 100%;\r\n\t\t\t-webkit-text-size-adjust: 100%;\r\n\t\t\t-ms-text-size-adjust: 100%;\r\n\t\t\toverflow-y: scroll;\r\n\t\t\toverflow-x: hidden;\r\n\t\t}\r\n\r\n\t\timg {\r\n\t\t\tvertical-align: middle;\r\n\t\t\tmax-width: 100%;\r\n\t\t\theight: auto;\r\n\t\t\tborder: 0;\r\n\t\t\t-ms-interpolation-mode: bicubic;\r\n\t\t}\r\n\r\n\t\tbody {\r\n\t\t\tmin-height: 100%;\r\n\t\t\t-webkit-font-smoothing: subpixel-antialiased;\r\n\t\t}\r\n\r\n\t\t.clearfix {\r\n\t\t\tclear: both;\r\n\t\t\tzoom: 1;\r\n\t\t}\r\n\r\n\t\t\t.clearfix:before, .clearfix:after {\r\n\t\t\t\tcontent: \"\\0020\";\r\n\t\t\t\tdisplay: block;\r\n\t\t\t\theight: 0;\r\n\t\t\t\tvisibility: hidden;\r\n\t\t\t}\r\n\r\n\t\t\t.clearfix:after {\r\n\t\t\t\tclear: both;\r\n\t\t\t}\r\n\r\n\t\t.sign.error-page-wrapper {\r\n\t\t\tfont-family: 'Source Sans Pro', sans-serif;\r\n\t\t\tbackground-color: #179eca;\r\n\t\t\tposition: relative;\r\n\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .sign-container {\r\n\t\t\t\twidth: 450px;\r\n\t\t\t\theight: 415px;\r\n\t\t\t\tmargin: 0 auto;\r\n\t\t\t\tposition: relative;\r\n\t\t\t\ttransform: rotate(-20deg);\r\n\t\t\t\ttext-indent: -20px;\r\n\t\t\t}\r\n\r\n\r\n\t\t\t\t.sign.error-page-wrapper .sign-container .nob {\r\n\t\t\t\t\theight: 44px;\r\n\t\t\t\t\twidth: 44px;\r\n\t\t\t\t\tborder-radius: 99px;\r\n\t\t\t\t\tborder: 12px solid #343c3f;\r\n\t\t\t\t\tposition: absolute;\r\n\t\t\t\t\ttop: 0px;\r\n\t\t\t\t\tleft: 50%;\r\n\t\t\t\t\tmargin-left: -22px;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .sign-container .post {\r\n\t\t\t\t\ttransition: background-color .5s linear;\r\n\t\t\t\t\twidth: 190px;\r\n\t\t\t\t\theight: 15px;\r\n\t\t\t\t\ttop: 71px;\r\n\t\t\t\t\tbackground-color: #343c3f;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .post.left {\r\n\t\t\t\t\t\tposition: absolute;\r\n\t\t\t\t\t\ttransform: rotate(-30deg);\r\n\t\t\t\t\t\tleft: 35px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .post.right {\r\n\t\t\t\t\t\tposition: absolute;\r\n\t\t\t\t\t\ttransform: rotate(30deg);\r\n\t\t\t\t\t\tright: 35px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .sign-container .pane {\r\n\t\t\t\t\ttransition: background-color .5s linear, border-color .5s linear;\r\n\t\t\t\t\tbox-shadow: 0 5px 0 rgba(0,0,0,.1) inset, 5px 0 0 rgba(0,0,0,.1) inset, 15px 15px 0 rgba(0,0,0,.1);\r\n\t\t\t\t\tbackground-color: #fff;\r\n\t\t\t\t\tborder: 20px solid #343c3f;\r\n\t\t\t\t\theight: 300px;\r\n\t\t\t\t\ttext-align: center;\r\n\t\t\t\t\tposition: absolute;\r\n\t\t\t\t\ttop: 115px;\r\n\t\t\t\t\tleft: 0px;\r\n\t\t\t\t\tright: 0px;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane .headline {\r\n\t\t\t\t\t\ttransition: color .5s linear;\r\n\t\t\t\t\t\tmargin-top: 65px;\r\n\t\t\t\t\t\tmargin-bottom: 10px;\r\n\t\t\t\t\t\tfont-size: 54px;\r\n\t\t\t\t\t\tline-height: 68px;\r\n\t\t\t\t\t\tfont-weight: 600;\r\n\t\t\t\t\t\tletter-spacing: -2px;\r\n\t\t\t\t\t\ttext-transform: uppercase;\r\n\t\t\t\t\t\tcolor: #ffba00;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane.just-header .headline {\r\n\t\t\t\t\t\tmargin-top: 100px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane .context {\r\n\t\t\t\t\t\ttransition: color .5s linear;\r\n\t\t\t\t\t\tcolor: #ffba00;\r\n\t\t\t\t\t\tfont-size: 24px;\r\n\t\t\t\t\t\tline-height: 32px;\r\n\t\t\t\t\t}\r\n\r\n\r\n\t\t@media screen and (max-width: 500px) {\r\n\t\t\t.sign.error-page-wrapper {\r\n\t\t\t\tpadding-top: 10%;\r\n\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .sign-container {\r\n\t\t\t\t\twidth: 280px;\r\n\t\t\t\t\ttop: 0px !important;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .post {\r\n\t\t\t\t\t\twidth: 100px;\r\n\t\t\t\t\t\ttop: 50px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane {\r\n\t\t\t\t\t\ttop: 70px;\r\n\t\t\t\t\t\theight: 220px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane .headline {\r\n\t\t\t\t\t\t\tmargin-top: 20px;\r\n\t\t\t\t\t\t\tfont-size: 45px;\r\n\t\t\t\t\t\t\tmargin-bottom: 6px;\r\n\t\t\t\t\t\t}\r\n\r\n\t\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane.just-header .headline {\r\n\t\t\t\t\t\t\tmargin-top: 39px;\r\n\t\t\t\t\t\t\tline-height: 55px;\r\n\t\t\t\t\t\t}\r\n\r\n\t\t\t\t\t\t.sign.error-page-wrapper .sign-container .pane .context {\r\n\t\t\t\t\t\t\tfont-size: 20px;\r\n\t\t\t\t\t\t\tline-height: 28px;\r\n\t\t\t\t\t\t}\r\n\t\t}\r\n\r\n\t\t.sign.error-page-wrapper .text-container {\r\n\t\t\t/*max-width:425px;*/\r\n\t\t\tposition: absolute;\r\n\t\t\tbottom: 20px;\r\n\t\t\tleft: 35px;\r\n\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .text-container .headline {\r\n\t\t\t\ttransition: color .5s linear;\r\n\t\t\t\tfont-size: 40px;\r\n\t\t\t\tline-height: 52px;\r\n\t\t\t\tletter-spacing: -1px;\r\n\t\t\t\tmargin-bottom: 5px;\r\n\t\t\t\tcolor: rgba(255,255,255,.3);\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .text-container .context {\r\n\t\t\t\ttransition: color .5s linear;\r\n\t\t\t\tfont-size: 18px;\r\n\t\t\t\tline-height: 27px;\r\n\t\t\t\tcolor: #fff;\r\n\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .text-container .context p {\r\n\t\t\t\t\tmargin: 0;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .text-container .context p + p {\r\n\t\t\t\t\t\tmargin-top: 10px;\r\n\t\t\t\t\t}\r\n\r\n\t\t.sign.error-page-wrapper .buttons-container {\r\n\t\t\tmargin-top: 20px;\r\n\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container a {\r\n\t\t\t\ttransition: text-indent .2s linear, color .5s linear, border-color .5s linear;\r\n\t\t\t\tfont-size: 16px;\r\n\t\t\t\ttext-transform: uppercase;\r\n\t\t\t\ttext-decoration: none;\r\n\t\t\t\tcolor: #fff;\r\n\t\t\t\tborder: 2px solid white;\r\n\t\t\t\tborder-radius: 99px;\r\n\t\t\t\tpadding: 9px 0 10px;\r\n\t\t\t\twidth: 195px;\r\n\t\t\t\toverflow: hidden;\r\n\t\t\t\ttext-align: center;\r\n\t\t\t\tdisplay: inline-block;\r\n\t\t\t\tposition: relative;\r\n\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .buttons-container a:hover {\r\n\t\t\t\t\tbackground-color: rgba(255,255,255,.1);\r\n\t\t\t\t\ttext-indent: 17px;\r\n\t\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container a {\r\n\t\t\t\tmargin-right: 25px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container .fa {\r\n\t\t\t\ttransition: left .2s ease-out;\r\n\t\t\t\tposition: absolute;\r\n\t\t\t\tleft: -50px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container .fa-warning {\r\n\t\t\t\tfont-size: 16px;\r\n\t\t\t\ttop: 14px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container a:hover .fa-warning {\r\n\t\t\t\tleft: 0px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container .fa-power-off {\r\n\t\t\t\tfont-size: 16px;\r\n\t\t\t\ttop: 14px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container a:hover .fa-power-off {\r\n\t\t\t\tleft: 0px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container .fa-home {\r\n\t\t\t\tfont-size: 18px;\r\n\t\t\t\ttop: 12px;\r\n\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container a:hover .fa-home {\r\n\t\t\t\tleft: 25px;\r\n\t\t\t}\r\n\r\n\t\t@media screen and (max-width: 500px) {\r\n\t\t\t.sign.error-page-wrapper .text-container {\r\n\t\t\t\tbottom: 20px;\r\n\t\t\t\tleft: 20px;\r\n\t\t\t\tright: 20px;\r\n\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .text-container .header {\r\n\t\t\t\t\tfont-size: 32px;\r\n\t\t\t\t\tline-height: 40px;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .text-container .context {\r\n\t\t\t\t\tfont-size: 15px;\r\n\t\t\t\t\tline-height: 22px;\r\n\t\t\t\t}\r\n\r\n\t\t\t.sign.error-page-wrapper .buttons-container {\r\n\t\t\t\toverflow: hidden;\r\n\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .buttons-container a {\r\n\t\t\t\t\tfont-size: 14px;\r\n\t\t\t\t\tpadding: 8px 0 9px;\r\n\t\t\t\t\twidth: 45%;\r\n\t\t\t\t\tfloat: left;\r\n\t\t\t\t\tmargin: 0;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .buttons-container a + a {\r\n\t\t\t\t\t\tfloat: right;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\t.sign.error-page-wrapper .buttons-container a:hover {\r\n\t\t\t\t\t\ttext-indent: 0px;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t.sign.error-page-wrapper .buttons-container .fa {\r\n\t\t\t\t\tdisplay: none;\r\n\t\t\t\t}\r\n\t\t}\r\n\r\n\t\t.background-color {\r\n\t\t\tbackground-color: rgba(51, 109, 168, 1) !important;\r\n\t\t}\r\n\r\n\r\n\t\t.primary-text-color {\r\n\t\t\tcolor: #FFFFFF !important;\r\n\t\t}\r\n\r\n\t\t.secondary-text-color {\r\n\t\t\tcolor: rgba(127, 164, 200, 1) !important;\r\n\t\t}\r\n\r\n\t\t.sign-text-color {\r\n\t\t\tcolor: rgba(255, 186, 0, 1) !important;\r\n\t\t}\r\n\r\n\t\t.sign-frame-color {\r\n\t\t\tcolor: #343C3F;\r\n\t\t}\r\n\r\n\t\t.pane {\r\n\t\t\tbackground-color: #FFFFFF !important;\r\n\t\t}\r\n\r\n\t\t.border-button {\r\n\t\t\tcolor: #FFFFFF !important;\r\n\t\t\tborder-color: #FFFFFF !important;\r\n\t\t}\r\n\r\n\t\t.button {\r\n\t\t\tbackground-color: #FFFFFF !important;\r\n\t\t\tcolor: !important;\r\n\t\t}\r\n\t</style>\r\n\t<link rel=\"stylesheet\" href=\"app/assets/css/semantic.min.css\" media=\"screen\">\r\n</head>\r\n<body class=\"sign error-page-wrapper background-color background-image\">\r\n\t<div class=\"sign-container\">\r\n\t\t<div class=\"nob\"></div>\r\n\t\t<div class=\"post left\"></div>\r\n\t\t<div class=\"post right\"></div>\r\n\t\t<div class=\"pane\">\r\n\t\t\t<div class=\"headline sign-text-color\">\r\n\t\t\t\t404\r\n\t\t\t</div>\r\n\r\n\t\t\t<div class=\"context sign-text-color\" id=\"first-text\">\r\n\t\t\t\t{var:TEMPLATE_CONTENT}\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n\t<div class=\"text-container\">\r\n\t\t<div class=\"headline secondary-text-color\">\r\n\t\t\t404 (Page not found)\r\n\t\t</div>\r\n\t\t<div class=\"context primary-text-color\">\r\n\t\t\t<p id=\"second-text\"></p>\r\n\t\t</div>\r\n\t\t<div class=\"ui icon input\" style=\"margin-top: 15px;\">\r\n\t\t\t<input type=\"text\" placeholder=\"Try searching for addresses, parcels, and more!\" id=\"header-search-box\" size=\"60\">\r\n\t\t\t<i class=\"search link icon\" id=\"header-search-button\"></i>\r\n\t\t</div>\r\n\t\t<div class=\"buttons-container\">\r\n\t\t\t<a class=\"border-button\" href=\"https://mcassessor.maricopa.gov/\"><span class=\"fa fa-home\"></span>Home Page</a>\r\n\t\t\t<a class=\"border-button\" href=\"/cdn-cgi/l/email-protection#b5d8d6d4c6c6d0c6c6dac7f5d8d6d4c6c6d0c6c6dac79bd3c7d0c6ddd1d0c6de9bd6dad8\"><span class=\"fa fa-warning\"></span>Report Problem</a>\r\n\t\t\t<!--<a class=\"border-button\" href=\"\" onclick=\"history.back(-1)\"><span class=\"fa fa-arrow-alt-circle-left\"></span> Go Back</a>-->\r\n\r\n\t\t\t<a class=\"border-button\" href=\"https://treasurer.maricopa.gov/\"><span class=\"fa fa-usd\"></span>Treasurer's Website</a>\r\n\t\t\t<a class=\"border-button\" href=\"https://recorder.maricopa.gov/\"><span class=\"fa fa-pencil-square\"></span>Recorder's Website</a>\r\n\t\t\t<a class=\"border-button\" href=\"https://www.maricopa.gov/\"><span class=\"fa fa-pencil-square\"></span>County Website</a>\r\n\t\t</div>\r\n\t</div>\r\n\t<script data-cfasync=\"false\" src=\"/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js\"></script><script>\r\n\t\t$(document).ready(function () {\r\n\t\t\t$(\"#second-text\").html(\"The page at \" + window.location.href + \" doesn't exist.<br/>This may be due to an outdated bookmark or a misspelling in the address bar. You may want to head back to the homepage. If you think something is broken, report a problem.\");\r\n\t\t});\r\n\t\tfunction ErrorPage(container, pageType, templateName) {\r\n\t\t\tthis.$container = $(container);\r\n\t\t\tthis.$contentContainer = this.$container.find(templateName == 'sign' ? '.sign-container' : '.content-container');\r\n\t\t\tthis.pageType = pageType;\r\n\t\t\tthis.templateName = templateName;\r\n\t\t}\r\n\t\tErrorPage.prototype.centerContent = function () {\r\n\t\t\tvar containerHeight = this.$container.outerHeight()\r\n\t\t\t  , contentContainerHeight = this.$contentContainer.outerHeight()\r\n\t\t\t  , top = (containerHeight - contentContainerHeight) / 2\r\n\t\t\t  , offset = this.templateName == 'sign' ? -100 : 0;\r\n\r\n\t\t\tthis.$contentContainer.css('top', top + offset);\r\n\t\t};\r\n\t\tErrorPage.prototype.initialize = function () {\r\n\t\t\tvar self = this;\r\n\t\t\tthis.centerContent();\r\n\t\t\tthis.$container.on('resize', function (e) {\r\n\t\t\t\te.preventDefault();\r\n\t\t\t\te.stopPropagation();\r\n\t\t\t\tself.centerContent();\r\n\t\t\t});\r\n\t\t\t// fades in content on the plain template\r\n\t\t\tif (this.templateName == 'plain') {\r\n\t\t\t\twindow.setTimeout(function () {\r\n\t\t\t\t\tself.$contentContainer.addClass('in');\r\n\t\t\t\t}, 500);\r\n\t\t\t}\r\n\t\t\t// swings sign in on the sign template\r\n\t\t\tif (this.templateName == 'sign') {\r\n\t\t\t\t$('.sign-container').animate({ textIndent: 0 }, {\r\n\t\t\t\t\tstep: function (now) {\r\n\t\t\t\t\t\t$(this).css({\r\n\t\t\t\t\t\t\ttransform: 'rotate(' + now + 'deg)',\r\n\t\t\t\t\t\t\t'transform-origin': 'top center'\r\n\t\t\t\t\t\t});\r\n\t\t\t\t\t},\r\n\t\t\t\t\tduration: 1000,\r\n\t\t\t\t\teasing: 'easeOutBounce'\r\n\t\t\t\t});\r\n\t\t\t}\r\n\t\t};\r\n\t\tErrorPage.prototype.createTimeRangeTag = function (start, end) {\r\n\t\t\treturn (\r\n\t\t\t  '<time utime=' + start + ' simple_format=\"MMM DD, YYYY HH:mm\">' + start + '</time> - <time utime=' + end + ' simple_format=\"MMM DD, YYYY HH:mm\">' + end + '</time>.'\r\n\t\t\t)\r\n\t\t};\r\n\t\tErrorPage.prototype.handleStatusFetchSuccess = function (pageType, data) {\r\n\t\t\tif (pageType == '503') {\r\n\t\t\t\t$('#replace-with-fetched-data').html(data.status.description);\r\n\t\t\t} else {\r\n\t\t\t\tif (!!data.scheduled_maintenances.length) {\r\n\t\t\t\t\tvar maint = data.scheduled_maintenances[0];\r\n\t\t\t\t\t$('#replace-with-fetched-data').html(this.createTimeRangeTag(maint.scheduled_for, maint.scheduled_until));\r\n\t\t\t\t\t$.fn.localizeTime();\r\n\t\t\t\t}\r\n\t\t\t\telse {\r\n\t\t\t\t\t$('#replace-with-fetched-data').html('<em>(there are no active scheduled maintenances)</em>');\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t};\r\n\t\tErrorPage.prototype.handleStatusFetchFail = function (pageType) {\r\n\t\t\t$('#replace-with-fetched-data').html('<em>(enter a valid Statuspage url)</em>');\r\n\t\t};\r\n\t\tErrorPage.prototype.fetchStatus = function (pageUrl, pageType) {\r\n\t\t\tif (!pageUrl || !pageType || pageType == '404') return;\r\n\t\t\tvar url = '', self = this;\r\n\r\n\t\t\tif (pageType == '503') {\r\n\t\t\t\turl = pageUrl + '/api/v2/status.json';\r\n\t\t\t}\r\n\t\t\telse {\r\n\t\t\t\turl = pageUrl + '/api/v2/scheduled-maintenances/active.json';\r\n\t\t\t}\r\n\t\t\t$.ajax({\r\n\t\t\t\ttype: \"GET\",\r\n\t\t\t\turl: url,\r\n\t\t\t}).success(function (data, status) {\r\n\t\t\t\tself.handleStatusFetchSuccess(pageType, data);\r\n\t\t\t}).fail(function (xhr, msg) {\r\n\t\t\t\tself.handleStatusFetchFail(pageType);\r\n\t\t\t});\r\n\t\t};\r\n\t\tvar ep = new ErrorPage('body', \"404\", \"sign\");\r\n\t\tep.initialize();\r\n\t\t// hack to make sure content stays centered >_<\r\n\t\t$(window).on('resize', function () {\r\n\t\t\t$('body').trigger('resize')\r\n\t\t});\r\n\t\tfunction SetupIndexEventHandlers() {\r\n\t\t\t$(\"#header-search-box\").keyup(function (e) {\r\n\t\t\t\tif (e.which == 13 && $(\"#header-search-box\").val().length > 0) {\r\n\t\t\t\t\t//window.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + $(\"#header-search-box\").val().trim();\r\n\t\t\t\t\t// @NOTE: support for & and other URL characters such as \"\r\n\t\t\t\t\twindow.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + encodeURIComponent($(\"#header-search-box\").val().trim());\r\n\t\t\t\t}\r\n\t\t\t});\r\n\t\t\t$(\"#header-search-button\").click(function () {\r\n\t\t\t\tif ($(\"#header-search-box\").val().length > 0) {\r\n\t\t\t\t\t//window.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + $(\"#header-search-box\").val().trim();\r\n\t\t\t\t\twindow.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + encodeURIComponent($(\"#header-search-box\").val().trim());\r\n\t\t\t\t}\r\n\t\t\t});\r\n\t\t\t$(\".homeSearchBtn\").click(function () {\r\n\t\t\t\tif ($(\".homeSearchField\").val().length > 0) {\r\n\t\t\t\t\t//window.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + $(\".homeSearchField\").val().trim();\r\n\t\t\t\t\twindow.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + encodeURIComponent($(\".homeSearchField\").val().trim());\r\n\t\t\t\t}\r\n\t\t\t});\r\n\t\t\t$(\".homeSearchField\").keyup(function (e) {\r\n\t\t\t\tif (e.which == 13 && $(\".homeSearchField\").val().length > 0) {\r\n\t\t\t\t\t//window.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + $(\".homeSearchField\").val().trim();\r\n\t\t\t\t\twindow.location = 'https://www.mcassessor.maricopa.gov/mcs.php?q=' + encodeURIComponent($(\".homeSearchField\").val().trim());\r\n\t\t\t\t}\r\n\t\t\t});\r\n\t\t\t$(\".homeSearchForm\").submit(function (e) {\r\n\t\t\t\te.preventDefault();\r\n\t\t\t\te.stopPropagation();\r\n\t\t\t\treturn false;\r\n\t\t\t});\r\n\t\t}\r\n\t\t$(document).ready(function () {\r\n\t\t\tSetupIndexEventHandlers();\r\n\t\t});\r\n\t</script>\r\n\t<script type=\"text/javascript\">window.NREUM || (NREUM = {}); NREUM.info = { \"beacon\": \"bam.nr-data.net\", \"licenseKey\": \"5d68eff189\", \"applicationID\": \"85459876\", \"transactionName\": \"MVFWYREDXxFQBxJYDQgbYUcKTR9IQQwW\", \"queueTime\": 0, \"applicationTime\": 0, \"atts\": \"HRZVF1kZTB8=\", \"errorBeacon\": \"bam.nr-data.net\", \"agent\": \"\" }</script>\r\n</body>\r\n</html>\r\n\r\n\t\t</div>\r\n\t\t<!-- Footer-->\r\n<footer class=\"position-relative d-print-none\"> <!--z-index-10-->\r\n\t<!-- Main block - menus, subscribe form-->\r\n\t<div class=\"py-6 bg-blue text-muted\">\r\n\t\t<div class=\"container\">\r\n\t\t\t<div class=\"row\">\r\n\t\t\t\t<div class=\"col-lg-2 mb-5 mb-lg-0\">\r\n\t\t\t\t\t<div class=\"text-center\" style=\"padding-bottom: 25px;\"><img src=\"/app/assets/img/seal-white-lg.png\" /></div>\r\n\t\t\t\t\t<div class=\"font-weight-bold text-uppercase text-light mb-3 text-center\">Stay Connected</div>\r\n\t\t\t\t\t<ul class=\"list-inline text-center\">\r\n\t\t\t\t\t\t<li class=\"list-inline-item\"><a href=\"https://twitter.com/mcassessor\" target=\"_blank\" title=\"twitter\" class=\"text-muted text-hover-primary social-icon\"><i class=\"fab fa-twitter fa-2x\"></i></a></li>\r\n\t\t\t\t\t\t<li class=\"list-inline-item\"><a href=\"https://www.facebook.com/MCAssessor/\" target=\"_blank\" title=\"facebook\" class=\"text-muted text-hover-primary social-icon\"><i class=\"fab fa-facebook fa-2x\"></i></a></li>\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"col-lg-4 col-md-6 mb-5 mb-lg-0\">\r\n\t\t\t\t\t<h6 class=\"text-uppercase text-light mb-3 text-center\">Stay Current</h6>\r\n\t\t\t\t\t<ul class=\"list-unstyled text-center\">\r\n\t\t\t\t\t\t<li><a href=\"/page/home/qasimyar\" class=\"text-muted\">Qasimyar Court of Appeals Information</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/home/enotice/\" class=\"text-muted\">Sign up for eNotices!</a></li>\r\n\t\t\t\t\t\t<li><a href=\"http://treasurer.maricopa.gov/Pages/LoadPage?page=TaxGuide#taxcal\" class=\"text-muted\"><i class=\"fas fa-calendar-alt\"></i> Tax Calendar</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/news/\" class=\"text-muted\">News</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/home/help/pay_my_taxes/\" class=\"text-muted\">How Do I Pay My Taxes?</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/home/help/searching/\" class=\"text-muted\">Help! I Can't Find My Parcel!</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/file/home/MC-Assessor-API-Documentation.pdf\" target=\"_blank\" class=\"text-muted\">API Documentation</a></li>\r\n\t\t\t\t\t\t<li><a href=\"/home/educational_videos/\" target=\"_blank\" class=\"text-muted\">Educational Videos</a></li>\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"col-lg-4 col-md-6 mb-5 mb-lg-0 text-center\">\r\n\t\t\t\t\t<h6 class=\"text-uppercase text-light mb-3\">Links</h6>\r\n\t\t\t\t\t<ul class=\"list-unstyled text-center\">\r\n\t\t\t\t\t\t<li><a href=\"http://www.maricopa.gov/124/Site-Terms-Privacy-Policy\" class=\"text-muted\">Privacy Policy</li>\r\n\t\t\t\t\t\t<li><a href=\"http://www.maricopa.gov/\" class=\"text-muted\">Maricopa County</a></li>\r\n\t\t\t\t\t\t<li><a href=\"http://treasurer.maricopa.gov/\" class=\"text-muted\">Treasurer's Office</a></li>\r\n\t\t\t\t\t\t<li><a href=\"https://recorder.maricopa.gov/\" class=\"text-muted\">Recorder's Office</a></li>\t\t\t\t\t\r\n\t\t\t\t\t\t<li><a href=\"/contact/\" class=\"text-muted\">Contact Us</a></li>\t\t\t\t\t\r\n\t\t\t\t\t\t<!--<li><a href=\"https://status.mcassessor.maricopa.gov/\" class=\"text-muted\">Site Service Status</a></li>\r\n\t\t\t\t\t\t<li><a href=\"https://synthetics.newrelic.com/report/BPMgr\" class=\"text-muted\">Uptime Report</a></li>-->\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"col-lg-2\">\r\n\t\t\t\t\t<h6 class=\"text-uppercase text-light mb-3 text-center\">Contact Us</h6>\r\n\t\t\t\t\t<!--ul class=\"list-inline mb-0 mt-2 mt-md-0 text-center\">\r\n\t\t\t\t\t\t<li class=\"list-inline-item\">\r\n\t\t\t\t\t\t\t<a href=\"/home/awards/\"><img src=\"app/assets/img/awards/IAAO-white.png\" alt=\"International Association of Assessing Officers\" class=\"w-4rem\"></a>\r\n\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t<li class=\"list-inline-item\">\r\n\t\t\t\t\t\t\t<a href=\"/home/awards/\"><img src=\"app/assets/img/awards/AACo-white.png\" alt=\"Arizona Association of Counties\" class=\"w-4rem\"></a>\r\n\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t<li class=\"\">\r\n\t\t\t\t\t\t\t<a href=\"/home/awards/\" class=\"text-muted\"><small>more</small></a>\r\n\t\t\t\t\t\t</li>\r\n\t\t\t\t\t</ul-->\r\n\t\t\t\t\t<ul class=\"list-unstyled text-center\">\r\n\t\t\t\t\t\t<li class=\"text-muted\">Office hours:</li>\r\n\t\t\t\t\t\t<li class=\"text-muted\"> Mon - Fri 8am - 5pm<li>\r\n\t\t\t\t\t\t<li class=\"text-muted\">301 W Jefferson Street</li>\r\n\t\t\t\t\t\t<li class=\"text-muted\">Phoenix, AZ 85003</li>\r\n\t\t\t\t\t\t<li class=\"text-muted\">Phone: 602-506-3406</li>\r\n\t\t\t\t\t\t<li class=\"text-muted\"><a href=\"https://outlook.office365.com/owa/calendar/AssessorPADowntownVirtualAppointments@maricopacounty.onmicrosoft.com/bookings/\" target=\"_blank\">Schedule a virtual appointment!</a></li>\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n\t<!-- Copyright section of the footer-->\r\n\t<div class=\"py-4 font-weight-light bg-gray-800 text-gray-300\">\r\n\t\t<div class=\"container\">\r\n\t\t\t<div class=\"row align-items-center\">\r\n\t\t\t\t<div class=\"col-md-12 text-center\">\r\n\t\t\t\t\t<p class=\"text-sm mb-md-0\">&copy; 2025 Maricopa County Assessor's Office.  All rights reserved. Developed by <a href=\"http://manavi.co\">Manavi Solutions LLC</a></p>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</footer>\r\n<!-- /Footer end-->\r\n\r\n\t\t\r\n\t\t\r\n\t\t<script src=\"app/assets/js/theme.min.js\" type=\"text/javascript\"></script>\r\n\t\t<script src=\"app/assets/js/custom.min.js\" type=\"text/javascript\"></script>\r\n\t\t\r\n\t\t<script src=\"app/assets/js/theme-toggle.js\" type=\"text/javascript\"></script>\r\n\t\t\r\n\t</body>\r\n</html>"
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:48 GMT",
+        "Content-Type": "text/html;charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:46 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e336f6d462732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:48.042289"
+    },
+    {
+      "endpoint": "/parcel/123-abc-xyz",
+      "method": "GET",
+      "url": "https://mcassessor.maricopa.gov/parcel/123-abc-xyz",
+      "status_code": 404,
+      "response_time_ms": 138.26227188110352,
+      "success": false,
+      "error_message": "HTTP 404: [parcel]:Requested content was not found",
+      "response_data": {
+        "raw_text": ""
+      },
+      "headers": {
+        "Date": "Wed, 23 Jul 2025 21:16:49 GMT",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Transfer-Encoding": "chunked",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0,post-check=0, pre-check=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Last-Modified": "Wed, 23 Jul 2025 21:16:47 GMT",
+        "X-Powered-By": "ASP.NET",
+        "cf-cache-status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "963e3375af982732-EWR",
+        "Content-Encoding": "gzip"
+      },
+      "timestamp": "2025-07-23T17:16:48.860528"
+    }
+  ],
+  "recommendations": [
+    "[SUCCESS] 27 endpoints working - focus implementation on these first",
+    "[IMPL] Implement pagination handling for search results (25 results per page)",
+    "[RETRY] Add retry logic with exponential backoff for 5xx errors",
+    "[CONFIG] Update client implementation to use correct base URL: https://mcassessor.maricopa.gov",
+    "[AUTH] Fix authentication to use AUTHORIZATION header instead of Bearer token",
+    "[ENDPOINTS] Update endpoint URLs to match documented API paths"
+  ]
+}

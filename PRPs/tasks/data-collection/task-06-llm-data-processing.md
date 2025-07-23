@@ -17,6 +17,61 @@ Implement a local LLM-powered data processing pipeline that extracts, validates,
 - Real-time processing (focus on batch efficiency)
 - Model training or fine-tuning (using pre-trained models)
 
+## System Status & Context
+
+### Current Operational Status (85%)
+- **MongoDB**: Collections ready (properties, collection_history, errors)
+- **Maricopa API Collector**: Functional with API key integration
+- **Phoenix MLS Collector**: HTML extraction implemented
+- **WebShare Proxy**: Configured ($1/month active cost)
+- **Budget Available**: ~$24/month for LLM infrastructure
+
+### Working Components for Integration
+```python
+# MongoDB Collections Schema
+properties_collection = {
+    "_id": ObjectId,
+    "address": str,
+    "city": str,
+    "state": str,
+    "zip_code": str,
+    "price": float,
+    "bedrooms": int,
+    "bathrooms": float,
+    "square_feet": int,
+    "lot_size_sqft": int,
+    "year_built": int,
+    "property_type": str,
+    "features": List[str],
+    "source": str,
+    "processed_at": datetime,
+    "raw_data": dict
+}
+
+# Maricopa API Response Format
+maricopa_data = {
+    "parcel_number": "123-45-678",
+    "owner_name": "SMITH JOHN",
+    "situs_address": "123 MAIN ST",
+    "legal_description": "LOT 1 BLOCK 2",
+    "total_assessed_value": 250000,
+    "land_value": 50000,
+    "improvement_value": 200000,
+    "tax_year": 2024
+}
+
+# Phoenix MLS HTML Structure
+phoenix_mls_html = """
+<div class="property-card">
+    <span class="price">$350,000</span>
+    <div class="address">123 Main St, Phoenix, AZ 85031</div>
+    <div class="details">
+        <span>3 beds</span> | <span>2 baths</span> | <span>1,500 sqft</span>
+    </div>
+</div>
+"""
+```
+
 ## Foundation Integration Requirements
 
 ### Epic 1 Dependencies (MANDATORY)
@@ -40,6 +95,76 @@ from phoenix_real_estate.foundation.utils.exceptions import (
 from phoenix_real_estate.foundation.utils.validators import DataValidator
 from phoenix_real_estate.foundation.utils.helpers import (
     safe_int, safe_float, normalize_address, retry_async
+)
+```
+
+### Critical Implementation Details
+
+#### Configuration Access Pattern (IMPORTANT)
+```python
+# CORRECT - Use getattr() with BaseConfig
+config = ConfigProvider()
+ollama_url = getattr(config.settings, "OLLAMA_BASE_URL", "http://localhost:11434")
+model_name = getattr(config.settings, "LLM_MODEL", "llama2:7b")
+
+# INCORRECT - DO NOT use get() method
+# ollama_url = config.get("OLLAMA_BASE_URL")  # This will fail!
+```
+
+#### Async/Await Pattern Requirements
+```python
+# ALL I/O operations MUST be async
+async def process_data(content: str) -> Dict[str, Any]:
+    async with OllamaClient(config) as client:
+        # Use await for all async operations
+        if not await client.health_check():
+            raise ProcessingError("Ollama service unavailable")
+        
+        result = await client.extract_structured_data(content, schema)
+        return result
+
+# Use async context managers for resource management
+async with aiohttp.ClientSession() as session:
+    async with session.post(url, json=payload) as response:
+        data = await response.json()
+```
+
+#### Error Handling with Proper Chaining
+```python
+try:
+    result = await extract_data(content)
+except aiohttp.ClientError as e:
+    # Always chain exceptions with 'from e'
+    raise ProcessingError(
+        "Failed to communicate with Ollama",
+        context={"url": self.base_url, "error": str(e)},
+        cause=e
+    ) from e
+```
+
+#### Structured Logging Pattern
+```python
+logger = get_logger("llm.processor")
+
+# Log with structured extra data
+logger.info(
+    "Processing started",
+    extra={
+        "batch_size": len(items),
+        "source": source,
+        "model": self.model_name,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+)
+
+# Include metrics in logs
+logger.debug(
+    "Extraction completed",
+    extra={
+        "processing_time_ms": int(elapsed * 1000),
+        "tokens_used": response.get("eval_count", 0),
+        "success": True
+    }
 )
 ```
 
@@ -1744,6 +1869,370 @@ class ProcessingValidator:
             warnings.extend([f"Missing important field: {field}" for field in missing_important])
         
         return min(completeness_score, 1.0)
+```
+
+## Cost Management Strategy
+
+### Budget Allocation ($24/month remaining)
+```python
+# Ollama Infrastructure Costs
+- Local GPU Server: $0/month (runs on local machine)
+- Ollama Service: $0/month (open source)
+- Model Storage: $0/month (one-time 4GB download)
+- Processing Costs: $0/month (local compute)
+
+# Actual Monthly Costs
+- WebShare Proxy: $1/month (already allocated)
+- 2captcha: ~$0.50/month (minimal usage)
+- Total: ~$1.50/month
+- Remaining: $23.50/month (reserved for scaling)
+```
+
+### Processing Efficiency Optimization
+```python
+class CostOptimizedProcessor:
+    """Maximize processing within budget constraints."""
+    
+    def __init__(self, config: ConfigProvider):
+        # Batch processing for efficiency
+        self.batch_size = 10  # Process 10 properties at once
+        self.max_concurrent = 3  # Limit concurrent LLM calls
+        self.cache_ttl = 3600  # Cache results for 1 hour
+        
+        # Token optimization
+        self.max_prompt_length = 4000  # Truncate long content
+        self.max_response_tokens = 1000  # Limit response size
+        
+    async def process_with_caching(self, content: str) -> Dict[str, Any]:
+        # Check cache first
+        cache_key = hashlib.md5(content.encode()).hexdigest()
+        cached = await self.get_from_cache(cache_key)
+        if cached:
+            return cached
+            
+        # Process and cache result
+        result = await self.extract_data(content)
+        await self.save_to_cache(cache_key, result)
+        return result
+```
+
+## Practical Implementation Examples
+
+### Example 1: Processing Maricopa API Data
+```python
+async def process_maricopa_property(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Process Maricopa API response into standardized format."""
+    
+    # Convert Maricopa format to text for LLM
+    text_content = f"""
+    Property Information:
+    Parcel: {data.get('parcel_number')}
+    Owner: {data.get('owner_name')}
+    Address: {data.get('situs_address')}
+    Legal: {data.get('legal_description')}
+    Total Value: ${data.get('total_assessed_value'):,}
+    Land Value: ${data.get('land_value'):,}
+    Improvement Value: ${data.get('improvement_value'):,}
+    Tax Year: {data.get('tax_year')}
+    """
+    
+    # Extract with LLM
+    extractor = PropertyDataExtractor(config)
+    result = await extractor.extract_from_text(text_content, "maricopa")
+    
+    # Enhance with direct mappings
+    if result:
+        result['parcel_number'] = data.get('parcel_number')
+        result['assessed_value'] = data.get('total_assessed_value')
+        result['tax_year'] = data.get('tax_year')
+    
+    return result
+```
+
+### Example 2: Processing Phoenix MLS HTML
+```python
+async def process_phoenix_mls_html(html: str) -> Dict[str, Any]:
+    """Process Phoenix MLS HTML into property data."""
+    
+    # LLM extraction with specific schema
+    extraction_schema = {
+        "address": {"type": "string", "description": "Full street address"},
+        "price": {"type": "number", "description": "Listing price as number"},
+        "bedrooms": {"type": "integer", "description": "Number of bedrooms"},
+        "bathrooms": {"type": "number", "description": "Number of bathrooms (can be decimal)"},
+        "square_feet": {"type": "integer", "description": "Living area square footage"},
+        "property_type": {"type": "string", "description": "Type: Single Family, Condo, etc"},
+        "year_built": {"type": "integer", "description": "Year constructed"},
+        "lot_size_sqft": {"type": "integer", "description": "Lot size in square feet"},
+        "mls_number": {"type": "string", "description": "MLS listing number"},
+        "listing_date": {"type": "string", "description": "Date listed"},
+        "features": {"type": "array", "description": "Property features and amenities"}
+    }
+    
+    extractor = PropertyDataExtractor(config)
+    async with extractor.llm_client as client:
+        result = await client.extract_structured_data(
+            content=html,
+            extraction_schema=extraction_schema,
+            content_type="html"
+        )
+    
+    return result
+```
+
+### Example 3: Batch Processing with Error Recovery
+```python
+async def process_property_batch(properties: List[Dict[str, Any]]) -> ProcessingResult:
+    """Process batch with comprehensive error handling."""
+    
+    pipeline = DataProcessingPipeline(config, repository)
+    results = []
+    errors = []
+    
+    # Process in chunks to manage memory
+    chunk_size = 5
+    for i in range(0, len(properties), chunk_size):
+        chunk = properties[i:i + chunk_size]
+        
+        try:
+            # Check Ollama health before processing
+            if not await pipeline.extractor.llm_client.health_check():
+                logger.warning("Ollama unavailable, using fallback")
+                # Use fallback extraction
+                for prop in chunk:
+                    fallback_result = await fallback_extraction(prop)
+                    results.append(fallback_result)
+            else:
+                # Process with LLM
+                chunk_results = await pipeline.process_batch(chunk)
+                results.extend(chunk_results)
+                
+        except Exception as e:
+            logger.error(f"Batch processing error: {e}")
+            errors.append(str(e))
+            # Continue with next batch
+            
+    return ProcessingResult(
+        success=len(results) > 0,
+        processed_count=len(results),
+        failed_count=len(errors),
+        processing_time_seconds=0,
+        errors=errors
+    )
+```
+
+## Integration Requirements
+
+### MongoDB Integration
+```python
+async def store_processed_property(data: Dict[str, Any]) -> str:
+    """Store processed property in MongoDB."""
+    
+    # Validate before storage
+    validator = ProcessingValidator(config)
+    validation_result = await validator.validate_property_data(data)
+    
+    if not validation_result.is_valid:
+        raise ValidationError(
+            "Property data validation failed",
+            context={"errors": validation_result.errors}
+        )
+    
+    # Store using repository
+    repository = PropertyRepository(db_client)
+    property_id = await repository.create({
+        **data,
+        "validation_score": validation_result.confidence_score,
+        "processed_at": datetime.utcnow(),
+        "processing_version": "1.0"
+    })
+    
+    return property_id
+```
+
+### Data Validation Before Processing
+```python
+async def validate_input_data(raw_data: Dict[str, Any]) -> bool:
+    """Validate data before LLM processing."""
+    
+    # Check for minimum required fields
+    if not raw_data:
+        return False
+        
+    # Check for extractable content
+    has_html = any(key in raw_data for key in ["html", "full_html", "raw_html"])
+    has_text = any(key in raw_data for key in ["description", "details", "text"])
+    
+    if not has_html and not has_text:
+        logger.warning("No extractable content found", extra={"keys": list(raw_data.keys())})
+        return False
+        
+    # Check content size
+    content_size = sum(len(str(v)) for v in raw_data.values() if isinstance(v, str))
+    if content_size < 50:  # Too small to extract meaningful data
+        logger.warning("Content too small", extra={"size": content_size})
+        return False
+        
+    return True
+```
+
+### Error Recovery Mechanisms
+```python
+class RecoverableProcessor:
+    """Processor with comprehensive error recovery."""
+    
+    async def process_with_recovery(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        strategies = [
+            self._try_llm_extraction,
+            self._try_fallback_extraction,
+            self._try_basic_extraction,
+            self._try_manual_mapping
+        ]
+        
+        for strategy in strategies:
+            try:
+                result = await strategy(data)
+                if result:
+                    return result
+            except Exception as e:
+                logger.warning(f"Strategy {strategy.__name__} failed: {e}")
+                continue
+                
+        # All strategies failed
+        await self._record_failure(data, "All extraction strategies failed")
+        return None
+        
+    async def _try_llm_extraction(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Primary LLM extraction strategy."""
+        extractor = PropertyDataExtractor(self.config)
+        return await extractor.extract_from_html(data.get("html", ""))
+        
+    async def _try_fallback_extraction(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Fallback BeautifulSoup extraction."""
+        # Implementation from extractor fallback methods
+        pass
+        
+    async def _try_basic_extraction(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Basic regex extraction."""
+        # Implementation from extractor fallback methods
+        pass
+        
+    async def _try_manual_mapping(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Direct field mapping for known formats."""
+        if "maricopa" in data.get("source", "").lower():
+            return {
+                "address": normalize_address(data.get("situs_address", "")),
+                "assessed_value": safe_float(data.get("total_assessed_value")),
+                "parcel_number": data.get("parcel_number")
+            }
+        return None
+```
+
+## Testing Requirements with Examples
+
+### Unit Test Example
+```python
+import pytest
+from unittest.mock import AsyncMock, patch
+
+@pytest.mark.asyncio
+async def test_ollama_client_health_check():
+    """Test Ollama client health check functionality."""
+    
+    config = ConfigProvider()
+    client = OllamaClient(config)
+    
+    # Mock successful health check
+    with patch('aiohttp.ClientSession.get') as mock_get:
+        mock_response = AsyncMock()
+        mock_response.status = 200
+        mock_response.json = AsyncMock(return_value={
+            "models": [{"name": "llama2:7b"}]
+        })
+        mock_get.return_value.__aenter__.return_value = mock_response
+        
+        result = await client.health_check()
+        assert result is True
+        
+    # Mock failed health check
+    with patch('aiohttp.ClientSession.get') as mock_get:
+        mock_response = AsyncMock()
+        mock_response.status = 500
+        mock_get.return_value.__aenter__.return_value = mock_response
+        
+        result = await client.health_check()
+        assert result is False
+```
+
+### Integration Test Example
+```python
+@pytest.mark.asyncio
+async def test_end_to_end_processing():
+    """Test complete processing pipeline."""
+    
+    # Setup
+    config = ConfigProvider()
+    repository = PropertyRepository(test_db_client)
+    pipeline = DataProcessingPipeline(config, repository)
+    
+    # Test data
+    test_html = """
+    <div class="property">
+        <h2>123 Test St, Phoenix, AZ 85031</h2>
+        <span class="price">$299,900</span>
+        <div class="details">3 beds | 2 baths | 1,450 sqft</div>
+    </div>
+    """
+    
+    # Process
+    result = await pipeline.process_single(
+        {"html": test_html, "source": "test"},
+        source="phoenix_mls"
+    )
+    
+    # Assertions
+    assert result is not None
+    assert result.get("address") == "123 Test St"
+    assert result.get("city") == "Phoenix"
+    assert result.get("state") == "AZ"
+    assert result.get("zip_code") == "85031"
+    assert result.get("price") == 299900
+    assert result.get("bedrooms") == 3
+    assert result.get("bathrooms") == 2
+    assert result.get("square_feet") == 1450
+```
+
+## Success Metrics and Validation
+
+### Key Performance Indicators
+1. **Extraction Accuracy**: >90% correct field extraction
+2. **Processing Speed**: <2 seconds per property
+3. **Fallback Success**: >70% success when LLM unavailable
+4. **Validation Score**: Average confidence >0.8
+5. **Error Rate**: <5% processing failures
+
+### Validation Criteria
+```python
+async def validate_implementation_success():
+    """Validate Task 6 implementation meets requirements."""
+    
+    checks = {
+        "ollama_available": await check_ollama_service(),
+        "model_loaded": await check_model_availability(),
+        "extraction_accuracy": await test_extraction_accuracy(),
+        "processing_speed": await test_processing_performance(),
+        "error_handling": await test_error_recovery(),
+        "mongodb_integration": await test_database_storage(),
+        "cost_compliance": await verify_zero_api_costs()
+    }
+    
+    success = all(checks.values())
+    print(f"Implementation validation: {'PASSED' if success else 'FAILED'}")
+    
+    for check, result in checks.items():
+        print(f"  {check}: {'✓' if result else '✗'}")
+    
+    return success
 ```
 
 ## Technical Approach

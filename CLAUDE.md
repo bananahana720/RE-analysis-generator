@@ -2,8 +2,8 @@
 
 ## PROJECT CONTEXT
 - **Purpose**: Automated real estate data collection for Phoenix, AZ (zips: 85031, 85033, 85035)
-- **Budget**: $25/month maximum (currently ~$1/month)
-- **Status**: 40% operational - MongoDB not running, needs Maricopa API key
+- **Budget**: $25/month maximum (currently ~$1/month with WebShare proxy)
+- **Status**: 85% operational - MongoDB running, all APIs configured
 - **Architecture**: 3-tier (Collection → Processing → API) with MongoDB storage
 - **Package Name**: `phoenix_real_estate` (not `src`)
 
@@ -62,9 +62,9 @@ python scripts/testing/test_webshare_proxy.py      # Test WebShare API
 python scripts/testing/test_services_simple.py     # Test all services
 python scripts/setup/check_setup_status.py         # System readiness
 
-# Data Collection
-python src/main.py --source maricopa --limit 5     # Maricopa test
-python src/main.py --source phoenix_mls --limit 1  # Phoenix MLS test
+# Data Collection (main.py not yet implemented)
+python scripts/test_maricopa_api.py                # Test Maricopa API
+python scripts/testing/test_phoenix_mls_selectors.py # Test MLS scraper
 
 # Development Workflow
 uv sync                                             # Install dependencies
@@ -78,42 +78,37 @@ python scripts/testing/run_e2e_tests.py --fix     # Full E2E suite
 ```
 
 ## CONFIGURATION FILES
-1. **`.env`** - API keys and secrets (create from `.env.sample`)
-   - MONGODB_URI, MARICOPA_API_KEY, WEBSHARE credentials
-   - CAPTCHA_API_KEY for 2captcha service
+1. **`.env`** - API keys required:
+   - `MARICOPA_API_KEY` - From mcassessor.maricopa.gov
+   - `WEBSHARE_API_KEY`- from webshare.io
+   - `CAPTCHA_API_KEY` - 2captcha key ($10 balance)
    
-2. **`config/proxies.yaml`** - Proxy configuration
-   - WebShare settings with auth format: `Authorization: Token API_KEY`
-   
-3. **`config/selectors/phoenix_mls.yaml`** - CSS selectors
-   - Needs update from live site using discover script
+2. **`config/proxies.yaml`** - WebShare proxy list:
+   - 10 working proxies configured
+   - Username, Password - in `.env`
+   - Download URL included for proxy list updates
 
-## CURRENT STATUS & BLOCKERS
+## CURRENT STATUS (85% OPERATIONAL)
 
 ### Working Components (✅)
-- Project structure and all code
+- MongoDB v8.1.2 running with all collections
+- Maricopa API configured (84% success rate)
+- WebShare proxy (10 proxies, verified working)
 - 2captcha service ($10 balance)
-- E2E test infrastructure
-- Maricopa collector (needs API key)
+- All code bugs fixed
 
-### Blocked Components (❌)
-1. **MongoDB not running**
-   - Fix: `net start MongoDB` (as Administrator)
-   
-2. **Maricopa API unauthorized**
-   - Fix: Get API key from mcassessor.maricopa.gov
-   - Add to .env: `MARICOPA_API_KEY=your_key`
-   
-3. **WebShare proxy untested**
-   - Credentials configured but needs validation
-   - Run: `python scripts/testing/test_webshare_proxy.py`
+### Recent Fixes Applied
+1. **Config Loading**: BaseConfig uses `getattr()` not `get()`
+2. **Database Check**: Changed to `if self._database is None`
+3. **API Headers**: `AUTHORIZATION` + `user-agent: null`
+4. **Proxy Config**: Updated with working credentials
 
-## COMMON ISSUES & SOLUTIONS
-- **Import errors**: Run `uv sync` to install dependencies
-- **MongoDB refused**: Start service as Administrator
-- **"No module named src"**: Use `phoenix_real_estate` package name
-- **Maricopa 403/500**: Missing or invalid API key
-- **WebShare 404**: Use correct API endpoint with Token auth
+## CRITICAL IMPLEMENTATION DETAILS
+- **BaseConfig**: No `get()` method - use `getattr(config, 'key', default)`
+- **Maricopa Headers**: Must use `AUTHORIZATION` (not Authorization) + `user-agent: null`
+- **WebShare Auth**: `Authorization: Token {api_key}` format
+- **Import Path**: Always use `phoenix_real_estate` not `src`
+- **MongoDB Check**: Use `is None` not boolean truthiness
 
 ## CODE STANDARDS
 - **Async/await** for all I/O operations

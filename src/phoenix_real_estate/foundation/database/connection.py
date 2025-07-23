@@ -283,7 +283,7 @@ class DatabaseConnection:
         if not self._is_connected:
             await self.connect()
 
-        if not self._database:
+        if self._database is None:
             raise DatabaseError("Database not available after connection")
 
         try:
@@ -300,7 +300,7 @@ class DatabaseConnection:
         This method creates all necessary indexes for the properties and
         daily_reports collections to ensure optimal query performance.
         """
-        if not self._database:
+        if self._database is None:
             raise DatabaseError("Database not available for index creation")
 
         logger.info("Creating database indexes")

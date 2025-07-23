@@ -7,6 +7,7 @@ Assessor's API with built-in rate limiting, authentication, and error handling.
 import time
 import asyncio
 import aiohttp
+import os
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
@@ -108,13 +109,20 @@ class MaricopaAPIClient(RateLimitObserver):
     def _load_config(self) -> None:
         """Load and validate Epic 1 configuration."""
         try:
-            # Epic 1 configuration keys
-            self.api_key = self.config.get("MARICOPA_API_KEY")
-            self.base_url = self.config.get(
-                "MARICOPA_BASE_URL", "https://mcassessor.maricopa.gov"
+            # Epic 1 configuration keys - BaseConfig stores env vars as attributes
+            self.api_key = getattr(self.config, 'maricopa_api_key', os.getenv('MARICOPA_API_KEY', ''))
+            self.base_url = getattr(
+                self.config, 'maricopa_base_url', 
+                os.getenv('MARICOPA_BASE_URL', 'https://mcassessor.maricopa.gov')
             )
-            self.rate_limit = self.config.get_int("MARICOPA_RATE_LIMIT", 1000)
-            self.timeout_seconds = self.config.get_int("MARICOPA_TIMEOUT", 30)
+            self.rate_limit = int(getattr(
+                self.config, 'maricopa_rate_limit', 
+                os.getenv('MARICOPA_RATE_LIMIT', '1000')
+            ))
+            self.timeout_seconds = int(getattr(
+                self.config, 'maricopa_timeout', 
+                os.getenv('MARICOPA_TIMEOUT', '30')
+            ))
 
             CommonValidators.validate_required_config(self.api_key, "MARICOPA_API_KEY")
 
@@ -132,9 +140,9 @@ class MaricopaAPIClient(RateLimitObserver):
         """Get default HTTP headers for requests with secure authentication."""
         return {
             "AUTHORIZATION": self.api_key,  # Custom header format for Maricopa API
+            "user-agent": "null",  # Required by Maricopa API documentation
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "Phoenix-RE-Data-Collector/1.0",
         }
 
     async def search_property(self, query: str, page: int = 1) -> Dict[str, Any]:
