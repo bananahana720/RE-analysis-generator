@@ -14,6 +14,7 @@ from phoenix_real_estate.foundation import Logger, get_logger, ConfigProvider
 from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ConfigurationError,
+    ValidationError,
 )
 from phoenix_real_estate.foundation.utils.helpers import retry_async
 from phoenix_real_estate.collectors.base.rate_limiter import RateLimiter, RateLimitObserver

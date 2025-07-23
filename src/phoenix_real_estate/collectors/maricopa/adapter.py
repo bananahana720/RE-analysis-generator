@@ -204,7 +204,7 @@ class MaricopaDataAdapter(DataAdapter):
                 context={
                     "raw_data_keys": list(raw_data.keys()) if isinstance(raw_data, dict) else None
                 },
-                sanitize=False  # No sensitive data in this context
+                sanitize=False,  # No sensitive data in this context
             )
             raise wrapped_error from e
 
@@ -674,9 +674,6 @@ class MaricopaDataAdapter(DataAdapter):
         except Exception as e:
             # Use consistent error wrapping
             wrapped_error = ErrorHandlingUtils.wrap_error(
-                e,
-                "Legacy transform",
-                ProcessingError,
-                sanitize=False
+                e, "Legacy transform", ProcessingError, sanitize=False
             )
             raise wrapped_error from e
