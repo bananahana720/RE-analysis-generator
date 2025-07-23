@@ -6,15 +6,12 @@ workflow from API requests through data transformation and Epic 1 schema complia
 
 import pytest
 import asyncio
-import aiohttp
 from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime, timezone
 
 from phoenix_real_estate.foundation import ConfigProvider
 from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ValidationError,
-    ProcessingError,
 )
 from phoenix_real_estate.foundation.database.schema import Property, DataSource
 from phoenix_real_estate.collectors.maricopa.client import MaricopaAPIClient

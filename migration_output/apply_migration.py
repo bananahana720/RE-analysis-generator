@@ -6,7 +6,6 @@ This script performs all necessary updates to migrate from the incorrect
 API implementation to the real Maricopa County API endpoints.
 """
 
-import re
 from pathlib import Path
 
 def migrate_client_file():

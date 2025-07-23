@@ -17,7 +17,7 @@
 - **Package Management**: ALWAYS use uv with pyproject.toml, never pip
 - **Python Version**: 3.13.4
 - **Node Version**: 20.17.0
-- **Database**: MongoDB Atlas (free tier)
+- **Database**: MongoDB (local - localhost:27017)
 - **Testing**: pytest, tox, ruff, pyright
 
 ## Essential Commands
@@ -42,18 +42,48 @@ make dev_install            # Full development environment setup
 make dev_install_win        # Full development environment setup for windows
 ```
 
+## MongoDB Setup and Management
+
+- **MongoDB Service Commands**:
+  - Start MongoDB: `net start MongoDB` (Windows - run as Administrator)
+  - Stop MongoDB: `net stop MongoDB` (Windows - run as Administrator)
+- **MongoDB Connection Test**: `python scripts/testing/test_mongodb_connection.py`
+- **MongoDB Setup Script**: `scripts/setup/start_mongodb_service.bat` (run as Administrator)
+- **MongoDB Connection String**: `mongodb://localhost:27017`
+- **Database Name**: `phoenix_real_estate`
+
+## Data Collection Commands
+
+```bash
+# Maricopa County API Testing
+python scripts/test_maricopa_api.py                      # Test API connection
+python scripts/test_maricopa_api.py --api-key YOUR_KEY   # Test with specific API key
+
+# Phoenix MLS Scraping
+python scripts/testing/discover_phoenix_mls_selectors.py --headless  # Selector discovery
+
+# Database Testing
+python scripts/testing/test_db_connection.py             # Test database connection
+```
+
 ## Development Workflow
 
 -   **Orchestration**: Daily data collection is managed by GitHub Actions (see `.github/workflows/`).
 -   **Data Collection**: Primary scripts are in `src/collection/`. They target the Maricopa County API and PhoenixMLSSearch.com.
 -   **Data Processing**: Raw data is processed by a local LLM (see `src/processing/`) into a structured format.
--   **Database**: Processed data is stored in a MongoDB Atlas database. The schema is defined in `src/database/schema.py`.
+-   **Database**: Processed data is stored in MongoDB running locally on localhost:27017. The schema is defined in `src/database/schema.py`.
 -   **Proxies**: Proxy configurations for scraping are managed in `config/proxies.yaml`.
 -   **API**: The backend API is built with FastAPI and is defined in `src/api/`.
 -   **Frontend**: The frontend is built with React and is located in `frontend/`.
 
 
 ## Data Schema (MongoDB)
+
+- **Database Name**: `phoenix_real_estate`
+- **Collections**: 
+  - `properties` - Main property data
+  - `collection_history` - Data collection logs
+  - `errors` - Error tracking and debugging
 
 The core data structure for each property is as follows:
 
@@ -67,6 +97,13 @@ The core data structure for each property is as follows:
   last_updated: "2025-01-20T10:00:00Z"
 }
 ```
+
+## API Keys and Credentials
+
+- **Maricopa API Key**: Available and working (84% success rate)
+- **Required Environment Variables**: Store in `.env` file in project root
+- **Phoenix MLS**: Requires proxy service and captcha handling for scraping
+- **Note**: All credentials should be stored securely and never committed to version control
 
 ## Testing 
 

@@ -1,3 +1,7 @@
+############################
+# Python
+############################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -48,6 +52,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+test-results/
+junit/
 
 # Translations
 *.mo
@@ -92,6 +98,7 @@ ipython_config.py
 # pdm
 #pdm.lock
 .pdm.toml
+.pdm-python
 
 # PEP 582
 __pypackages__/
@@ -103,7 +110,11 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+############################
+# Virtual Environments
+############################
+
+# Python virtual environments
 .env
 .venv
 env/
@@ -111,6 +122,58 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.virtualenv/
+virtualenv/
+
+# UV specific
+.venv/
+.python-version
+uv.lock
+
+# Conda environments
+.conda/
+conda-meta/
+
+############################
+# IDEs and Editors
+############################
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+
+# VSCode - Allow .vscode/settings.json for project settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+*.vim
+.netrwhist
+*~
+Session.vim
+.viminfo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
 
 # Spyder project settings
 .spyderproject
@@ -119,10 +182,207 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+############################
+# Operating System Files
+############################
 
-# mypy
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+*.stackdump
+
+# Windows subsystem for Linux
+*.bash_history
+
+# MacOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+############################
+# Security & Sensitive Files
+############################
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+.envrc
+.env.local
+.env.*.local
+
+# API keys and credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+private_key*
+api_key*
+secrets/
+credentials/
+.secrets/
+.credentials/
+
+# Authentication tokens
+.htpasswd
+.netrc
+.ftpconfig
+.ftppass
+
+# SSH keys
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+
+# AWS credentials
+.aws/credentials
+.aws/config
+
+# Google Cloud credentials
+gcloud/
+.gcloud/
+*-credentials.json
+service-account-*.json
+
+# Azure credentials
+.azure/
+
+# Database connection strings
+database.yml
+database.yaml
+db_config.*
+
+############################
+# Project Specific
+############################
+
+# Logs
+logs/
+*.log
+*.log.*
+*.log-*
+log/
+logging/
+
+# Temporary files
+tmp/
+temp/
+cache/
+.cache/
+*.tmp
+*.temp
+
+# Data files (potentially sensitive)
+data/raw/
+data/processed/
+data/sensitive/
+*.csv
+*.xlsx
+*.xls
+!data/sample/
+!data/test/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mongodb
+
+# Local configuration overrides
+config.local.yaml
+config.local.yml
+config.local.json
+*.local.*
+!*.local.example
+!*.local.template
+config/production-secrets.yaml
+!config/production-secrets.yaml.template
+
+# API response caches
+api_cache/
+.api_cache/
+response_cache/
+
+# Proxy lists (may contain paid proxy info)
+proxies.txt
+paid_proxies.yaml
+!config/proxies.yaml.example
+
+############################
+# Build & Dependencies
+############################
+
+# Build artifacts
+*.tar.gz
+*.zip
+*.7z
+*.rar
+dist/
+build/
+*.whl
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.npm/
+.yarn/
+
+# Frontend build
+frontend/build/
+frontend/dist/
+static/dist/
+
+############################
+# Testing & Quality Tools
+############################
+
+# Ruff
+.ruff_cache/
+
+# Type checking
+.pyright/
 .mypy_cache/
 .dmypy.json
 dmypy.json
@@ -133,79 +393,131 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
-# Cython debug symbols
-cython_debug/
+# Coverage reports
+coverage/
+.nyc_output/
 
-# PyCharm
-.idea/
+# Benchmarking
+*.benchmark
+benchmark_results/
 
-# VSCode
-.vscode/
-*.code-workspace
+############################
+# Documentation
+############################
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-*~
+# mkdocs documentation
+/site
 
-# Project specific
-logs/
-*.log
-*.log.*
-tmp/
-temp/
-cache/
+# Sphinx
+docs/_build/
+docs/_static/
+docs/_templates/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Secrets and credentials
-*.pem
-*.key
-*.cert
-*.crt
-secrets/
-credentials/
-
-# Local configuration
-config.local.yaml
-config.local.yml
-*.local.*
-
-# Build artifacts
-*.tar.gz
-*.zip
-
-# Node modules
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# UV specific
-.venv/
-.python-version
-
-# Ruff
-.ruff_cache/
-
-# Type checking
-.pyright/
-
-# MacOS
-.AppleDouble
-.LSOverride
+############################
+# Backup & Recovery Files
+############################
 
 # Backup files
 *.bak
 *.backup
-*.swp
-*.swo
+*.back
+*.old
+*.orig
+*.original
+*.save
+*.saved
+*_backup
+*_bak
+backup/
+backups/
+.backup/
+.backups/
+
+# Recovery files
+*.recover
+*.recovered
+~$*
+
+# Version control conflict files
+*.orig
+*.rej
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
+
+############################
+# System & Cache Files
+############################
+
+# Cython debug symbols
+cython_debug/
+
+# System cache
+.cache/
+.sass-cache/
+.parcel-cache/
+
+# Thumbnails
+._*
+
+# Archive files
+*.tar
+*.gz
+*.tgz
+*.bz2
+*.xz
+*.lz
+*.lzma
+*.deb
+*.rpm
+*.dmg
+*.iso
+*.jar
+*.war
+*.ear
+
+############################
+# CI/CD & Deployment
+############################
+
+# GitHub Actions
+.github/actions/*/dist/
+.github/actions/*/node_modules/
+
+# Docker
+docker-compose.override.yml
+.dockerignore.local
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+.kube/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+############################
+# Monitoring & Analytics
+############################
+
+# Monitoring data
+monitoring_data/
+metrics/
+.metrics/
+
+# Claude AI specific
+.claude/
+!.claude/hooks/
+!.claude/settings.local.json.example
+
+# TDD Guard data
+.claude/tdd-guard/data/
+!.claude/tdd-guard/data/.gitkeep

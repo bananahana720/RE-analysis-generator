@@ -9,10 +9,6 @@ Usage:
     python scripts/migrate_maricopa_client.py [--dry-run] [--backup]
 """
 
-import asyncio
-import aiohttp
-import json
-from typing import Dict, List, Optional, Any
 from pathlib import Path
 import argparse
 import shutil

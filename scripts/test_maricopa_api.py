@@ -23,7 +23,7 @@ import aiohttp
 import json
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from pathlib import Path
 import argparse
@@ -124,7 +124,7 @@ class MaricopaAPITester:
         self.successful_requests = 0
         self.failed_requests = 0
         
-        print(f"[INIT] Initialized Maricopa API Tester")
+        print("[INIT] Initialized Maricopa API Tester")
         print(f"   Base URL: {self.BASE_URL}")
         print(f"   API Key: {'[PROVIDED]' if api_key else '[MISSING]'}")
         print(f"   Max Concurrent: {max_concurrent}")
@@ -271,7 +271,7 @@ class MaricopaAPITester:
                     
         # Test address search
         for address in PHOENIX_ADDRESSES[:2]:  # Test first 2 addresses
-            print(f"   Testing property search for address...")
+            print("   Testing property search for address...")
             url = f"{self.BASE_URL}{self.ENDPOINTS['search_property'].format(query=address.replace(' ', '%20'))}"
             result = await self._make_request("GET", url)
             results.append(result)
@@ -316,7 +316,7 @@ class MaricopaAPITester:
                 
                 # Break if authentication fails to avoid spam
                 if result.status_code == 401:
-                    print(f"     [WARNING] Authentication failed, stopping parcel tests")
+                    print("     [WARNING] Authentication failed, stopping parcel tests")
                     return results
                     
         return results

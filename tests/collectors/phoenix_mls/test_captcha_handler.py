@@ -5,7 +5,7 @@ for the Phoenix MLS scraper, including integration with captcha solving services
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime, UTC
 
 from phoenix_real_estate.collectors.phoenix_mls.captcha_handler import (

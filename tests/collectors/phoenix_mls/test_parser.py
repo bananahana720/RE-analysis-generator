@@ -7,13 +7,11 @@ Tests cover HTML parsing, data extraction, validation, sanitization, and edge ca
 import pytest
 from bs4 import BeautifulSoup
 from datetime import datetime
-from unittest.mock import Mock, patch
 
 # Import will fail initially (TDD), but shows the expected module structure
 from phoenix_real_estate.collectors.phoenix_mls.parser import (
     PhoenixMLSParser,
     PropertyData,
-    ParsingError,
 )
 
 

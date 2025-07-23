@@ -1,6 +1,8 @@
 # MongoDB Atlas Setup Guide
 
-This guide will help you set up MongoDB Atlas connectivity for the Phoenix Real Estate Data Collection System.
+> **Note**: The Phoenix Real Estate Data Collection System now uses **local MongoDB by default** for development and testing. MongoDB Atlas remains available as an optional cloud deployment strategy for production environments. For local MongoDB setup, please refer to [MongoDB Local Setup Guide](./mongodb-local-setup.md).
+
+This guide will help you set up MongoDB Atlas connectivity for the Phoenix Real Estate Data Collection System when cloud deployment is preferred.
 
 ## 🏗️ MongoDB Atlas Setup
 
@@ -293,3 +295,42 @@ Once MongoDB Atlas is configured and validated:
 - **Clusters**: 1 per project
 
 For production workloads, consider upgrading to a dedicated cluster.
+
+## 🔄 Local MongoDB vs Atlas - When to Use Each
+
+### Use Local MongoDB When:
+- **Development & Testing**: Primary choice for local development
+- **CI/CD Pipelines**: Faster test execution without network latency
+- **Data Privacy**: Sensitive data must remain on-premises
+- **Cost Optimization**: No cloud costs for development environments
+- **Network Constraints**: Limited or unreliable internet connectivity
+
+### Use MongoDB Atlas When:
+- **Production Deployment**: Managed service with built-in monitoring
+- **Team Collaboration**: Multiple developers need shared database access
+- **Scalability**: Need to handle growing data volumes automatically
+- **Geographic Distribution**: Data needs to be globally accessible
+- **Backup & Recovery**: Automated backup and point-in-time recovery
+- **Compliance**: Need audit logs and encryption at rest
+
+### Migration Between Environments
+
+To migrate from local to Atlas:
+```bash
+# Export from local
+mongodump --host=localhost:27017 --db=phoenix_real_estate --out=local_backup
+
+# Import to Atlas
+mongorestore --uri="mongodb+srv://..." local_backup
+```
+
+To migrate from Atlas to local:
+```bash
+# Export from Atlas
+mongodump --uri="mongodb+srv://..." --out=atlas_backup
+
+# Import to local
+mongorestore --host=localhost:27017 atlas_backup
+```
+
+For detailed local MongoDB setup instructions, see [MongoDB Local Setup Guide](./mongodb-local-setup.md).

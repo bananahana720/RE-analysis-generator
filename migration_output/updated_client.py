@@ -6,8 +6,6 @@ Assessor's API with built-in rate limiting, authentication, and error handling.
 UPDATED: Uses real API endpoints at https://mcassessor.maricopa.gov
 """
 
-import time
-import asyncio
 import aiohttp
 from typing import Any, Dict, List, Optional
 from datetime import datetime
@@ -17,7 +15,6 @@ from phoenix_real_estate.foundation.utils.exceptions import (
     DataCollectionError,
     ConfigurationError,
 )
-from phoenix_real_estate.foundation.utils.helpers import retry_async
 from phoenix_real_estate.collectors.base.rate_limiter import RateLimiter, RateLimitObserver
 from phoenix_real_estate.collectors.base.validators import (
     CommonValidators,

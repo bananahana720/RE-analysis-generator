@@ -26,7 +26,7 @@ from typing import (
     Callable,
     Tuple,
 )
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass, field
 
