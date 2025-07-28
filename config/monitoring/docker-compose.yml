@@ -1,0 +1,50 @@
+networks:
+  default:
+    name: monitoring
+services:
+  alertmanager:
+    command:
+    - --config.file=/etc/alertmanager/config.yml
+    - --storage.path=/alertmanager
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    ports:
+    - 9093:9093
+    restart: unless-stopped
+    volumes:
+    - ./alertmanager.yml:/etc/alertmanager/config.yml
+    - alertmanager_data:/alertmanager
+  grafana:
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    image: grafana/grafana:latest
+    ports:
+    - 3000:3000
+    restart: unless-stopped
+    volumes:
+    - grafana_data:/var/lib/grafana
+    - ./grafana_dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+  prometheus:
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --web.console.libraries=/etc/prometheus/console_libraries
+    - --web.console.templates=/etc/prometheus/consoles
+    - --web.enable-lifecycle
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+    - 9091:9090
+    restart: unless-stopped
+    volumes:
+    - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    - ./alerts.yml:/etc/prometheus/alerts.yml
+    - prometheus_data:/prometheus
+version: '3.8'
+volumes:
+  alertmanager_data: {}
+  grafana_data: {}
+  prometheus_data: {}

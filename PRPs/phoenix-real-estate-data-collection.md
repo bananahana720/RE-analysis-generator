@@ -436,7 +436,7 @@ import logging
 
 class LLMDataProcessor:
     def __init__(self):
-        self.model_name = "llama2:7b"  # Local model
+        self.model_name = "llama3.2:latest"  # Local model
     
     async def extract_structured_data(self, raw_html: str, source: str) -> Dict[str, Any]:
         """Extract structured data from HTML using local LLM"""
@@ -526,7 +526,7 @@ jobs:
           pip install llm
           llm install llm-llama-cpp
           # Download model (one-time setup)
-          llm download llama2:7b || echo "Model already exists"
+          llm download llama3.2:latest || echo "Model already exists"
       
       - name: Run data collection
         env:

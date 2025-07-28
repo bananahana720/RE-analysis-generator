@@ -1,0 +1,191 @@
+# Alert rules for Phoenix MLS Scraper
+groups:
+  - name: phoenix_mls_alerts
+    interval: 30s
+    rules:
+      # Scraping Performance Alerts
+      - alert: HighScrapingFailureRate
+        expr: rate(scraper_requests_total{status="failed"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "High scraping failure rate detected"
+          description: "Scraping failure rate is above 50% for 5 minutes (current value: {{ $value }})"
+          dashboard: "http://grafana.local/d/scraper-performance"
+      
+      - alert: ScrapingSuccessRateLow
+        expr: (rate(scraper_requests_total{status="success"}[5m]) / rate(scraper_requests_total[5m])) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "Low scraping success rate"
+          description: "Scraping success rate is below 80% for 10 minutes (current value: {{ $value }})"
+      
+      # Proxy Health Alerts
+      - alert: NoHealthyProxies
+        expr: proxy_healthy_count == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "No healthy proxies available"
+          description: "All proxies are marked as unhealthy. Scraping operations will fail."
+          runbook: "https://wiki.internal/runbooks/proxy-recovery"
+      
+      - alert: LowHealthyProxyCount
+        expr: proxy_healthy_count < 3
+        for: 5m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "Low number of healthy proxies"
+          description: "Less than 3 healthy proxies available (current: {{ $value }})"
+      
+      - alert: HighProxyFailureRate
+        expr: rate(proxy_requests_total{status="failed"}[5m]) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "High proxy failure rate"
+          description: "Proxy failure rate is above 30% for 5 minutes (current value: {{ $value }})"
+      
+      # Rate Limiting Alerts
+      - alert: HighRateLimitHits
+        expr: rate(rate_limit_hits_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "High rate limit hits"
+          description: "Rate limiting is being triggered frequently ({{ $value }} hits/min)"
+          recommendation: "Consider reducing request rate or adding more delays"
+      
+      - alert: RateLimitCritical
+        expr: rate(rate_limit_hits_total[5m]) > 30
+        for: 2m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "Critical rate limiting detected"
+          description: "Excessive rate limiting may result in IP ban ({{ $value }} hits/min)"
+      
+      # Performance Alerts
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(scraper_response_time_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "Slow response times"
+          description: "95th percentile response time is above 10 seconds (current: {{ $value }}s)"
+      
+      - alert: VerySlowResponseTime
+        expr: histogram_quantile(0.95, rate(scraper_response_time_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "Very slow response times"
+          description: "95th percentile response time is above 30 seconds (current: {{ $value }}s)"
+      
+      # Resource Usage Alerts
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_percent > 90
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "System memory usage is above 90% (current: {{ $value }}%)"
+          recommendation: "Consider increasing memory or optimizing memory usage"
+      
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "System CPU usage is above 80% for 10 minutes (current: {{ $value }}%)"
+      
+      # Database Alerts
+      - alert: DatabaseConnectionFailures
+        expr: rate(database_connection_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "Database connection failures"
+          description: "Database connection errors detected ({{ $value }} errors/sec)"
+          impact: "Data may not be persisted correctly"
+      
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "Slow database queries"
+          description: "95th percentile database query time is above 5 seconds (current: {{ $value }}s)"
+      
+      # Session Management Alerts
+      - alert: SessionExpired
+        expr: scraper_session_valid == 0
+        for: 1m
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "Scraper session expired"
+          description: "The scraper session has expired and needs renewal"
+          recommendation: "Check session renewal logic or manual intervention may be required"
+      
+      - alert: SessionAgeTooOld
+        expr: scraper_session_age_seconds > 86400
+        for: 5m
+        labels:
+          severity: info
+          team: engineering
+        annotations:
+          summary: "Session is getting old"
+          description: "Current session age is {{ $value }} seconds (>24 hours)"
+      
+      # Content Extraction Alerts
+      - alert: NoPropertiesScraped
+        expr: increase(scraper_properties_scraped_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: warning
+          team: engineering
+        annotations:
+          summary: "No properties scraped in the last hour"
+          description: "Zero properties have been successfully scraped in the past hour"
+          recommendation: "Check if the scraper is running and if the website structure has changed"
+      
+      # Scraper Health
+      - alert: ScraperNotResponding
+        expr: up{job="phoenix_mls_scraper"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: engineering
+        annotations:
+          summary: "Scraper metrics endpoint not responding"
+          description: "The scraper metrics endpoint has been down for 5 minutes"
+          impact: "No metrics are being collected, scraper may have crashed"

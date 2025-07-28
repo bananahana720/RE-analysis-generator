@@ -39,7 +39,7 @@ proxy:
 
 # Development processing
 processing:
-  llm_model: "llama2:7b"
+  llm_model: "llama3.2:latest"
   batch_size: 5
   max_processing_workers: 1
 

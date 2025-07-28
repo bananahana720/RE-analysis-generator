@@ -1,0 +1,95 @@
+groups:
+- interval: 30s
+  name: phoenix_mls_alerts
+  rules:
+  - alert: HighScrapingFailureRate
+    annotations:
+      description: Scraping failure rate is above 50% for 5 minutes
+      summary: High scraping failure rate detected
+    expr: rate(scraper_requests_total{status="failed"}[5m]) > 0.5
+    for: 5m
+    labels:
+      severity: critical
+  - alert: ScrapingSuccessRateLow
+    annotations:
+      description: Scraping success rate is below 80% for 10 minutes
+      summary: Low scraping success rate
+    expr: (rate(scraper_requests_total{status="success"}[5m]) / rate(scraper_requests_total[5m]))
+      < 0.8
+    for: 10m
+    labels:
+      severity: warning
+  - alert: NoHealthyProxies
+    annotations:
+      description: All proxies are marked as unhealthy
+      summary: No healthy proxies available
+    expr: proxy_healthy_count == 0
+    for: 1m
+    labels:
+      severity: critical
+  - alert: LowHealthyProxyCount
+    annotations:
+      description: Less than 3 healthy proxies available
+      summary: Low number of healthy proxies
+    expr: proxy_healthy_count < 3
+    for: 5m
+    labels:
+      severity: warning
+  - alert: HighProxyFailureRate
+    annotations:
+      description: Proxy failure rate is above 30% for 5 minutes
+      summary: High proxy failure rate
+    expr: rate(proxy_requests_total{status="failed"}[5m]) > 0.3
+    for: 5m
+    labels:
+      severity: warning
+  - alert: HighRateLimitHits
+    annotations:
+      description: Rate limiting is being triggered frequently
+      summary: High rate limit hits
+    expr: rate(rate_limit_hits_total[5m]) > 10
+    for: 5m
+    labels:
+      severity: warning
+  - alert: SlowResponseTime
+    annotations:
+      description: 95th percentile response time is above 10 seconds
+      summary: Slow response times
+    expr: histogram_quantile(0.95, rate(scraper_response_time_seconds_bucket[5m]))
+      > 10
+    for: 5m
+    labels:
+      severity: warning
+  - alert: HighMemoryUsage
+    annotations:
+      description: System memory usage is above 90%
+      summary: High memory usage
+    expr: system_memory_usage_percent > 90
+    for: 5m
+    labels:
+      severity: critical
+  - alert: DatabaseConnectionFailures
+    annotations:
+      description: Database connection errors detected
+      summary: Database connection failures
+    expr: rate(database_connection_errors_total[5m]) > 0.1
+    for: 5m
+    labels:
+      severity: critical
+  - alert: SlowDatabaseQueries
+    annotations:
+      description: 95th percentile database query time is above 5 seconds
+      summary: Slow database queries
+    expr: histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m]))
+      > 5
+    for: 5m
+    labels:
+      severity: warning
+  - alert: SessionExpired
+    annotations:
+      description: The scraper session has expired and needs renewal
+      summary: Scraper session expired
+    expr: scraper_session_valid == 0
+    for: 1m
+    labels:
+      severity: warning

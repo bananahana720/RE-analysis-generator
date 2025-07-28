@@ -91,7 +91,10 @@ def get_llm_completion_message():
                     print("DEBUG: Using OpenRouter for completion message", file=sys.stderr)
                     return result.stdout.strip()
                 else:
-                    print(f"DEBUG: OpenRouter failed with return code {result.returncode}", file=sys.stderr)
+                    print(
+                        f"DEBUG: OpenRouter failed with return code {result.returncode}",
+                        file=sys.stderr,
+                    )
                     if result.stderr:
                         print(f"DEBUG: OpenRouter stderr: {result.stderr}", file=sys.stderr)
             except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
@@ -167,9 +170,7 @@ def main():
     try:
         # Parse command line arguments
         parser = argparse.ArgumentParser()
-        parser.add_argument(
-            "--chat", action="store_true", help="Copy transcript to chat.json"
-        )
+        parser.add_argument("--chat", action="store_true", help="Copy transcript to chat.json")
         args = parser.parse_args()
 
         # Read JSON input from stdin

@@ -52,7 +52,7 @@ Epic 2 Data Collection → Local LLM Client → Ollama Server → Llama2:7b Mode
 ### Key Architecture Components
 ```python
 class LLMProcessor:
-    def __init__(self, model: str = "llama2:7b"):
+    def __init__(self, model: str = "llama3.2:latest"):
         self.ollama_client = OllamaClient()
         self.model = model
     
@@ -172,7 +172,7 @@ Cloud-based LLM APIs were rejected primarily due to:
 ## Configuration Management
 ```yaml
 # Epic 1 Configuration Integration
-LLM_MODEL: "llama2:7b"
+LLM_MODEL: "llama3.2:latest"
 LLM_TEMPERATURE: 0.1
 LLM_MAX_TOKENS: 1000
 LLM_TIMEOUT_SECONDS: 30

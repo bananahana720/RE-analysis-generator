@@ -892,7 +892,7 @@ collection:
 
 # Data processing defaults
 processing:
-  llm_model: "llama2:7b"
+  llm_model: "llama3.2:latest"
   llm_timeout: 30
   batch_size: 10
   max_processing_workers: 2
@@ -993,7 +993,7 @@ proxy:
 
 # Development processing
 processing:
-  llm_model: "llama2:7b"
+  llm_model: "llama3.2:latest"
   batch_size: 5
   max_processing_workers: 1
 
@@ -1133,7 +1133,7 @@ proxy:
 
 # Production processing
 processing:
-  llm_model: "llama2:7b"
+  llm_model: "llama3.2:latest"
   batch_size: 10
   max_processing_workers: 2
 

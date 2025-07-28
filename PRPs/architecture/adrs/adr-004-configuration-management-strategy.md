@@ -336,7 +336,7 @@ class CollectionConfig:
     maricopa_api_key: str  # From MARICOPA_API_KEY env var
     min_request_delay_seconds: float = 3.6
     max_concurrent_requests: int = 2
-    llm_model: str = "llama2:7b"
+    llm_model: str = "llama3.2:latest"
 
 @dataclass
 class SystemConfig:

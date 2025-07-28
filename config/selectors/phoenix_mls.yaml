@@ -1,0 +1,259 @@
+# Phoenix MLS Selectors Configuration
+# Last updated: [UPDATE_DATE]
+# Website: https://www.phoenixmlssearch.com
+#
+# This file contains CSS selectors for scraping Phoenix MLS website.
+# Update these selectors when the website structure changes.
+#
+# To update selectors:
+# 1. Run: python scripts/discover_phoenix_mls_selectors.py
+# 2. Manually verify selectors on the website
+# 3. Update this file with working selectors
+# 4. Test with: python scripts/test_phoenix_mls_selectors.py
+
+search_page:
+  # Search input field where users enter zipcode/address
+  search_input:
+    primary: "input[name='search']"  # UPDATE_ME with actual selector
+    fallbacks:
+      - "input[placeholder*='zip']"
+      - "#zipcode-input"
+      - ".search-input"
+      - "input[type='search']"
+  
+  # Submit/Search button
+  submit_button:
+    primary: "button[type='submit']"  # UPDATE_ME with actual selector
+    fallbacks:
+      - "button[aria-label*='Search']"
+      - ".search-button"
+      - "#search-submit"
+      - "button:contains('Search')"
+
+results_page:
+  # Container for each property listing
+  property_container:
+    primary: ".property-card"  # UPDATE_ME with actual selector
+    fallbacks:
+      - ".listing-item"
+      - ".search-result"
+      - "article.listing"
+      - "[data-listing-id]"
+  
+  # Property fields within each container
+  fields:
+    # Property detail page link
+    link:
+      primary: "a[href*='property']"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "a.property-link"
+        - ".listing-title a"
+        - "h3 a"
+    
+    # Property address
+    address:
+      primary: ".address"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".property-address"
+        - ".listing-address"
+        - "[itemprop='address']"
+        - ".location"
+    
+    # Listing price
+    price:
+      primary: ".price"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".listing-price"
+        - ".price-display"
+        - "[data-price]"
+        - "span:contains('$')"
+    
+    # Number of bedrooms
+    beds:
+      primary: ".beds"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='beds']"
+        - ".bed-count"
+        - "span:contains('bed')"
+        - ".bedrooms"
+    
+    # Number of bathrooms
+    baths:
+      primary: ".baths"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='baths']"
+        - ".bath-count"
+        - "span:contains('bath')"
+        - ".bathrooms"
+    
+    # Square footage
+    sqft:
+      primary: ".sqft"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='sqft']"
+        - ".square-feet"
+        - "span:contains('sq ft')"
+        - ".area"
+
+detail_page:
+  # Main property address (usually in header)
+  address:
+    primary: "h1.address"  # UPDATE_ME with actual selector
+    fallbacks:
+      - ".property-address"
+      - "[data-testid='address']"
+      - "h1:contains('Address')"
+      - ".listing-address"
+      - "[itemprop='streetAddress']"
+  
+  # Main listing price
+  price:
+    primary: ".price"  # UPDATE_ME with actual selector
+    fallbacks:
+      - ".listing-price"
+      - "[data-testid='price']"
+      - ".detail-price"
+      - ".asking-price"
+      - "span:contains('$'):first"
+  
+  # Property details section
+  details:
+    beds:
+      primary: ".beds"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='beds']"
+        - ".bed-count"
+        - ".bedrooms"
+        - "dt:contains('Bed') + dd"
+    
+    baths:
+      primary: ".baths"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='baths']"
+        - ".bath-count"
+        - ".bathrooms"
+        - "dt:contains('Bath') + dd"
+    
+    sqft:
+      primary: ".sqft"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='sqft']"
+        - ".square-feet"
+        - ".living-area"
+        - "dt:contains('Sq Ft') + dd"
+    
+    lot_size:
+      primary: ".lot-size"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='lot-size']"
+        - ".lot-area"
+        - ".lot-sqft"
+        - "dt:contains('Lot') + dd"
+    
+    year_built:
+      primary: ".year-built"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='year-built']"
+        - ".built-year"
+        - ".year-constructed"
+        - "dt:contains('Built') + dd"
+    
+    property_type:
+      primary: ".property-type"  # UPDATE_ME with actual selector
+      fallbacks:
+        - "[data-testid='property-type']"
+        - ".type"
+        - ".property-style"
+        - "dt:contains('Type') + dd"
+  
+  # Property description/remarks
+  description:
+    primary: ".description"  # UPDATE_ME with actual selector
+    fallbacks:
+      - ".property-description"
+      - "[data-testid='description']"
+      - ".remarks"
+      - ".listing-remarks"
+      - "[itemprop='description']"
+  
+  # Property features/amenities list
+  features:
+    container:
+      primary: ".features-list"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".amenities"
+        - ".property-features"
+        - "[data-features]"
+    
+    item:
+      primary: ".feature-item"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".amenity"
+        - "li.feature"
+        - ".feature-tag"
+  
+  # Property images gallery
+  images:
+    container:
+      primary: ".image-gallery"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".photo-carousel"
+        - ".property-images"
+        - "[data-image-gallery]"
+    
+    image:
+      primary: ".property-image img"  # UPDATE_ME with actual selector
+      fallbacks:
+        - ".gallery img"
+        - ".carousel-image"
+        - "img.listing-photo"
+
+# Additional patterns for data extraction
+patterns:
+  # Regular expressions for parsing text content
+  price:
+    - '\$[\d,]+\.?\d*[MK]?'  # Matches $450,000 or $1.5M
+    - '[\d,]+\.?\d*\s*(?:million|thousand)'
+  
+  beds:
+    - '(\d+)\s*(?:bed|bd|br)'
+    - 'studio'
+  
+  baths:
+    - '(\d+\.?\d*)\s*(?:bath|ba)'
+    - '(\d+)\s*full[,\s]+(\d+)\s*half'
+  
+  sqft:
+    - '([\d,]+)\s*(?:sq\.?\s*ft\.?|sqft|square feet)'
+  
+  lot_size:
+    - '([\d,.]+)\s*(?:acre|ac)'
+    - '([\d,]+)\s*(?:sq\.?\s*ft\.?|sqft)\s*lot'
+  
+  year_built:
+    - '(?:built|year)\s*:?\s*(19\d{2}|20\d{2})'
+    - '(19\d{2}|20\d{2})\s*(?:built|construction)'
+
+# Timeout settings (milliseconds)
+timeouts:
+  default: 5000
+  search: 10000
+  navigation: 15000
+  image_load: 3000
+
+# Anti-detection settings
+anti_detection:
+  # Wait times between actions (milliseconds)
+  wait_times:
+    min: 1000
+    max: 3000
+  
+  # Human-like typing delay (milliseconds per character)
+  typing_delay:
+    min: 50
+    max: 150
+  
+  # Scroll behavior
+  scroll:
+    smooth: true
+    random_pause: true

@@ -111,7 +111,7 @@ class TestTask04Phase3ConfigurationIntegration:
                     "phoenix_mls": {"enabled": True, "timeout": 30},
                 },
                 "processing": {
-                    "llm_model": "llama2:7b",
+                    "llm_model": "llama3.2:latest",
                     "llm_timeout": 30,
                     "batch_size": 10,
                     "max_processing_workers": 2,
@@ -330,7 +330,7 @@ class TestTask04Phase3ConfigurationIntegration:
         # Test processor integration
         processor_config = self._extract_processor_config(config)
 
-        assert processor_config["llm_model"] == "llama2:7b"
+        assert processor_config["llm_model"] == "llama3.2:latest"
         assert processor_config["batch_size"] == 5  # From testing override
         assert processor_config["max_workers"] == 1  # From testing override
 
@@ -375,7 +375,7 @@ class TestTask04Phase3ConfigurationIntegration:
     def _extract_processor_config(self, config: EnvironmentConfigProvider) -> Dict[str, Any]:
         """Extract data processor configuration."""
         return {
-            "llm_model": config.get("processing.llm_model", "llama2:7b"),
+            "llm_model": config.get("processing.llm_model", "llama3.2:latest"),
             "llm_timeout": config.get_typed("processing.llm_timeout", int, 30),
             "batch_size": config.get_typed("processing.batch_size", int, 10),
             "max_workers": config.get_typed("processing.max_processing_workers", int, 2),

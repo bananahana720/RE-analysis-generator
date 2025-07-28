@@ -1,0 +1,298 @@
+# Production Deployment Configuration
+# This file defines production deployment settings and orchestration
+
+deployment:
+  # Environment identification
+  environment: "production"
+  region: "us-west-2"
+  timezone: "America/Phoenix"
+  
+  # Service configuration
+  service:
+    name: "phoenix-real-estate-collector"
+    version: "1.0.0"
+    description: "Production Phoenix Real Estate Data Collection System"
+
+# Infrastructure Configuration
+infrastructure:
+  # Compute resources
+  compute:
+    provider: "aws"  # or "gcp", "azure", "docker"
+    instance_type: "t3.medium"
+    min_instances: 1
+    max_instances: 3
+    auto_scaling: true
+    
+  # Network configuration
+  network:
+    vpc_id: "vpc-production"
+    subnet_ids:
+      - "subnet-prod-1a"
+      - "subnet-prod-1b"
+    security_groups:
+      - "sg-phoenix-collector"
+    load_balancer: false  # Not needed for collector
+    
+  # Storage
+  storage:
+    logs:
+      type: "ebs"
+      size_gb: 100
+      mount_path: "/var/log/phoenix_real_estate"
+    cache:
+      type: "ebs"
+      size_gb: 50
+      mount_path: "/var/cache/phoenix_real_estate"
+
+# Application Configuration
+application:
+  # Runtime settings
+  runtime:
+    python_version: "3.13.4"
+    node_version: "20.17.0"
+    
+  # Process management
+  process:
+    manager: "systemd"  # or "supervisor", "pm2"
+    workers: 2
+    threads_per_worker: 4
+    restart_policy: "always"
+    restart_delay: 10  # seconds
+    
+  # Health checks
+  health:
+    enabled: true
+    endpoint: "/health"
+    interval: 30  # seconds
+    timeout: 10  # seconds
+    failure_threshold: 3
+
+# Data Collection Configuration
+collection:
+  # Scheduling
+  schedule:
+    daily_collection:
+      enabled: true
+      cron: "0 2 * * *"  # 2 AM Phoenix time
+      zip_codes:
+        - "85031"
+        - "85033"
+        - "85035"
+      
+    incremental_updates:
+      enabled: true
+      cron: "0 */6 * * *"  # Every 6 hours
+      
+  # Source priorities
+  sources:
+    - name: "maricopa_county"
+      priority: 1
+      enabled: true
+      rate_limit: 1000
+      
+    - name: "phoenix_mls"
+      priority: 2
+      enabled: true
+      rate_limit: 60
+      
+    - name: "particle_space"
+      priority: 3
+      enabled: false  # Enable when API available
+      rate_limit: 10
+
+# Database Configuration
+database:
+  # MongoDB Atlas Production
+  primary:
+    type: "mongodb_atlas"
+    cluster: "phoenix-prod-cluster"
+    region: "us-west-2"
+    tier: "M10"  # Dedicated cluster
+    
+  # Backup configuration
+  backup:
+    enabled: true
+    type: "continuous"  # Point-in-time recovery
+    retention_days: 30
+    snapshot_schedule: "0 3 * * *"  # 3 AM daily
+    
+  # Performance settings
+  performance:
+    index_optimization: true
+    connection_pool_size: 10
+    read_preference: "primaryPreferred"
+    write_concern: "majority"
+
+# Security Configuration
+security:
+  # SSL/TLS
+  ssl:
+    enabled: true
+    certificate_path: "/etc/ssl/certs/phoenix-re.crt"
+    key_path: "/etc/ssl/private/phoenix-re.key"
+    verify_mode: "CERT_REQUIRED"
+    
+  # Access control
+  access:
+    ip_whitelist:
+      - "10.0.0.0/8"  # Internal network
+    require_authentication: true
+    
+  # Secrets management
+  secrets:
+    provider: "aws_secrets_manager"  # or "vault", "azure_keyvault"
+    region: "us-west-2"
+    rotation_enabled: true
+    rotation_days: 90
+
+# Monitoring and Logging
+monitoring:
+  # Application monitoring
+  apm:
+    provider: "datadog"  # or "newrelic", "elastic_apm"
+    enabled: true
+    sample_rate: 0.1
+    
+  # Log aggregation
+  logging:
+    provider: "cloudwatch"  # or "elasticsearch", "splunk"
+    retention_days: 30
+    log_groups:
+      - name: "/aws/phoenix-re/application"
+        level: "INFO"
+      - name: "/aws/phoenix-re/errors"
+        level: "ERROR"
+        
+  # Metrics
+  metrics:
+    enabled: true
+    namespace: "PhoenixRealEstate"
+    dimensions:
+      - "Environment"
+      - "Service"
+      - "Source"
+    
+  # Alerting
+  alerts:
+    - name: "HighErrorRate"
+      metric: "error_rate"
+      threshold: 0.05
+      evaluation_periods: 2
+      
+    - name: "LowSuccessRate"
+      metric: "success_rate"
+      threshold: 0.95
+      comparison: "less_than"
+      
+    - name: "ProxyHealthLow"
+      metric: "healthy_proxy_count"
+      threshold: 2
+      comparison: "less_than"
+
+# Deployment Process
+deployment_process:
+  # Pre-deployment
+  pre_deploy:
+    - name: "Run tests"
+      command: "uv run pytest"
+      required: true
+      
+    - name: "Check code quality"
+      command: "make ruff && make pyright"
+      required: true
+      
+    - name: "Validate configuration"
+      command: "python -m phoenix_real_estate.validate_config"
+      required: true
+  
+  # Deployment steps
+  deploy:
+    strategy: "rolling"  # or "blue_green", "canary"
+    stages:
+      - name: "Update code"
+        command: "git pull origin main"
+        
+      - name: "Install dependencies"
+        command: "uv sync"
+        
+      - name: "Run migrations"
+        command: "python -m phoenix_real_estate.migrate"
+        
+      - name: "Restart service"
+        command: "systemctl restart phoenix-collector"
+  
+  # Post-deployment
+  post_deploy:
+    - name: "Verify health"
+      command: "curl http://localhost:8000/health"
+      expected: "200"
+      
+    - name: "Run smoke tests"
+      command: "python -m phoenix_real_estate.smoke_test"
+      
+    - name: "Monitor metrics"
+      duration: 300  # 5 minutes
+
+# Rollback Configuration
+rollback:
+  enabled: true
+  automatic: true
+  triggers:
+    - error_rate: 0.1  # 10% error rate
+    - health_check_failures: 5
+    - deployment_timeout: 600  # 10 minutes
+    
+  strategy:
+    type: "previous_version"
+    keep_versions: 3
+
+# Maintenance Windows
+maintenance:
+  windows:
+    - day: "sunday"
+      start_time: "02:00"
+      duration_hours: 2
+      type: "full"  # Database maintenance
+      
+    - day: "wednesday"
+      start_time: "03:00"
+      duration_hours: 1
+      type: "partial"  # Code updates
+
+# Disaster Recovery
+disaster_recovery:
+  # Backup locations
+  backups:
+    primary: "s3://phoenix-re-backups/production"
+    secondary: "gs://phoenix-re-dr/production"
+    
+  # Recovery objectives
+  rpo: 60  # Recovery Point Objective in minutes
+  rto: 120  # Recovery Time Objective in minutes
+  
+  # Procedures
+  procedures:
+    - name: "Database Recovery"
+      document: "docs/ops/database-recovery.md"
+      
+    - name: "Service Recovery"
+      document: "docs/ops/service-recovery.md"
+
+# Performance Targets
+performance_targets:
+  # Response times
+  response_time:
+    p50: 1.0  # seconds
+    p95: 5.0  # seconds
+    p99: 10.0  # seconds
+    
+  # Throughput
+  throughput:
+    properties_per_hour: 1000
+    concurrent_requests: 10
+    
+  # Resource usage
+  resources:
+    cpu_percent: 70
+    memory_percent: 80
+    disk_io_mbps: 50

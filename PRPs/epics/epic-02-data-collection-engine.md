@@ -281,7 +281,7 @@ class CollectionConfig:
     @property
     def llm_model(self) -> str:
         """Local LLM model name."""
-        return self.config.get("LLM_MODEL", "llama2:7b")
+        return self.config.get("LLM_MODEL", "llama3.2:latest")
     
     @property
     def min_request_delay(self) -> float:

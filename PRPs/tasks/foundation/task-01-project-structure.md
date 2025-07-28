@@ -389,7 +389,7 @@ WEBSHARE_USERNAME=your_username
 WEBSHARE_PASSWORD=your_password
 
 # Processing Configuration (for future epics)
-LLM_MODEL=llama2:7b
+LLM_MODEL=llama3.2:latest
 LLM_TIMEOUT=30
 
 # Security

@@ -135,7 +135,7 @@ export PHOENIX_DATABASE_PORT=27018
 
 | Variable | Description | Example | Default |
 |----------|-------------|---------|-------|
-| `LLM_MODEL` | LLM model name | `llama2:7b` | `llama2:7b` |
+| `LLM_MODEL` | LLM model name | `llama3.2:latest` | `llama3.2:latest` |
 | `LLM_TIMEOUT` | LLM timeout (seconds) | `30` | 30 |
 | `PROCESSING_MAX_WORKERS` | Max processing workers | `2` | 2 |
 
