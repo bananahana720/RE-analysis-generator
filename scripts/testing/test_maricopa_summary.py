@@ -7,7 +7,6 @@ This script summarizes the test results and provides recommendations.
 
 import json
 from pathlib import Path
-from datetime import datetime
 
 
 def analyze_test_report():
@@ -79,7 +78,7 @@ def analyze_test_report():
                 print(f"    - Samples: {analysis['sample_count']}")
                 print(f"    - Fields: {len(analysis['response_fields'])}")
                 if analysis.get('pagination_info'):
-                    print(f"    - Pagination: Supported")
+                    print("    - Pagination: Supported")
     print()
     
     # Recommendations

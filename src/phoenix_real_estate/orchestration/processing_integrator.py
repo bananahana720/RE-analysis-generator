@@ -4,7 +4,6 @@ This module provides the integration layer between Epic 1 data collectors
 (Maricopa API, Phoenix MLS) and Epic 2 LLM processing pipeline.
 """
 
-import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
@@ -18,14 +17,6 @@ from phoenix_real_estate.collectors.processing.pipeline import (
     ProcessingResult,
 )
 from phoenix_real_estate.foundation import ConfigProvider, PropertyRepository, get_logger
-from phoenix_real_estate.foundation.database.schema import (
-    Property,
-    PropertyAddress,
-    PropertyFeatures,
-    PropertyType,
-    ListingStatus,
-    DataSource,
-)
 from phoenix_real_estate.foundation.utils.exceptions import ProcessingError
 from phoenix_real_estate.models.property import PropertyDetails
 

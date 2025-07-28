@@ -2,7 +2,6 @@
 import json
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime
 
 from phoenix_real_estate.collectors.processing import PropertyDataExtractor
 from phoenix_real_estate.collectors.processing.llm_client import OllamaClient
@@ -67,12 +66,26 @@ class TestPropertyDataExtractor:
     def mock_config(self):
         """Create mock config for testing."""
         config = Mock(spec=ConfigProvider)
-        config.settings = Mock()
-        config.settings.OLLAMA_BASE_URL = "http://localhost:11434"
-        config.settings.LLM_MODEL = "llama3.2:latest"
-        config.settings.LLM_TEMPERATURE = 0.1
-        config.settings.LLM_MAX_RETRIES = 3
-        config.settings.EXTRACTION_TIMEOUT = 30
+        
+        # Support get() method
+        config.get = Mock(side_effect=lambda key, default=None: {
+            "OLLAMA_BASE_URL": "http://localhost:11434",
+            "LLM_MODEL": "llama3.2:latest"
+        }.get(key, default))
+        
+        # Support get_typed() method for type-safe configuration access
+        def mock_get_typed(key, type_cls, default=None):
+            values = {
+                "EXTRACTION_TIMEOUT": 30,
+                "LLM_TIMEOUT": 30,
+                "LLM_MAX_RETRIES": 2
+            }
+            value = values.get(key, default)
+            if value is not None and type_cls is not None:
+                return type_cls(value)
+            return value
+        
+        config.get_typed = Mock(side_effect=mock_get_typed)
         return config
     
     @pytest.fixture

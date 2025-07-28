@@ -539,7 +539,7 @@ class TestTask04Phase3Configuration:
 
         # Should handle malformed YAML gracefully
         try:
-            config_with_malformed = EnvironmentConfigProvider(
+            EnvironmentConfigProvider(
                 config_dir=temp_config_dir,
                 environment="malformed",  # Will try to load malformed.yaml
             )

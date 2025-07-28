@@ -87,7 +87,7 @@ async def test_load_session(valid_proxy_config):
 
     # Mock file existence and reading
     with patch.object(Path, "exists", return_value=True):
-        with patch("builtins.open", create=True) as mock_open:
+        with patch("builtins.open", create=True):
             with patch("pickle.load", return_value=session_data):
                 # Mock browser context
                 mock_context = AsyncMock()

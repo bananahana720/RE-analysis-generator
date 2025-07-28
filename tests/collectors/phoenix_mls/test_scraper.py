@@ -236,7 +236,6 @@ async def test_retry_logic(mock_proxy_config):
     attempt_count = 0
 
     # Mock the search method to fail first 2 times
-    original_search = scraper.search_properties_by_zipcode
 
     async def failing_search(zipcode):
         nonlocal attempt_count

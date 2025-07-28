@@ -131,7 +131,7 @@ class TestScraperMetrics:
 
         # Check metrics were recorded
         request_metric = metrics._metrics["requests_total"]
-        response_time_metric = metrics._metrics["response_time_seconds"]
+        metrics._metrics["response_time_seconds"]
 
         request_value = request_metric.labels(
             status="success", endpoint="test_endpoint", method="GET"

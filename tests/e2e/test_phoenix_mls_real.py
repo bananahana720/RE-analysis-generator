@@ -6,7 +6,6 @@ These tests use actual browser automation to validate the complete
 data collection pipeline against the Phoenix MLS website.
 """
 
-import asyncio
 import pytest
 from typing import Dict, Any, Optional
 from playwright.async_api import async_playwright, Page, Browser
@@ -110,7 +109,7 @@ class TestPhoenixMLSE2E:
     @pytest.mark.slow
     async def test_property_search_and_parse(self, browser: Browser, settings: Settings):
         """Test searching for properties and parsing results."""
-        scraper = PhoenixMLSScraper(settings)
+        PhoenixMLSScraper(settings)
         page = await browser.new_page()
         
         try:
@@ -160,7 +159,7 @@ class TestPhoenixMLSE2E:
         repo = PropertyRepository(test_database)
         
         # Create scraper with test browser
-        scraper = PhoenixMLSScraper(settings)
+        PhoenixMLSScraper(settings)
         
         # Perform search and collection
         page = await browser.new_page()
@@ -275,7 +274,7 @@ class TestPhoenixMLSE2E:
             assert memory_used < 100, f"Excessive memory usage: {memory_used:.2f}MB"
             
             # Log performance metrics
-            print(f"\nPerformance Metrics:")
+            print("\nPerformance Metrics:")
             print(f"  Page Load Time: {load_time:.2f}s")
             print(f"  Parse Time: {parse_time:.2f}s")
             print(f"  Memory Used: {memory_used:.2f}MB")

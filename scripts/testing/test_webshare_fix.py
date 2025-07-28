@@ -48,7 +48,7 @@ async def test_webshare_with_api_key():
             async with session.get(endpoints["account"], headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    print(f"[OK] Account access successful!")
+                    print("[OK] Account access successful!")
                     print(f"  Email: {data.get('email', 'N/A')}")
                     print(f"  ID: {data.get('id', 'N/A')}")
                 else:
@@ -63,7 +63,7 @@ async def test_webshare_with_api_key():
                 if response.status == 200:
                     data = await response.json()
                     proxy_count = data.get('count', 0)
-                    print(f"[OK] Proxy list access successful!")
+                    print("[OK] Proxy list access successful!")
                     print(f"[OK] Total proxies: {proxy_count}")
                     
                     if proxy_count > 0 and data.get('results'):
@@ -115,9 +115,9 @@ async def test_proxy_connection(proxy_info):
             async with session.get(test_url, proxy=proxy_url, timeout=15) as response:
                 if response.status == 200:
                     data = await response.json()
-                    print(f"[OK] Proxy connection successful!")
+                    print("[OK] Proxy connection successful!")
                     print(f"[OK] Your IP through proxy: {data.get('origin')}")
-                    print(f"[OK] Proxy is working correctly!")
+                    print("[OK] Proxy is working correctly!")
                     return True
                 else:
                     print(f"[ERROR] Proxy test failed with status {response.status}")
@@ -140,9 +140,9 @@ async def update_proxy_config(proxy_list):
         return
     
     # Get first proxy for config
-    proxy = proxy_list[0]
+    proxy_list[0]
     
-    print(f"\nProxy configuration to add to config/proxies.yaml:")
+    print("\nProxy configuration to add to config/proxies.yaml:")
     print("=" * 60)
     print("webshare:")
     print("  enabled: true")

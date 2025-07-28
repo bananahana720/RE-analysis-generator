@@ -801,7 +801,7 @@ class TestPerformanceValidation:
             
             for _ in range(5):
                 load_start = time.time()
-                config = get_config(environment=None)
+                get_config(environment=None)
                 load_time = time.time() - load_start
                 load_times.append(load_time)
             
@@ -885,8 +885,8 @@ class TestPerformanceValidation:
             }
             
             with patch('playwright.async_api.async_playwright'):
-                scraper = PhoenixMLSScraper(scraper_config)
-            proxy_manager = ProxyManager(proxy_config)
+                PhoenixMLSScraper(scraper_config)
+            ProxyManager(proxy_config)
             
             # Measure memory after initialization
             final_memory = process.memory_info().rss / 1024 / 1024  # MB

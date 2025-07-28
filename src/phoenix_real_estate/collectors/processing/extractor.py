@@ -95,11 +95,11 @@ class PropertyDataExtractor:
             
         try:
             # Get extraction prompt and schema
-            prompt = await self.get_extraction_prompt(html_content, source)
+            await self.get_extraction_prompt(html_content, source)
             schema = await self.get_extraction_schema(source)
             
             # Extract data using LLM
-            timeout = timeout or getattr(self.config.settings, 'EXTRACTION_TIMEOUT', 30)
+            timeout = timeout or self.config.get_typed('EXTRACTION_TIMEOUT', int, default=30)
             
             extracted_data = await asyncio.wait_for(
                 self._llm_client.extract_structured_data(
@@ -165,10 +165,6 @@ class PropertyDataExtractor:
             # For Maricopa data, we need to parse the address
             if source == "maricopa_county":
                 # Extract address using LLM
-                address_prompt = """
-                Extract the structured address from this property address string.
-                Return a JSON object with: street, city, state, zip_code
-                """
                 
                 address_schema = {
                     "street": "string",
@@ -177,7 +173,7 @@ class PropertyDataExtractor:
                     "zip_code": "string"
                 }
                 
-                timeout = timeout or getattr(self.config.settings, 'EXTRACTION_TIMEOUT', 30)
+                timeout = timeout or self.config.get_typed('EXTRACTION_TIMEOUT', int, default=30)
                 
                 parsed_address = await asyncio.wait_for(
                     self._llm_client.extract_structured_data(

@@ -42,12 +42,12 @@ async def test_webshare_api():
                 if response.status == 200:
                     data = await response.json()
                     proxy_count = data.get('count', 0)
-                    print(f"[OK] API Access successful!")
+                    print("[OK] API Access successful!")
                     print(f"[OK] Found {proxy_count} proxies in your account")
                     
                     if proxy_count > 0 and data.get('results'):
                         first_proxy = data['results'][0]
-                        print(f"\nFirst proxy details:")
+                        print("\nFirst proxy details:")
                         print(f"  Address: {first_proxy.get('proxy_address')}")
                         print(f"  Port: {first_proxy.get('port')}")
                         print(f"  Country: {first_proxy.get('country_code')}")
@@ -119,7 +119,7 @@ async def test_proxy_connection():
                 async with session.get(test_url, proxy=proxy_url, timeout=10) as response:
                     if response.status == 200:
                         data = await response.json()
-                        print(f"[OK] Proxy working!")
+                        print("[OK] Proxy working!")
                         print(f"[OK] Your IP through proxy: {data.get('origin')}")
                         return True
                     else:
@@ -154,7 +154,7 @@ async def test_2captcha():
                     data = await response.json()
                     if data.get('status') == 1:
                         balance = float(data.get('request', 0))
-                        print(f"[OK] 2captcha API working!")
+                        print("[OK] 2captcha API working!")
                         print(f"[OK] Account balance: ${balance:.3f}")
                         
                         if balance < 0.01:

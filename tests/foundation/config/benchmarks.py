@@ -343,8 +343,6 @@ class BenchmarkSuite:
         print("  Testing mixed read/write workload...")
         reset_config_cache()
 
-        read_counts = []
-        write_counts = []
 
         def mixed_worker(read_ratio: float, duration: float) -> Tuple[int, int]:
             reads = writes = 0
@@ -495,7 +493,7 @@ class BenchmarkSuite:
         for i in range(10000):
             key = f"TEST_SECRET_{i % 100}"
             start = time.perf_counter()
-            value = secret_manager.get_secret(key)
+            secret_manager.get_secret(key)
             elapsed = time.perf_counter() - start
             direct_times.append(elapsed)
 
@@ -515,7 +513,7 @@ class BenchmarkSuite:
         for i in range(1000):
             key = f"ENCRYPTED_{i % 10}"
             start = time.perf_counter()
-            value = secret_manager.get_secret(key)
+            secret_manager.get_secret(key)
             elapsed = time.perf_counter() - start
             encrypted_times.append(elapsed)
 
@@ -532,7 +530,7 @@ class BenchmarkSuite:
             key = f"TEST_SECRET_{i % 100}"
             start = time.perf_counter()
             try:
-                value = secret_manager.get_required_secret(key)
+                secret_manager.get_required_secret(key)
             except:
                 pass
             elapsed = time.perf_counter() - start
@@ -568,7 +566,7 @@ class BenchmarkSuite:
             small_times = []
             for _ in range(1000):
                 start = time.perf_counter()
-                config = BaseConfig(Environment.DEVELOPMENT)
+                BaseConfig(Environment.DEVELOPMENT)
                 elapsed = time.perf_counter() - start
                 small_times.append(elapsed)
 
@@ -589,7 +587,7 @@ class BenchmarkSuite:
             large_times = []
             for _ in range(100):
                 start = time.perf_counter()
-                config = BaseConfig(Environment.DEVELOPMENT)
+                BaseConfig(Environment.DEVELOPMENT)
                 elapsed = time.perf_counter() - start
                 large_times.append(elapsed)
 
@@ -629,7 +627,7 @@ class BenchmarkSuite:
             for _ in range(1000):
                 start = time.perf_counter()
                 with open(small_yaml, "r") as f:
-                    data = yaml.safe_load(f)
+                    yaml.safe_load(f)
                 elapsed = time.perf_counter() - start
                 small_times.append(elapsed)
 
@@ -659,7 +657,7 @@ class BenchmarkSuite:
             for _ in range(100):
                 start = time.perf_counter()
                 with open(large_yaml, "r") as f:
-                    data = yaml.safe_load(f)
+                    yaml.safe_load(f)
                 elapsed = time.perf_counter() - start
                 large_times.append(elapsed)
 
@@ -695,7 +693,7 @@ class BenchmarkSuite:
                 os.environ["ENVIRONMENT"] = env
 
                 start = time.perf_counter()
-                config = get_config()
+                get_config()
                 elapsed = time.perf_counter() - start
                 cache_times.append(elapsed)
 
@@ -746,7 +744,6 @@ class BenchmarkSuite:
             reset_config_cache()
 
             # Measure time spent waiting for locks
-            wait_times = []
             operation_times = []
 
             def contention_worker():
@@ -754,7 +751,7 @@ class BenchmarkSuite:
                     op_start = time.perf_counter()
 
                     # This operation requires lock
-                    config = get_config()
+                    get_config()
                     reset_config_cache()
 
                     op_end = time.perf_counter()

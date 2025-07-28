@@ -202,7 +202,7 @@ class TestMemoryLeakPrevention:
         assert secret_manager.get_secret("SECRET_LARGE") == large_secret
 
         # Clear the internal storage to simulate cleanup
-        initial_count = len(secret_manager._secrets)
+        len(secret_manager._secrets)
         secret_manager._secrets.clear()
 
         # Force garbage collection
@@ -225,7 +225,6 @@ class TestMemoryLeakPrevention:
             config = get_config()
 
             # Store thread-specific data (simulating thread-local usage)
-            thread_data = f"thread_{thread_id}_data"
 
             # In a real implementation, we might want thread-local config copies
             # This tests that configs don't leak between threads
@@ -284,7 +283,6 @@ class TestProductionEdgeCases:
     def test_recursive_config_access(self):
         """Test handling of recursive configuration access patterns."""
         reset_config_cache()
-        recursion_depth = 0
         max_depth = 0
 
         def get_config_recursive(depth: int = 0):

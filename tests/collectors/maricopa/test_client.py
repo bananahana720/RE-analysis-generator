@@ -362,7 +362,7 @@ class TestMaricopaAPIClientRequests:
             # Patch both asyncio.sleep and time.sleep to handle all sleep calls
             with (
                 patch("asyncio.sleep", new_callable=AsyncMock) as mock_async_sleep,
-                patch("time.sleep") as mock_time_sleep,
+                patch("time.sleep"),
             ):
                 with pytest.raises(DataCollectionError, match="Rate limit exceeded"):
                     await client.search_property("85001")

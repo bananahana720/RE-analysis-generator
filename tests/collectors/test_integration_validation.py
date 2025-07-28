@@ -124,7 +124,7 @@ class TestEpic1FoundationIntegration:
         )
 
         # Collect and save
-        results = collector.collect(search_params={"zip_codes": ["85001"]}, save_to_repository=True)
+        collector.collect(search_params={"zip_codes": ["85001"]}, save_to_repository=True)
 
         # Verify repository was called
         repo.save.assert_called_once()

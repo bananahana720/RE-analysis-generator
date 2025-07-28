@@ -49,7 +49,7 @@ def print_info(message: str) -> None:
 
 def run_uv_sync() -> bool:
     """Run uv sync commands."""
-    project_root = Path(__file__).parent.parent
+    Path(__file__).parent.parent
     commands = ["uv sync", "uv sync --extra dev"]
 
     for cmd in commands:

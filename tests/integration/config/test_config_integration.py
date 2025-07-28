@@ -211,7 +211,7 @@ class TestConfigurationIntegration:
 
     def test_global_config_singleton(self, full_config_setup):
         """Test global configuration singleton behavior."""
-        config_dir = full_config_setup["config_dir"]
+        full_config_setup["config_dir"]
 
         with patch.dict(os.environ, {"ENVIRONMENT": "development"}):
             # Patch the default config directory
@@ -240,7 +240,7 @@ class TestConfigurationIntegration:
 
     def test_thread_safety(self, full_config_setup):
         """Test thread-safe configuration access."""
-        config_dir = full_config_setup["config_dir"]
+        full_config_setup["config_dir"]
         results = {}
 
         def load_config(env_name):
@@ -297,7 +297,7 @@ class TestConfigurationIntegration:
 
         # Measure validation time
         start_time = time.perf_counter()
-        errors = config.validate()
+        config.validate()
         validation_time = time.perf_counter() - start_time
 
         # Should validate in under 50ms

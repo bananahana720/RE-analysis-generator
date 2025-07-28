@@ -2,7 +2,6 @@
 """Test WebShare proxy with provided working credentials."""
 
 import requests
-import os
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -58,13 +57,13 @@ def download_proxy_list():
         response = requests.get(download_url, timeout=10)
         if response.status_code == 200:
             print("[OK] Proxy list downloaded successfully!")
-            print(f"Content preview (first 500 chars):")
+            print("Content preview (first 500 chars):")
             print(response.text[:500])
             
             # Save to file for reference
             with open("webshare_proxy_list.txt", "w") as f:
                 f.write(response.text)
-            print(f"\nFull proxy list saved to: webshare_proxy_list.txt")
+            print("\nFull proxy list saved to: webshare_proxy_list.txt")
             
             # Parse first few proxies
             lines = response.text.strip().split('\n')

@@ -199,7 +199,7 @@ if __name__ == "__main__":
     async def test_development_environment_validation_script(self, temp_env_dir):
         """Test development environment validation script."""
         # Create validation script
-        script_path = self.create_validation_script(temp_env_dir)
+        self.create_validation_script(temp_env_dir)
 
         # Set up environment variables from .env file
         env_file = temp_env_dir / ".env"
@@ -222,7 +222,6 @@ if __name__ == "__main__":
 
             # Execute validation script logic
             errors = []
-            warnings = []
 
             # Check required environment variables
             required_vars = ["MARICOPA_API_KEY", "MONGODB_URI", "ENVIRONMENT"]

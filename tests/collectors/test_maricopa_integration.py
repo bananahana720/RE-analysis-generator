@@ -164,7 +164,7 @@ class TestEpic1FoundationIntegration:
 
         # Test get_required method behavior
         try:
-            missing_value = config.get_required("definitely.missing.key")
+            config.get_required("definitely.missing.key")
         except ConfigurationError:
             # Expected behavior for missing required configuration
             pass
@@ -426,7 +426,7 @@ class TestEndToEndWorkflowIntegration:
         repository = PropertyRepositoryImpl(mock_db_connection)
 
         # Real logger
-        logger = get_logger("test.e2e.collector")
+        get_logger("test.e2e.collector")
 
         # Mock external API calls
         mock_client = MagicMock(spec=MaricopaAPIClient)
@@ -995,7 +995,7 @@ class TestPerformanceRateLimitingIntegration:
 
         # Test property details performance
         start_time = time.time()
-        details = await collector.collect_property_details("test_property_001")
+        await collector.collect_property_details("test_property_001")
         details_elapsed = time.time() - start_time
 
         assert details_elapsed < 10.0, f"Property details took {details_elapsed:.2f}s"

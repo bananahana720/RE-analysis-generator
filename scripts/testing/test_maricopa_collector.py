@@ -63,7 +63,7 @@ async def test_maricopa_collector():
             details = await collector.get_property_details(apn)
             
             if details:
-                print(f"[SUCCESS] Retrieved property details")
+                print("[SUCCESS] Retrieved property details")
                 print(f"  Bedrooms: {details.get('bedrooms', 'N/A')}")
                 print(f"  Bathrooms: {details.get('bathrooms', 'N/A')}")
                 print(f"  Square Feet: {details.get('square_feet', 'N/A')}")

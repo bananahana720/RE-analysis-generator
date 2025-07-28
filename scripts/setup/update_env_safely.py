@@ -6,7 +6,6 @@ This script helps update the .env file without exposing sensitive data.
 """
 
 import os
-import sys
 from pathlib import Path
 import re
 from datetime import datetime

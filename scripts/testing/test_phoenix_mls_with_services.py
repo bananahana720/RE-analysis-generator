@@ -112,7 +112,7 @@ class PhoenixMLSServiceTester:
         
         try:
             # Initialize scraper
-            scraper = PhoenixMLSScraper(self.config)
+            PhoenixMLSScraper(self.config)
             
             # Test with a single zip code
             test_zip = "85031"
@@ -146,7 +146,7 @@ class PhoenixMLSServiceTester:
                 
                 # Try to navigate to Phoenix MLS
                 try:
-                    print(f"[INFO] Navigating to Phoenix MLS...")
+                    print("[INFO] Navigating to Phoenix MLS...")
                     response = await page.goto(
                         f"https://armls.com/search/{test_zip}",
                         wait_until='networkidle',
@@ -236,9 +236,8 @@ class PhoenixMLSServiceTester:
         captcha_ok = await self.test_captcha_handler()
         
         # Only test scraper if proxy is working
-        scraper_ok = False
         if proxy_ok:
-            scraper_ok = await self.test_phoenix_mls_scraper()
+            await self.test_phoenix_mls_scraper()
         else:
             print("\n[SKIP] Skipping scraper test due to proxy issues")
             self.test_results["scraper_test"] = "SKIPPED"

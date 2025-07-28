@@ -48,17 +48,25 @@ class DataProcessingPipeline:
         self.config = config
         self.logger = get_logger("processing.pipeline")
         
-        # Load configuration
-        self.batch_size = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('BATCH_SIZE', 10)
-        self.max_concurrent = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('MAX_CONCURRENT_PROCESSING', 5)
-        self.processing_timeout = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('PROCESSING_TIMEOUT', 60)
-        self.metrics_enabled = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('ENABLE_METRICS', True)
-        self.retry_attempts = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('RETRY_ATTEMPTS', 2)
-        self.retry_delay = getattr(config, 'getattr', lambda k, d: getattr(config.settings, k, d))('RETRY_DELAY', 1.0)
+        # Load configuration using config.get_typed
+        self.batch_size = config.get_typed('BATCH_SIZE', int, default=10)
+        self.max_concurrent = config.get_typed('MAX_CONCURRENT_PROCESSING', int, default=5)
+        self.processing_timeout = config.get_typed('PROCESSING_TIMEOUT', int, default=60)
+        self.metrics_enabled = config.get_typed('ENABLE_METRICS', bool, default=True)
+        self.retry_attempts = config.get_typed('RETRY_ATTEMPTS', int, default=2)
+        self.retry_delay = config.get_typed('RETRY_DELAY', float, default=1.0)
+        
+        # Performance features
+        self.cache_enabled = config.get_typed('CACHE_ENABLED', bool, default=True)
+        self.resource_monitoring_enabled = config.get_typed('RESOURCE_MONITORING_ENABLED', bool, default=True)
+        self.adaptive_batch_sizing = config.get_typed('ADAPTIVE_BATCH_SIZING', bool, default=True)
         
         # Components
         self._extractor: Optional[PropertyDataExtractor] = None
         self._validator: Optional[ProcessingValidator] = None
+        self._cache_manager: Optional[Any] = None
+        self._resource_monitor: Optional[Any] = None
+        self._batch_optimizer: Optional[Any] = None
         self._initialized = False
         
         # Metrics
@@ -79,7 +87,9 @@ class DataProcessingPipeline:
             extra={
                 "batch_size": self.batch_size,
                 "max_concurrent": self.max_concurrent,
-                "processing_timeout": self.processing_timeout
+                "processing_timeout": self.processing_timeout,
+                "cache_enabled": self.cache_enabled,
+                "resource_monitoring": self.resource_monitoring_enabled
             }
         )
     
@@ -94,13 +104,47 @@ class DataProcessingPipeline:
             await self._extractor.initialize()
             
             # Initialize validator
-            validation_config = getattr(self.config, 'getattr', lambda k, d: getattr(self.config.settings, k, d))(
-                'VALIDATION_CONFIG', None
-            )
+            validation_config = self.config.get('VALIDATION_CONFIG', None)
             self._validator = ProcessingValidator(validation_config)
             
+            # Initialize cache if enabled
+            if self.cache_enabled:
+                from .cache import CacheManager, CacheConfig
+                cache_config = CacheConfig(
+                    enabled=True,
+                    ttl_hours=self.config.get_typed('CACHE_TTL_HOURS', float, default=24),
+                    max_size_mb=self.config.get_typed('CACHE_MAX_SIZE_MB', float, default=100),
+                    backend=self.config.get('CACHE_BACKEND', 'memory')
+                )
+                self._cache_manager = CacheManager(cache_config)
+                await self._cache_manager.initialize()
+                
+                # Inject cache into extractor's LLM client
+                if hasattr(self._extractor, '_client'):
+                    self._extractor._client._cache_manager = self._cache_manager
+            
+            # Initialize resource monitor if enabled
+            if self.resource_monitoring_enabled:
+                from .monitoring import ResourceMonitor, ResourceLimits
+                resource_limits = ResourceLimits(
+                    max_memory_mb=self.config.get_typed('MAX_MEMORY_MB', int, default=1024),
+                    max_cpu_percent=self.config.get_typed('MAX_CPU_PERCENT', int, default=80),
+                    max_concurrent_requests=self.max_concurrent
+                )
+                self._resource_monitor = ResourceMonitor(resource_limits)
+                await self._resource_monitor.start()
+            
+            # Initialize batch optimizer if enabled
+            if self.adaptive_batch_sizing:
+                from .performance import BatchSizeOptimizer
+                self._batch_optimizer = BatchSizeOptimizer(
+                    initial_size=self.batch_size,
+                    min_size=1,
+                    max_size=self.config.get_typed('MAX_BATCH_SIZE', int, default=100)
+                )
+            
             self._initialized = True
-            self.logger.info("Pipeline initialized successfully")
+            self.logger.info("Pipeline initialized successfully with performance features")
             
         except Exception as e:
             self.logger.error(f"Failed to initialize pipeline: {e}")
@@ -110,6 +154,13 @@ class DataProcessingPipeline:
         """Close pipeline and cleanup resources."""
         if self._extractor:
             await self._extractor.close()
+        
+        if self._cache_manager:
+            await self._cache_manager.close()
+        
+        if self._resource_monitor:
+            await self._resource_monitor.stop()
+        
         self._initialized = False
         self.logger.info("Pipeline closed")
     
@@ -274,7 +325,7 @@ class DataProcessingPipeline:
         timeout: Optional[int] = None,
         strict_validation: bool = True
     ) -> List[ProcessingResult]:
-        """Process batch of HTML contents with concurrency control.
+        """Process batch of HTML contents with concurrency control and dynamic sizing.
         
         Args:
             html_contents: List of HTML contents to process
@@ -289,12 +340,37 @@ class DataProcessingPipeline:
         
         results = []
         
-        async def process_with_semaphore(content: str) -> ProcessingResult:
-            """Process single item with semaphore control."""
+        async def process_with_monitoring(content: str) -> ProcessingResult:
+            """Process single item with resource monitoring."""
+            operation_id = f"process_{id(content)}"
+            
+            # Check resource availability
+            if self._resource_monitor:
+                if not await self._resource_monitor.check_resource_availability(operation_id):
+                    await asyncio.sleep(1)  # Brief wait before retry
+                    if not await self._resource_monitor.check_resource_availability(operation_id):
+                        return ProcessingResult(
+                            is_valid=False,
+                            source=source,
+                            error="Insufficient resources",
+                            processing_time=0.0
+                        )
+            
             async with self._semaphore:
                 try:
-                    return await self.process_html(content, source, timeout, strict_validation)
+                    if self._resource_monitor:
+                        await self._resource_monitor.track_operation_start(operation_id)
+                    
+                    result = await self.process_html(content, source, timeout, strict_validation)
+                    
+                    if self._resource_monitor:
+                        await self._resource_monitor.track_operation_end(operation_id)
+                    
+                    return result
                 except Exception as e:
+                    if self._resource_monitor:
+                        await self._resource_monitor.release_resources(operation_id)
+                    
                     # Return error result instead of raising
                     result = ProcessingResult(
                         is_valid=False,
@@ -302,26 +378,53 @@ class DataProcessingPipeline:
                         error=str(e),
                         processing_time=0.0
                     )
-                    # Metrics are already updated in process_html, don't double count
                     return result
         
-        # Process in batches
-        for i in range(0, len(html_contents), self.batch_size):
-            batch = html_contents[i:i + self.batch_size]
+        # Process in dynamically sized batches
+        current_batch_size = self.batch_size
+        if self._batch_optimizer:
+            current_batch_size = self._batch_optimizer.get_optimal_batch_size()
+        
+        if self._resource_monitor:
+            # Further adjust based on current resources
+            recommended_size = self._resource_monitor.get_recommended_batch_size()
+            current_batch_size = min(current_batch_size, recommended_size)
+        
+        for i in range(0, len(html_contents), current_batch_size):
+            batch = html_contents[i:i + current_batch_size]
+            batch_start = time.time()
             
             # Process batch concurrently
-            batch_tasks = [process_with_semaphore(content) for content in batch]
+            batch_tasks = [process_with_monitoring(content) for content in batch]
             batch_results = await asyncio.gather(*batch_tasks)
             results.extend(batch_results)
             
+            batch_duration = time.time() - batch_start
+            successful_count = sum(1 for r in batch_results if r.is_valid)
+            
+            # Record performance for optimization
+            if self._batch_optimizer:
+                self._batch_optimizer.record_batch_performance(
+                    batch_size=len(batch),
+                    duration=batch_duration,
+                    success_rate=successful_count / len(batch) if batch else 0,
+                    memory_usage_mb=0  # Will be filled by resource monitor
+                )
+            
             self.logger.info(
-                f"Processed batch {i // self.batch_size + 1}",
+                f"Processed batch {i // current_batch_size + 1}",
                 extra={
                     "batch_size": len(batch),
-                    "successful": sum(1 for r in batch_results if r.is_valid),
-                    "failed": sum(1 for r in batch_results if not r.is_valid)
+                    "successful": successful_count,
+                    "failed": sum(1 for r in batch_results if not r.is_valid),
+                    "duration": batch_duration,
+                    "per_item_time": batch_duration / len(batch) if batch else 0
                 }
             )
+            
+            # Update batch size for next iteration if adaptive
+            if self._batch_optimizer and self.adaptive_batch_sizing:
+                current_batch_size = self._batch_optimizer.get_optimal_batch_size()
         
         return results
     
@@ -404,7 +507,7 @@ class DataProcessingPipeline:
             self._metrics['errors_by_type'].get(error_type, 0) + 1
     
     def get_metrics(self) -> Dict[str, Any]:
-        """Get current processing metrics.
+        """Get current processing metrics including performance data.
         
         Returns:
             Dictionary of metrics
@@ -425,6 +528,34 @@ class DataProcessingPipeline:
             ),
             'errors_by_type': dict(self._metrics['errors_by_type'])
         }
+        
+        # Add cache metrics if available
+        if self._cache_manager:
+            cache_metrics = self._cache_manager.get_metrics()
+            metrics['cache'] = {
+                'hit_rate': cache_metrics.get('hit_rate', 0),
+                'hits': cache_metrics.get('hits', 0),
+                'misses': cache_metrics.get('misses', 0),
+                'entries': cache_metrics.get('entries', 0),
+                'memory_used_mb': cache_metrics.get('memory_used_mb', 0)
+            }
+        
+        # Add resource metrics if available
+        if self._resource_monitor:
+            resource_metrics = asyncio.run(self._resource_monitor.get_metrics())
+            metrics['resources'] = {
+                'memory_mb': resource_metrics.get('memory_mb', 0),
+                'memory_percent': resource_metrics.get('memory_percent', 0),
+                'cpu_percent': resource_metrics.get('cpu_percent', 0),
+                'active_operations': resource_metrics.get('active_operations', 0)
+            }
+        
+        # Add batch optimization metrics if available
+        if self._batch_optimizer:
+            metrics['batch_optimization'] = {
+                'current_batch_size': self._batch_optimizer.current_size,
+                'optimal_batch_size': self._batch_optimizer.get_optimal_batch_size()
+            }
         
         return metrics
     

@@ -142,7 +142,7 @@ class TestPerformanceValidation:
         collector.adapter = mock_adapter
 
         # Perform collection
-        results = collector.collect(
+        collector.collect(
             search_params={"zip_codes": ["85001"]}, save_to_repository=False
         )
 

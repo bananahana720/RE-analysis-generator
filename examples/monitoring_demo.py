@@ -84,7 +84,7 @@ async def demo_monitoring():
     }
 
     print("Initializing monitored scraper...")
-    scraper = MonitoredPhoenixMLSScraper(scraper_config, proxy_config)
+    MonitoredPhoenixMLSScraper(scraper_config, proxy_config)
     print("[OK] Scraper initialized with metrics integration\n")
 
     # 5. Simulate some scraping activity

@@ -66,7 +66,7 @@ class TestLoadTimeBenchmarks:
         times = []
         for _ in range(1000):
             start = time.perf_counter()
-            config = get_config()
+            get_config()
             elapsed = time.perf_counter() - start
             times.append(elapsed)
 

@@ -39,7 +39,7 @@ class TestLoggingConfigurationIntegration:
         logger.debug("Debug message")
 
         # With correlation ID
-        with correlation_context() as correlation_id:
+        with correlation_context():
             logger.info(
                 "Message with correlation",
                 extra={"test": "integration", "config_env": config.get_environment()},
@@ -257,7 +257,7 @@ def test_environment_configurations(environment):
     logger = get_logger(f"test.env.{environment}")
 
     # Test logging
-    with correlation_context() as correlation_id:
+    with correlation_context():
         logger.info(
             f"Testing in {environment}",
             extra={"environment": environment, "config_level": logging_config.get("level")},

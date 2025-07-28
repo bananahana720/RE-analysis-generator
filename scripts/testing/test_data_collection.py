@@ -32,7 +32,7 @@ async def test_data_collection():
             # Show first property
             if results['results']:
                 first = results['results'][0]
-                print(f"\nFirst Property:")
+                print("\nFirst Property:")
                 print(f"  - APN: {first.get('APN', 'N/A')}")
                 print(f"  - Address: {first.get('PropertyAddress', 'N/A')}")
                 print(f"  - Owner: {first.get('OwnerName', 'N/A')}")
@@ -46,7 +46,7 @@ async def test_data_collection():
                 print(f"\n[TEST] Getting details for APN {apn}...")
                 details = await client.get_parcel_details(apn)
                 if details:
-                    print(f"✅ Retrieved parcel details")
+                    print("✅ Retrieved parcel details")
                     print(f"  - Use Code: {details.get('UseCode', 'N/A')}")
                     print(f"  - Total Market Value: ${details.get('TotalMarketValue', 0):,.2f}")
                 

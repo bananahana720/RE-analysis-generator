@@ -478,7 +478,7 @@ class ConfigurationValidator:
 
             # Validate worker counts
             max_workers = config.get_typed("processing.max_workers", int, 2)
-            collection_workers = config.get_typed("collection.max_workers", int, 4)
+            config.get_typed("collection.max_workers", int, 4)
 
             import os
 
@@ -555,19 +555,19 @@ class ConfigurationValidator:
 
             # Test helper method functionality
             try:
-                db_config = config.get_database_config()
+                config.get_database_config()
                 self._add_result(True, "Database configuration helper works", "info")
             except Exception as e:
                 self._add_result(False, f"Database configuration helper failed: {e}", "error")
 
             try:
-                log_config = config.get_logging_config()
+                config.get_logging_config()
                 self._add_result(True, "Logging configuration helper works", "info")
             except Exception as e:
                 self._add_result(False, f"Logging configuration helper failed: {e}", "error")
 
             try:
-                collection_config = config.get_collection_config()
+                config.get_collection_config()
                 self._add_result(True, "Collection configuration helper works", "info")
             except Exception as e:
                 self._add_result(False, f"Collection configuration helper failed: {e}", "error")

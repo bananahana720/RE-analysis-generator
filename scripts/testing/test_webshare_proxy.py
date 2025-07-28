@@ -11,10 +11,9 @@ import os
 import sys
 from pathlib import Path
 import requests
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from dotenv import load_dotenv
 import logging
-from urllib.parse import urlparse
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))

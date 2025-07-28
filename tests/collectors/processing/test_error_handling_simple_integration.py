@@ -3,15 +3,13 @@ Simple integration tests for error handling components.
 """
 import asyncio
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from datetime import datetime
+from unittest.mock import AsyncMock
 
 from phoenix_real_estate.collectors.processing.error_handling import (
     ErrorRecoveryStrategy,
     CircuitBreaker,
     ProcessingError,
-    ErrorType,
-    FallbackExtractor
+    ErrorType
 )
 
 

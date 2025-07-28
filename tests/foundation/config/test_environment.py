@@ -148,7 +148,7 @@ class TestEnvironmentFactory:
 
         monkeypatch.setenv("ENVIRONMENT", "development")
         factory = EnvironmentFactory(root_dir=temp_config_dir)
-        config = factory.create_config()
+        factory.create_config()
 
         # Later files should override earlier ones
         assert os.environ.get("VAR") == "dev"

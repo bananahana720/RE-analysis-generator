@@ -73,7 +73,7 @@ def validate_system():
     print("-" * 30)
     try:
         from src.phoenix_real_estate.collectors.phoenix_mls.parser import PhoenixMLSParser
-        parser = PhoenixMLSParser()
+        PhoenixMLSParser()
         print("[PASS] Phoenix MLS parser can be instantiated")
         results['mls_parser'] = True
     except Exception as e:

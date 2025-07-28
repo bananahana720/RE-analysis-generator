@@ -60,7 +60,7 @@ async def test_extractor():
                 SAMPLE_HTML,
                 source="phoenix_mls"
             )
-            print(f"✓ Extracted MLS data:")
+            print("✓ Extracted MLS data:")
             print(f"  - Price: ${mls_result.get('price', 'N/A'):,}")
             print(f"  - Bedrooms: {mls_result.get('bedrooms', 'N/A')}")
             print(f"  - Bathrooms: {mls_result.get('bathrooms', 'N/A')}")
@@ -78,7 +78,7 @@ async def test_extractor():
                 SAMPLE_JSON,
                 source="maricopa_county"
             )
-            print(f"✓ Extracted Maricopa data:")
+            print("✓ Extracted Maricopa data:")
             print(f"  - Parcel: {maricopa_result.get('parcel_number', 'N/A')}")
             print(f"  - Owner: {maricopa_result.get('owner_name', 'N/A')}")
             print(f"  - Assessed Value: ${maricopa_result.get('assessed_value', 'N/A'):,}")

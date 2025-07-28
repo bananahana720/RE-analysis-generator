@@ -29,7 +29,7 @@ class TestPipelineIntegration:
     @pytest.mark.asyncio
     async def test_pipeline_basic_functionality(self):
         """Test basic pipeline functionality with mocks."""
-        from unittest.mock import Mock, AsyncMock
+        from unittest.mock import Mock
         
         # Create mock config
         config = Mock(spec=ConfigProvider)
@@ -60,7 +60,6 @@ class TestPipelineIntegration:
     def test_processing_result_dataclass(self):
         """Test ProcessingResult dataclass."""
         from phoenix_real_estate.collectors.processing import ProcessingResult
-        from phoenix_real_estate.models.property import PropertyDetails
         
         # Create a result
         result = ProcessingResult(

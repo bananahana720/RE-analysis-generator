@@ -2,9 +2,9 @@
 
 ## PROJECT CONTEXT
 - **Purpose**: Automated real estate data collection for Phoenix, AZ (zips: 85031, 85033, 85035)
-- **Budget**: $25/month maximum (currently ~$1/month with WebShare proxy)
-- **Status**: 90% operational - LLM processing complete (Task 6)
-- **Architecture**: 3-tier (Collection → Processing → API) with MongoDB storage
+- **Budget**: $25/month maximum (currently ~$2-3/month operational)
+- **Status**: 95% operational - LLM processing production-ready (Task 6 COMPLETE)
+- **Architecture**: 3-tier (Collection → LLM Processing → Storage) with MongoDB v8.1.2
 - **Package Name**: `phoenix_real_estate` (not `src`)
 
 ## DEVELOPMENT RULES
@@ -20,6 +20,7 @@
 ## ENVIRONMENT & TOOLS
 - **Python**: 3.13.4 (managed by uv, NOT pip)
 - **Database**: MongoDB v8.1.2 (localhost:27017)
+- **LLM**: Ollama with llama3.2:latest (2GB model)
 - **Package Manager**: uv with pyproject.toml
 - **Testing**: pytest (asyncio mode), ruff, pyright
 - **Web Scraping**: Playwright (for Phoenix MLS)
@@ -28,45 +29,26 @@
 ```
 src/phoenix_real_estate/
 ├── foundation/          # Core infrastructure (config, db, logging)
-├── collectors/          # Data collection (Maricopa API, Phoenix MLS)
-│   └── processing/      # LLM processing (Task 6 COMPLETE)
+├── collectors/          # Data collection + LLM processing (Task 6 ✅)
 ├── orchestration/       # ProcessingIntegrator, workflow coordination
-├── models/              # PropertyDetails, validation models
-└── utils/              # Shared utilities
+└── models/              # PropertyDetails, validation models
 
-config/                  # YAML configurations
-├── proxies.yaml        # WebShare proxy settings
-├── selectors/          # CSS selectors for scrapers
-└── *.yaml.example      # Template files
-
-scripts/
-├── testing/            # Test scripts for services
-├── setup/              # Configuration helpers
-└── validation/         # System validation
-
-tests/
-├── e2e/               # End-to-end tests with Playwright
-├── collectors/        # Collector unit tests
-└── foundation/        # Infrastructure tests
+config/*.yaml            # Configurations (proxies, selectors)
+scripts/                 # Testing, setup, validation helpers
+tests/                   # Unit, integration, e2e tests
 ```
 
 ## KEY COMMANDS
 ```bash
-# MongoDB Management (run as Administrator)
-net start MongoDB                                    # Start service
-net stop MongoDB                                     # Stop service
-
-# LLM Processing (NEW)
-ollama serve                                        # Start Ollama service
+# Essential Services
+net start MongoDB                                    # Start database (Admin)
+ollama serve                                        # Start LLM service
 ollama pull llama3.2:latest                        # Download model (2GB)
-python scripts/testing/test_property_extractor.py  # Test LLM extraction
-python scripts/examples/test_epic_integration.py   # Full pipeline test
 
 # Development Workflow
 uv sync                                             # Install dependencies
-uv run ruff check . --fix                          # Lint code
 uv run pytest tests/collectors/processing/ -v      # Test LLM processing
-make security-check                                 # Check for secrets
+uv run ruff check . --fix                          # Lint + fix code
 ```
 
 ## CONFIGURATION FILES
@@ -77,34 +59,30 @@ make security-check                                 # Check for secrets
    
 2. **`config/proxies.yaml`** - WebShare proxy credentials in `.env`
 
-## CURRENT STATUS (90% OPERATIONAL)
+## CURRENT STATUS (95% OPERATIONAL)
 
 ### Working Components (✅)
-- MongoDB v8.1.2 running with all collections
-- Maricopa API configured (84% success rate)
-- WebShare proxy (10 proxies, verified working)
-- 2captcha service ($10 balance)
-- **LLM Processing**: Ollama with llama3.2:latest (Task 6 complete)
-- **83 unit tests** passing for processing module
+- MongoDB v8.1.2, Maricopa API (84% success), WebShare proxy (10), 2captcha ($10)
+- **LLM Processing**: Production-ready with caching, monitoring, performance optimization
+- **All tests passing** (critical issues from quality assessment resolved)
 
-### LLM Processing Architecture (NEW)
+### LLM Processing Architecture (PRODUCTION-READY)
 ```
-Collectors → ProcessingIntegrator → Pipeline → OllamaClient (llama3.2:latest)
+Collectors → ProcessingIntegrator → DataProcessingPipeline → OllamaClient → MongoDB
 ```
-- **Model**: llama3.2:latest (NOT llama2:7b) - 2GB download
-- **Components**: OllamaClient, PropertyDataExtractor, ProcessingValidator
-- **Error Handling**: Circuit breakers, dead letter queues, fallback extraction
-- **Integration**: ProcessingIntegrator bridges collectors and pipeline
+- **Model**: llama3.2:latest (2GB) - High accuracy, fast processing
+- **Components**: OllamaClient, PropertyDataExtractor, ProcessingValidator, CacheManager
+- **Features**: Caching, monitoring, batch processing, circuit breakers, error recovery
 
 ## CRITICAL IMPLEMENTATION DETAILS
-- **BaseConfig**: No `get()` method - use `getattr(config, 'key', default)`
+- **Config**: Use `config.get()` and `config.get_typed()` (NOT config.settings.FIELD)
 - **Maricopa Headers**: Must use `AUTHORIZATION` (not Authorization) + `user-agent: null`
 - **WebShare Auth**: `Authorization: Token {api_key}` format
 - **Import Path**: Always use `phoenix_real_estate` not `src`
 - **MongoDB Check**: Use `is None` not boolean truthiness
 - **Ollama Model**: llama3.2:latest (NOT llama2:7b) - critical for extraction
 - **Async Context**: Always use `async with` for LLM components
-- **Processing Flow**: Raw data → ProcessingIntegrator → Pipeline → Validated data
+- **Cache Keys**: Use CacheManager._generate_cache_key() for consistent caching
 
 ## CODE STANDARDS
 - **Async/await** for all I/O operations
@@ -118,11 +96,21 @@ Collectors → ProcessingIntegrator → Pipeline → OllamaClient (llama3.2:late
 from phoenix_real_estate.foundation import ConfigProvider
 from phoenix_real_estate.orchestration import ProcessingIntegrator
 
+# Single property processing
 async with ProcessingIntegrator(ConfigProvider()) as integrator:
     result = await integrator.process_property(
         {"html": "<div>property data</div>"}, "phoenix_mls"
     )
+
+# Batch processing (optimized)
+async with ProcessingIntegrator(ConfigProvider()) as integrator:
+    results = await integrator.process_maricopa_batch(property_list)
 ```
+
+## COMMON ISSUES
+- **Config errors**: Use `config.get()` not `config.settings.FIELD`
+- **Import errors**: Check missing imports (OllamaClient, etc.)
+- **Cache/Ollama**: Verify service running and key generation
 
 ## BEFORE COMMITS
 1. `uv run ruff check . --fix` - Fix linting issues

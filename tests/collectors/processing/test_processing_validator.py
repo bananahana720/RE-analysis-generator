@@ -3,7 +3,6 @@
 import pytest
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, Any
 
 from phoenix_real_estate.collectors.processing.validator import (
     ProcessingValidator,

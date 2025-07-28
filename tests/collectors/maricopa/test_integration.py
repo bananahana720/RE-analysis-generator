@@ -450,7 +450,7 @@ class TestMaricopaProductionScenarios:
     async def test_high_volume_data_collection(self, production_config):
         """Test high-volume data collection scenario."""
         async with MaricopaAPIClient(production_config) as client:
-            adapter = MaricopaDataAdapter(logger_name="production_test")
+            MaricopaDataAdapter(logger_name="production_test")
 
             # Simulate realistic batch processing
             zip_codes = ["85001", "85002", "85003", "85004", "85005"]
@@ -491,7 +491,7 @@ class TestMaricopaProductionScenarios:
     async def test_data_pipeline_resilience(self, production_config):
         """Test data pipeline resilience under various failure conditions."""
         async with MaricopaAPIClient(production_config) as client:
-            adapter = MaricopaDataAdapter(logger_name="resilience_test")
+            MaricopaDataAdapter(logger_name="resilience_test")
 
             # Simulate mixed success/failure scenario
             responses = [
@@ -519,7 +519,7 @@ class TestMaricopaProductionScenarios:
 
                             for i in range(4):
                                 try:
-                                    result = await client.search_property(f"8500{i}")
+                                    await client.search_property(f"8500{i}")
                                     successful_requests += 1
                                 except DataCollectionError:
                                     failed_requests += 1

@@ -6,19 +6,15 @@ This script helps set up WebShare proxy and 2captcha services
 with proper validation and testing.
 """
 
-import os
 import sys
 import asyncio
 import aiohttp
 from pathlib import Path
-from typing import Dict, Any, Optional
-import json
 from datetime import datetime
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.phoenix_real_estate.foundation.config import get_config
 from src.phoenix_real_estate.foundation.logging import get_logger
 
 logger = get_logger(__name__)

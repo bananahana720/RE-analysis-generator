@@ -2,13 +2,11 @@
 
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
-import json
+from unittest.mock import AsyncMock, patch
 from aiohttp import ClientError
 
 from phoenix_real_estate.collectors.processing import OllamaClient
 from phoenix_real_estate.foundation import ConfigProvider
-from phoenix_real_estate.foundation.utils.exceptions import ProcessingError
 
 
 class TestOllamaClient:
@@ -20,20 +18,27 @@ class TestOllamaClient:
         from unittest.mock import Mock
         
         config = Mock(spec=ConfigProvider)
-        # Create settings object with attributes
-        config.settings = Mock()
-        config.settings.OLLAMA_BASE_URL = "http://localhost:11434"
-        config.settings.LLM_MODEL = "llama3.2:latest"
-        config.settings.LLM_TIMEOUT = 30
-        config.settings.LLM_MAX_RETRIES = 2
         
-        # Also support get() method for compatibility
+        # Support get() method for compatibility
         config.get = Mock(side_effect=lambda key, default=None: {
             "OLLAMA_BASE_URL": "http://localhost:11434",
             "LLM_MODEL": "llama3.2:latest",
             "LLM_TIMEOUT": 30,
             "LLM_MAX_RETRIES": 2
         }.get(key, default))
+        
+        # Support get_typed() method for type-safe configuration access
+        def mock_get_typed(key, type_cls, default=None):
+            values = {
+                "LLM_TIMEOUT": 30,
+                "LLM_MAX_RETRIES": 2
+            }
+            value = values.get(key, default)
+            if value is not None and type_cls is not None:
+                return type_cls(value)
+            return value
+        
+        config.get_typed = Mock(side_effect=mock_get_typed)
         
         return config
     

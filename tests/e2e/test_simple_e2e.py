@@ -8,7 +8,6 @@ or the actual Phoenix MLS website.
 
 import asyncio
 import pytest
-from datetime import datetime
 import sys
 import os
 
@@ -17,7 +16,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from phoenix_real_estate.foundation.config import get_config, reset_config_cache
 from phoenix_real_estate.foundation.logging import get_logger
-from phoenix_real_estate.foundation.monitoring import MetricsCollector
 
 
 @pytest.mark.e2e

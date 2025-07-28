@@ -473,7 +473,7 @@ class TestPhoenixMLSParser:
     def test_store_raw_html(self, parser, sample_property_html):
         """Test storing raw HTML for future re-parsing."""
         property_id = "123456"
-        timestamp = datetime.now()
+        datetime.now()
 
         # Store the HTML
         parser.store_html(

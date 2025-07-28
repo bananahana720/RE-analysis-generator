@@ -137,7 +137,7 @@ class TestDatabaseConfigurationIntegration:
     @pytest.mark.asyncio
     async def test_database_config_missing_required_fields(self):
         """Test database initialization with missing configuration."""
-        config = SimpleConfigProvider()
+        SimpleConfigProvider()
         # Don't set MONGODB_URI
 
         # Patch the ConfigProvider import in repositories module
@@ -150,7 +150,7 @@ class TestDatabaseConfigurationIntegration:
             mock_provider.return_value = mock_instance
 
             with pytest.raises(ConfigurationError) as exc_info:
-                repo = RepositoryFactory.get_property_repository()
+                RepositoryFactory.get_property_repository()
 
             assert "No MongoDB URI configured" in str(exc_info.value)
 
@@ -214,7 +214,7 @@ class TestLoggingConfigurationIntegration:
 
         # Test logging at different levels
         with patch.object(logger, "warning") as mock_warning:
-            with patch.object(logger, "info") as mock_info:
+            with patch.object(logger, "info"):
                 logger.warning("Warning message")
                 logger.info("Info message")
 
@@ -754,7 +754,7 @@ class TestErrorPropagationAndRecovery:
         config.set("TIMEOUT", 30)
 
         with pytest.raises(ConfigurationError) as exc_info:
-            component = StrictComponent(config)
+            StrictComponent(config)
 
         assert "API_KEY" in str(exc_info.value)
         assert "DATABASE_URL" in str(exc_info.value)
@@ -780,7 +780,7 @@ class TestErrorPropagationAndRecovery:
                 while self.retry_count < self.max_retries:
                     try:
                         uri = self.config.get("MONGODB_URI")
-                        db_name = self.config.get("MONGODB_DATABASE")
+                        self.config.get("MONGODB_DATABASE")
 
                         # Simulate connection attempt
                         if uri.startswith("invalid://"):
@@ -864,7 +864,7 @@ class TestErrorPropagationAndRecovery:
 
         # Test with missing configuration
         with pytest.raises(ConfigurationError) as exc_info:
-            service = ServiceComponent(config)
+            ServiceComponent(config)
 
         error_msg = str(exc_info.value)
         assert "Database: DATABASE_URI not configured" in error_msg
@@ -889,7 +889,7 @@ class TestPerformanceImpact:
         for _ in range(iterations):
             # Random lookups
             key = f"KEY_{_ % 1000}"
-            value = config.get(key)
+            config.get(key)
 
         elapsed = time.time() - start_time
         avg_lookup_time = elapsed / iterations
@@ -969,7 +969,7 @@ class TestPerformanceImpact:
             try:
                 for i in range(iterations):
                     key = f"CONCURRENT_KEY_{i % 100}"
-                    value = config.get(key)
+                    config.get(key)
                     read_count += 1
                     await asyncio.sleep(0.0001)  # Simulate work
             except Exception as e:
@@ -1098,7 +1098,7 @@ class TestRealWorldIntegrationScenarios:
                 self.logger.debug("Collecting batch %d (size: %d)", batch_num, size)
 
                 # Simulate API call with timeout
-                timeout = self.config.get("COLLECTION_TIMEOUT", 60)
+                self.config.get("COLLECTION_TIMEOUT", 60)
 
                 try:
                     # Simulate collection

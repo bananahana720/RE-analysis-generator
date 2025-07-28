@@ -3,18 +3,13 @@
 Tests the bridge between Epic 1 collectors and Epic 2 processing pipeline.
 """
 
-import asyncio
-import json
-from datetime import datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from phoenix_real_estate.collectors.maricopa.collector import MaricopaAPICollector
 from phoenix_real_estate.collectors.phoenix_mls.scraper import PhoenixMLSScraper
 from phoenix_real_estate.collectors.processing.pipeline import DataProcessingPipeline, ProcessingResult
-from phoenix_real_estate.foundation import ConfigProvider, PropertyRepository
-from phoenix_real_estate.foundation.database.schema import Property
 from phoenix_real_estate.models.property import PropertyDetails
 from phoenix_real_estate.orchestration.processing_integrator import (
     ProcessingIntegrator,

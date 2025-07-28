@@ -1,0 +1,53 @@
+# Prometheus configuration for Phoenix Real Estate LLM Processing
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'phoenix-re-monitor'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - localhost:9093
+
+# Load rules
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # LLM Processing Service
+  - job_name: 'llm_processing'
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Ollama Service
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['localhost:11434']
+    metrics_path: '/api/metrics'
+    scrape_interval: 30s
+
+  # MongoDB Exporter
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['localhost:9216']
+    scrape_interval: 30s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 30s
+
+  # Windows Exporter (for Windows hosts)
+  - job_name: 'windows'
+    static_configs:
+      - targets: ['localhost:9182']
+    scrape_interval: 30s

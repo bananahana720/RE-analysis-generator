@@ -1,0 +1,147 @@
+# Alert rules for LLM Processing Service
+groups:
+  - name: llm_processing
+    interval: 30s
+    rules:
+      # Service Health Alerts
+      - alert: LLMProcessingServiceDown
+        expr: up{job="llm_processing"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: llm_processing
+        annotations:
+          summary: "LLM Processing Service is down"
+          description: "The LLM Processing Service has been down for more than 2 minutes."
+
+      # Ollama Connection Alerts
+      - alert: OllamaServiceDown
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: ollama
+        annotations:
+          summary: "Ollama service is down"
+          description: "The Ollama LLM service has been down for more than 2 minutes."
+
+      # Processing Performance Alerts
+      - alert: HighProcessingLatency
+        expr: histogram_quantile(0.95, rate(llm_processing_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "High LLM processing latency"
+          description: "95th percentile processing time is above 30 seconds for 5 minutes."
+
+      - alert: ProcessingQueueBacklog
+        expr: llm_processing_queue_size > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "Processing queue backlog"
+          description: "Processing queue has more than 50 items for 5 minutes."
+
+      - alert: ProcessingQueueFull
+        expr: llm_processing_queue_size >= 90
+        for: 2m
+        labels:
+          severity: critical
+          service: llm_processing
+        annotations:
+          summary: "Processing queue is nearly full"
+          description: "Processing queue is at 90% capacity or higher."
+
+      # Error Rate Alerts
+      - alert: HighProcessingErrorRate
+        expr: |
+          (
+            sum(rate(llm_processing_requests_total{status="error"}[5m]))
+            /
+            sum(rate(llm_processing_requests_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "High processing error rate"
+          description: "Error rate is above 10% for 5 minutes."
+
+      - alert: CriticalProcessingErrorRate
+        expr: |
+          (
+            sum(rate(llm_processing_requests_total{status="error"}[5m]))
+            /
+            sum(rate(llm_processing_requests_total[5m]))
+          ) > 0.25
+        for: 2m
+        labels:
+          severity: critical
+          service: llm_processing
+        annotations:
+          summary: "Critical processing error rate"
+          description: "Error rate is above 25% for 2 minutes."
+
+      # Resource Usage Alerts
+      - alert: HighMemoryUsage
+        expr: llm_memory_usage_bytes / (3 * 1024 * 1024 * 1024) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 80% of limit (3GB) for 5 minutes."
+
+      - alert: CriticalMemoryUsage
+        expr: llm_memory_usage_bytes / (3 * 1024 * 1024 * 1024) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          service: llm_processing
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is above 95% of limit (3GB)."
+
+      # Cache Performance Alerts
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(llm_cache_hits_total[5m]))
+            /
+            (sum(rate(llm_cache_hits_total[5m])) + sum(rate(llm_cache_misses_total[5m])))
+          ) < 0.3
+        for: 10m
+        labels:
+          severity: info
+          service: llm_processing
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is below 30% for 10 minutes."
+
+      # Circuit Breaker Alerts
+      - alert: CircuitBreakerOpen
+        expr: llm_circuit_breaker_state == 2
+        for: 1m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "LLM circuit breaker has been open for more than 1 minute."
+
+      # Dead Letter Queue Alerts
+      - alert: DeadLetterQueueGrowing
+        expr: llm_dead_letter_queue_size > 10
+        for: 10m
+        labels:
+          severity: warning
+          service: llm_processing
+        annotations:
+          summary: "Dead letter queue is growing"
+          description: "Dead letter queue has more than 10 items for 10 minutes."

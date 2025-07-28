@@ -4,13 +4,11 @@ import asyncio
 import json
 import re
 from typing import Dict, Any, Optional
-from datetime import datetime
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout, ClientError
 
 from phoenix_real_estate.foundation.config.base import ConfigProvider
 from phoenix_real_estate.foundation.logging.factory import get_logger
-from phoenix_real_estate.foundation.utils.exceptions import ProcessingError
 from phoenix_real_estate.foundation.utils.helpers import retry_async
 
 
@@ -22,15 +20,18 @@ class OllamaClient:
         self.config = config
         self.logger = get_logger("llm.ollama_client")
         
-        # Load configuration - CORRECT pattern using getattr
-        self.base_url = getattr(config.settings, "OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model_name = getattr(config.settings, "LLM_MODEL", "llama3.2:latest") 
-        self.timeout_seconds = getattr(config.settings, "LLM_TIMEOUT", 30)
-        self.max_retries = getattr(config.settings, "LLM_MAX_RETRIES", 2)
+        # Load configuration - CORRECT pattern using config.get()
+        self.base_url = config.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        self.model_name = config.get("LLM_MODEL", "llama3.2:latest") 
+        self.timeout_seconds = config.get_typed("LLM_TIMEOUT", int, default=30)
+        self.max_retries = config.get_typed("LLM_MAX_RETRIES", int, default=2)
         
         # HTTP client setup
         self.timeout = ClientTimeout(total=self.timeout_seconds)
         self.session: Optional[ClientSession] = None
+        
+        # Cache manager (will be set by pipeline if caching is enabled)
+        self._cache_manager: Optional[Any] = None
         
         self.logger.info(
             "Ollama client initialized",
@@ -107,11 +108,32 @@ class OllamaClient:
         self, 
         prompt: str, 
         system_prompt: Optional[str] = None,
-        max_tokens: int = 1000
+        max_tokens: int = 1000,
+        cache_key: Optional[str] = None
     ) -> Optional[str]:
-        """Generate completion using Ollama."""
-        # Use retry wrapper
-        return await retry_async(
+        """Generate completion using Ollama with optional caching.
+        
+        Args:
+            prompt: The prompt to send to the model
+            system_prompt: Optional system prompt
+            max_tokens: Maximum tokens to generate
+            cache_key: Optional cache key for response caching
+            
+        Returns:
+            Generated text or None if failed
+        """
+        # Check cache first if enabled
+        if self._cache_manager and cache_key:
+            cached_response = await self._cache_manager.get(
+                {"prompt": prompt, "cache_key": cache_key}, 
+                "completion"
+            )
+            if cached_response:
+                self.logger.debug(f"Cache hit for completion: {cache_key}")
+                return cached_response.get("response")
+        
+        # Generate new completion
+        response = await retry_async(
             self._generate_completion_impl,
             prompt,
             system_prompt,
@@ -120,6 +142,16 @@ class OllamaClient:
             delay=1.0,
             backoff_factor=2.0
         )
+        
+        # Cache the response if enabled
+        if self._cache_manager and cache_key and response:
+            await self._cache_manager.set(
+                {"prompt": prompt, "cache_key": cache_key},
+                "completion",
+                {"response": response, "tokens": max_tokens}
+            )
+        
+        return response
     
     async def _generate_completion_impl(
         self, 

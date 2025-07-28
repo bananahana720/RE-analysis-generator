@@ -4,7 +4,6 @@ Tests for error handling and recovery strategies in the processing pipeline.
 import asyncio
 import pytest
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
 from unittest.mock import Mock, AsyncMock, patch
 
 from phoenix_real_estate.collectors.processing.error_handling import (
@@ -681,7 +680,7 @@ class TestErrorRecoveryStrategy:
         strategy = ErrorRecoveryStrategy()
         
         # Mock LLM processor
-        llm_processor = Mock()
+        Mock()
         
         # Simulate different error scenarios
         test_scenarios = [

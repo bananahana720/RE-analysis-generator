@@ -287,7 +287,7 @@ class EnvironmentValidator:
             # Test secrets module import
             from phoenix_real_estate.foundation.config.secrets import SecretManager
             
-            secret_manager = SecretManager()
+            SecretManager()
             self._add_result(
                 'Secrets', 'Secret Manager', 'PASS',
                 "Secret manager initialized successfully"

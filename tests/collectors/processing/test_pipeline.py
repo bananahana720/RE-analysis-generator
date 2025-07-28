@@ -3,9 +3,8 @@
 import pytest
 import asyncio
 from datetime import datetime, timezone
-from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, patch
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from phoenix_real_estate.collectors.processing import DataProcessingPipeline
 from phoenix_real_estate.collectors.processing.extractor import PropertyDataExtractor
@@ -22,20 +21,38 @@ class TestDataProcessingPipeline:
     def test_config(self):
         """Create test configuration."""
         config = Mock(spec=ConfigProvider)
-        config.settings = Mock()
-        config.settings.BATCH_SIZE = 5
-        config.settings.MAX_CONCURRENT_PROCESSING = 3
-        config.settings.PROCESSING_TIMEOUT = 60
-        config.settings.ENABLE_METRICS = True
-        config.settings.RETRY_ATTEMPTS = 2
-        config.settings.RETRY_DELAY = 1.0
         
-        # Create a custom getattr method that returns settings values
-        def custom_getattr(name, default=None):
-            return getattr(config.settings, name, default) if hasattr(config.settings, name) else default
+        # Support get() method
+        config.get = Mock(side_effect=lambda key, default=None: {
+            "VALIDATION_CONFIG": None,
+            "CACHE_BACKEND": "memory"
+        }.get(key, default))
         
-        # Add the getattr method as an attribute (not magic method)
-        config.getattr = custom_getattr
+        # Support get_typed() method for type-safe configuration access
+        def mock_get_typed(key, type_cls, default=None):
+            values = {
+                "BATCH_SIZE": 5,
+                "MAX_CONCURRENT_PROCESSING": 3,
+                "PROCESSING_TIMEOUT": 60,
+                "ENABLE_METRICS": True,
+                "RETRY_ATTEMPTS": 2,
+                "RETRY_DELAY": 1.0,
+                "CACHE_ENABLED": True,
+                "RESOURCE_MONITORING_ENABLED": True,
+                "ADAPTIVE_BATCH_SIZING": True,
+                "CACHE_TTL_HOURS": 24.0,
+                "CACHE_MAX_SIZE_MB": 100.0,
+                "MAX_MEMORY_MB": 1024,
+                "MAX_CPU_PERCENT": 80,
+                "MAX_BATCH_SIZE": 100,
+                "EXTRACTION_TIMEOUT": 30
+            }
+            value = values.get(key, default)
+            if value is not None and type_cls is not None:
+                return type_cls(value)
+            return value
+        
+        config.get_typed = Mock(side_effect=mock_get_typed)
         
         return config
     

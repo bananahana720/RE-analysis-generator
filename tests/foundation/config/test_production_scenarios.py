@@ -144,7 +144,7 @@ class TestSecretRotation:
         """Test rotating secrets without restarting the application."""
         # Initial secret setup
         os.environ["SECRET_API_KEY"] = "initial_key_123"
-        secret_manager = get_secret_manager()
+        get_secret_manager()
 
         # Verify initial secret
         assert get_secret("SECRET_API_KEY") == "initial_key_123"
@@ -561,7 +561,7 @@ class TestPerformanceBenchmarks:
         for _ in range(100):
             reset_config_cache()
             start = time.time()
-            config = get_config()
+            get_config()
             elapsed = time.time() - start
             times.append(elapsed)
 

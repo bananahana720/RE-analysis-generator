@@ -278,13 +278,13 @@ class TestInfrastructureE2E:
         for prop in properties:
             insert_tasks.append(repository.upsert_property(prop))
         
-        results = await asyncio.gather(*insert_tasks)
+        await asyncio.gather(*insert_tasks)
         
         insert_time = time.time() - start_time
         
         # Measure retrieval performance
         retrieve_start = time.time()
-        all_props = await repository.get_all_properties(limit=num_properties)
+        await repository.get_all_properties(limit=num_properties)
         retrieve_time = time.time() - retrieve_start
         
         # Calculate metrics
@@ -295,7 +295,7 @@ class TestInfrastructureE2E:
         avg_insert_time = insert_time / num_properties
         avg_retrieve_time = retrieve_time / num_properties
         
-        print(f"\nPerformance Metrics:")
+        print("\nPerformance Metrics:")
         print(f"  Total Properties: {num_properties}")
         print(f"  Total Insert Time: {insert_time:.2f}s")
         print(f"  Avg Insert Time: {avg_insert_time*1000:.2f}ms per property")
