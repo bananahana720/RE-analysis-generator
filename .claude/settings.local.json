@@ -7,13 +7,15 @@
       "Bash",
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__fetch__fetch",
-      "WebFetch(domain:apidocs.webshare.io)"
+      "WebFetch(domain:apidocs.webshare.io)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:)"
     ],
     "deny": [
-      "Write(.claude/**)",
-      "MultiEdit(.claude/**)",
-      "Edit(.claude/**)",
-      "Bash(.claude/**)",
+      "Write(.claude/hooks/**)",
+      "MultiEdit(.claude/hooks/**)",
+      "Edit(.claude/hooks/**)",
+      "Bash(.claude/hooks/**)",
       "Read(.claude/tdd-guard/**)"
     ]
   }
