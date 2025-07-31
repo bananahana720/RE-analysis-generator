@@ -225,6 +225,9 @@ class EnvironmentConfigProvider(ConfigProvider):
         # Initialize configuration storage
         self.config: Dict[str, Any] = {}
         self._cache: Dict[str, Any] = {}
+        
+        # Sentinel for distinguishing None values from not-found
+        self._NOT_FOUND = object()
 
         # Load configuration
         self._load_configuration()
@@ -428,7 +431,7 @@ class EnvironmentConfigProvider(ConfigProvider):
 
         current[parts[-1]] = value
 
-    def _get_nested_value(self, data: Dict[str, Any], key: str) -> Any:
+    def _get_nested_value(self, data: Dict[str, Any], key: str, not_found_sentinel: Any = None) -> Any:
         """Get a value from nested dictionary using dot notation.
 
         Args:
@@ -452,7 +455,7 @@ class EnvironmentConfigProvider(ConfigProvider):
                     if any(k != "_value" for k in current.keys()):
                         return current["_value"]
             else:
-                return None
+                return not_found_sentinel
 
         return current
 
@@ -650,13 +653,19 @@ class EnvironmentConfigProvider(ConfigProvider):
         # Check cache first
         if key in self._cache:
             cached_value = self._cache[key]
-            # Return default if cached value is None and default is provided
-            return default if cached_value is None and default is not None else cached_value
+            # If cached value is our NOT_FOUND sentinel, return default
+            if cached_value is self._NOT_FOUND:
+                return default
+            # Otherwise return the actual cached value (even if None)
+            return cached_value
 
-        # Get value from config
-        value = self._get_nested_value(self.config, key)
+        # Get value from config using sentinel to distinguish None vs not found
+        value = self._get_nested_value(self.config, key, self._NOT_FOUND)
 
-        if value is None and default is not None:
+        # If key not found, return default
+        if value is self._NOT_FOUND:
+            # Cache the not-found result
+            self._cache[key] = self._NOT_FOUND
             return default
 
         # Cache the actual value (could be None)
@@ -709,14 +718,15 @@ class EnvironmentConfigProvider(ConfigProvider):
 
         # Key found but value is None
         if value is None:
-            # If default is None too, try to convert None
-            if default is None:
-                try:
-                    return self._convert_type(value, expected_type, key)
-                except ConfigurationError:
-                    return default
-            else:
+            # If default is provided, return it (properly typed)
+            if default is not None:
                 return default
+            # If no default provided, raise an error for None values
+            else:
+                raise ConfigurationError(
+                    f"Configuration key '{key}' has None value and no default provided",
+                    context={"key": key, "value": None, "expected_type": expected_type.__name__}
+                )
 
         # Normal case: convert the value
         try:

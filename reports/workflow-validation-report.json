@@ -1,0 +1,95 @@
+{
+  "timestamp": "2025-07-31T09:20:36.378698",
+  "summary": {
+    "total_workflows": 7,
+    "valid_workflows": 0,
+    "failed_workflows": 7,
+    "overall_score": 7.714285714285714,
+    "status": "GOOD"
+  },
+  "workflow_results": [
+    {
+      "name": "ci-cd.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "data-collection.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "deployment.yml",
+      "is_valid": false,
+      "score": 6.0,
+      "errors": [
+        "Missing required field: on",
+        "Missing scripts: ['deploy/validate_component.py', 'deploy/health_check.py', 'deploy/start_processors.py', 'database/migrate.py', 'deploy/validate_pipeline.py', 'deploy/rollback.py', 'database/validate_schema.py', 'database/backup.py', 'deploy/start_orchestration.py', 'deploy/start_collectors.py', 'deploy/performance_baseline.py']"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "maintenance.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "monitoring.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "security.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "name": "test-workflows.yml",
+      "is_valid": false,
+      "score": 8.0,
+      "errors": [
+        "Missing required field: on"
+      ],
+      "warnings": [],
+      "suggestions": [
+        "Add more production readiness features"
+      ]
+    }
+  ],
+  "critical_issues": [
+    "ci-cd.yml: Missing required field: on",
+    "data-collection.yml: Missing required field: on",
+    "deployment.yml: Missing required field: on",
+    "deployment.yml: Missing scripts: ['deploy/validate_component.py', 'deploy/health_check.py', 'deploy/start_processors.py', 'database/migrate.py', 'deploy/validate_pipeline.py', 'deploy/rollback.py', 'database/validate_schema.py', 'database/backup.py', 'deploy/start_orchestration.py', 'deploy/start_collectors.py', 'deploy/performance_baseline.py']",
+    "maintenance.yml: Missing required field: on",
+    "monitoring.yml: Missing required field: on",
+    "security.yml: Missing required field: on",
+    "test-workflows.yml: Missing required field: on"
+  ]
+}

@@ -355,7 +355,124 @@ class TestOrchestrationIntegration:
 
 ---
 
-### Subtask 2.2: Execution Reporting System [QA Engineer]
+### Subtask 2.2: LLM Processing Integration [Backend Developer]
+
+**TDD Test First**:
+```python
+# tests/automation/workflows/test_llm_integration.py
+import pytest
+from unittest.mock import AsyncMock, patch, MagicMock
+from datetime import datetime
+
+class TestLLMProcessingIntegration:
+    """Test LLM processing integration with GitHub Actions workflows."""
+    
+    @pytest.mark.asyncio
+    async def test_ollama_service_initialization(self):
+        """Test Ollama service initialization in workflow context."""
+        from phoenix_real_estate.automation.workflows.llm_integration import OllamaServiceManager
+        
+        # Given: GitHub Actions environment
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="llama3.2:latest")
+            
+            # When: Initializing Ollama service
+            manager = OllamaServiceManager()
+            result = await manager.initialize()
+            
+            # Then: Service should be started and model loaded
+            assert result["service_status"] == "running"
+            assert result["model_loaded"] == "llama3.2:latest"
+            assert mock_run.call_count >= 2  # serve + pull commands
+    
+    @pytest.mark.asyncio
+    async def test_processing_integrator_workflow_integration(self):
+        """Test ProcessingIntegrator integration with workflow."""
+        from phoenix_real_estate.automation.workflows.daily_collection import GitHubActionsDailyCollection
+        from phoenix_real_estate.orchestration import ProcessingIntegrator
+        
+        # Given: Workflow with mock ProcessingIntegrator
+        mock_integrator = AsyncMock(spec=ProcessingIntegrator)
+        mock_integrator.process_maricopa_batch.return_value = [
+            {"property_id": "123", "confidence_score": 0.95}
+        ]
+        
+        with patch('phoenix_real_estate.automation.workflows.daily_collection.ProcessingIntegrator', return_value=mock_integrator):
+            workflow = GitHubActionsDailyCollection()
+            
+            # When: Running workflow with collected properties
+            properties = [{"html": "<div>property data</div>"}]
+            result = await workflow.process_with_llm(properties)
+            
+            # Then: Properties should be processed through LLM
+            assert mock_integrator.process_maricopa_batch.called
+            assert result["processed_count"] == 1
+            assert result["average_confidence"] == 0.95
+    
+    @pytest.mark.asyncio
+    async def test_llm_failure_handling(self):
+        """Test handling of LLM processing failures."""
+        from phoenix_real_estate.automation.workflows.llm_integration import LLMProcessingHandler
+        
+        # Given: LLM service failure
+        handler = LLMProcessingHandler()
+        with patch('phoenix_real_estate.orchestration.ProcessingIntegrator') as mock_integrator:
+            mock_integrator.side_effect = Exception("Ollama service unavailable")
+            
+            # When: Processing with failed LLM
+            result = await handler.process_with_fallback([{"html": "data"}])
+            
+            # Then: Should fallback gracefully
+            assert result["fallback_used"] is True
+            assert result["error"] == "Ollama service unavailable"
+            assert result["raw_data_stored"] is True
+    
+    @pytest.mark.asyncio
+    async def test_processing_metrics_collection(self):
+        """Test LLM processing metrics collection."""
+        from phoenix_real_estate.automation.workflows.metrics import LLMMetricsCollector
+        
+        # Given: Processing results
+        processing_results = [
+            {"property_id": "1", "processing_time": 1.2, "confidence_score": 0.95},
+            {"property_id": "2", "processing_time": 1.5, "confidence_score": 0.92}
+        ]
+        
+        # When: Collecting metrics
+        collector = LLMMetricsCollector()
+        metrics = collector.calculate_metrics(processing_results)
+        
+        # Then: Metrics should be calculated correctly
+        assert metrics["total_processed"] == 2
+        assert metrics["average_processing_time"] == 1.35
+        assert metrics["average_confidence_score"] == 0.935
+        assert metrics["processing_success_rate"] == 1.0
+    
+    def test_ollama_health_check_script(self):
+        """Test Ollama health check script generation."""
+        from phoenix_real_estate.automation.workflows.scripts import OllamaScriptGenerator
+        
+        # When: Generating health check script
+        generator = OllamaScriptGenerator()
+        script = generator.generate_health_check()
+        
+        # Then: Script should contain required checks
+        assert "curl -s http://localhost:11434/api/version" in script
+        assert "ollama serve" in script
+        assert "ollama pull llama3.2:latest" in script
+        assert "sleep" in script  # Wait for service startup
+```
+
+**Implementation Tasks**:
+1. Create `OllamaServiceManager` for service lifecycle
+2. Integrate `ProcessingIntegrator` into workflow
+3. Implement `LLMProcessingHandler` with fallback logic
+4. Add `LLMMetricsCollector` for processing metrics
+5. Create health check and startup scripts
+
+---
+
+### Subtask 2.3: Execution Reporting System [QA Engineer]
 
 **TDD Test First**:
 ```python
@@ -1054,10 +1171,11 @@ class TestOperationalDocumentation:
 **Backend Developer**:
 - Subtask 1.3: Error Handling and Notifications
 - Subtask 2.1: Epic 3 Orchestration Integration
+- Subtask 2.2: LLM Processing Integration
 - Subtask 4.3: Operational Documentation
 
 **QA Engineer**:
-- Subtask 2.2: Execution Reporting System
+- Subtask 2.3: Execution Reporting System
 - Subtask 3.1: Quality Assurance Workflow
 - Subtask 3.3: QA Report Generation
 
@@ -1071,8 +1189,10 @@ class TestOperationalDocumentation:
    - Unit tests for individual components
    - Integration tests for Epic connections
    - System tests for complete workflows
+   - LLM-specific tests for Ollama integration
 3. **Coverage Requirements**: Minimum 90% for all new code
 4. **Continuous Validation**: Tests run on every commit via GitHub Actions
+5. **Total Test Cases**: 88+ (includes 5 new LLM integration tests)
 
 ### Success Metrics
 

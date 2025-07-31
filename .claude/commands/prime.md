@@ -1,11 +1,8 @@
-# Prime
-> Execute the following sections to understand the codebase then summarize your understanding.
+# Context Window Prime
 
-## Run
-git ls-files
+RUN:
+    git ls-files
 
-## Read
-@README.md
-
-## Read and Execute
-@ai_docs/README.md
+READ:
+    README.md
+    ai_docs/claude_code_fresh_tutorials.md

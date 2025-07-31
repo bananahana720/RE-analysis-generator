@@ -1,0 +1,20 @@
+title = "Phoenix Real Estate Security Config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+description = "Phoenix Real Estate API Keys"
+id = "phoenix-api-key"
+regex = """(MARICOPA_API_KEY|WEBSHARE_API_KEY|CAPTCHA_API_KEY)\s*=\s*["']*([a-zA-Z0-9-]{20,})["']*"""
+tags = ["api-key", "phoenix"]
+
+[allowlist]
+description = "Allow example and template values"
+paths = [
+    ".env.example",
+    "docs/",
+    "README.md",
+    "**/test_*.py",
+    "tests/"
+]

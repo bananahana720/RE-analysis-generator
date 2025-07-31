@@ -1,0 +1,43 @@
+name: Workflow Testing
+
+on:
+  push:
+    paths:
+    - ".github/workflows/**"
+    - "scripts/workflow_*.py" 
+    - "tests/test_workflow_*.py"
+  pull_request:
+    paths:
+    - ".github/workflows/**"
+  workflow_dispatch:
+
+env:
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  validate-workflows:
+    name: Validate Workflow Files
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Run workflow infrastructure tests
+      run: |
+        uv run pytest tests/test_workflow_runner.py -v
+        uv run pytest tests/test_workflow_validator.py -v
+        uv run pytest tests/test_mock_services.py -v

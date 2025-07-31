@@ -1,0 +1,44 @@
+# CODEOWNERS file for Phoenix Real Estate Data Collector
+# This file defines code owners for different parts of the repository
+
+# Global owners (fallback)
+* @project-maintainers
+
+# Security-related files require security team approval
+/.github/workflows/security.yml @security-team @project-maintainers
+/scripts/setup_secrets.py @security-team @project-maintainers
+/scripts/validate_secrets.py @security-team @project-maintainers
+/.gitleaks.toml @security-team @project-maintainers
+/CODEOWNERS @security-team @project-maintainers
+
+# Configuration files require senior review
+/.env.example @senior-developers @project-maintainers
+/pyproject.toml @senior-developers @project-maintainers
+/config/ @senior-developers @project-maintainers
+
+# Core foundation code requires architecture review
+/src/phoenix_real_estate/foundation/ @architects @project-maintainers
+
+# Sensitive collector code requires additional review
+/src/phoenix_real_estate/collectors/ @senior-developers @project-maintainers
+
+# Database and secrets management
+/src/phoenix_real_estate/foundation/config/secrets.py @security-team @architects
+/src/phoenix_real_estate/foundation/config/ @senior-developers @project-maintainers
+
+# Testing requires QA approval for critical paths
+/tests/integration/ @qa-team @senior-developers
+/tests/security/ @security-team @qa-team
+
+# Documentation updates
+/docs/ @documentation-team @project-maintainers
+/README.md @documentation-team @project-maintainers
+
+# GitHub Actions workflows require DevOps approval
+/.github/workflows/ @devops-team @project-maintainers
+/.github/dependabot.yml @devops-team @security-team
+
+# Deployment and infrastructure
+/scripts/ @devops-team @project-maintainers
+/Dockerfile @devops-team @project-maintainers
+/docker-compose.yml @devops-team @project-maintainers

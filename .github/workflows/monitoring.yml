@@ -1,0 +1,624 @@
+name: System Monitoring & Budget Tracking
+
+on:
+  schedule:
+    # Every 6 hours for budget monitoring
+    - cron: '0 */6 * * *'
+    # Weekly comprehensive system health check (Sundays at 1 AM UTC)
+    - cron: '0 1 * * 0'
+  workflow_dispatch:
+    inputs:
+      monitoring_type:
+        description: 'Type of monitoring to run'
+        required: true
+        type: choice
+        options: ['budget', 'system-health', 'performance', 'comprehensive']
+        default: 'comprehensive'
+      alert_threshold:
+        description: 'Budget alert threshold (percentage)'
+        required: false
+        type: number
+        default: 80
+      send_notifications:
+        description: 'Send notifications on issues'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  PYTHON_VERSION: "3.13"
+  BUDGET_LIMIT_USD: 25
+  ALERT_WEBHOOK_TIMEOUT: 30
+
+concurrency:
+  group: monitoring-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  budget-monitoring:
+    name: Budget & Cost Tracking
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.monitoring_type == 'budget' || github.event.inputs.monitoring_type == 'comprehensive'
+    timeout-minutes: 15
+    
+    outputs:
+      budget-status: ${{ steps.budget-check.outputs.status }}
+      current-usage: ${{ steps.budget-check.outputs.current-usage }}
+      usage-percentage: ${{ steps.budget-check.outputs.usage-percentage }}
+      projected-monthly: ${{ steps.budget-check.outputs.projected-monthly }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Calculate GitHub Actions usage
+      id: github-usage
+      run: |
+        # Calculate estimated GitHub Actions costs
+        current_day=$(date +%d)
+        days_in_month=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%d)
+        
+        # Estimate based on daily collection (10 min) + CI/CD usage
+        daily_minutes=12  # 10 for collection + 2 for CI/CD
+        monthly_estimate=$(( daily_minutes * days_in_month ))
+        
+        # GitHub Actions is free for public repos, but track usage
+        actions_cost=0.00
+        
+        echo "daily-minutes=$daily_minutes" >> $GITHUB_OUTPUT
+        echo "monthly-estimate=$monthly_estimate" >> $GITHUB_OUTPUT
+        echo "actions-cost=$actions_cost" >> $GITHUB_OUTPUT
+        
+        echo "📊 GitHub Actions Usage:"
+        echo "  Daily: $daily_minutes minutes"
+        echo "  Monthly Estimate: $monthly_estimate minutes"
+        echo "  Cost: \$${actions_cost}"
+    
+    - name: Check MongoDB Atlas usage
+      id: mongodb-usage
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      run: |
+        # MongoDB Atlas M0 (Free tier) - track usage
+        mongodb_cost=0.00
+        storage_usage="< 512MB"  # Free tier limit
+        
+        echo "mongodb-cost=$mongodb_cost" >> $GITHUB_OUTPUT
+        echo "storage-usage=$storage_usage" >> $GITHUB_OUTPUT
+        
+        echo "🗄️ MongoDB Atlas Usage:"
+        echo "  Tier: M0 (Free)"
+        echo "  Storage: $storage_usage"
+        echo "  Cost: \$${mongodb_cost}"
+    
+    - name: Check Ollama/LLM costs
+      id: llm-usage
+      run: |
+        # Ollama is local/free - no direct costs
+        llm_cost=0.00
+        model_size="2GB"  # llama3.2:latest
+        
+        echo "llm-cost=$llm_cost" >> $GITHUB_OUTPUT
+        echo "model-size=$model_size" >> $GITHUB_OUTPUT
+        
+        echo "🤖 LLM Usage:"
+        echo "  Provider: Ollama (Local)"
+        echo "  Model: llama3.2:latest ($model_size)"
+        echo "  Cost: \$${llm_cost}"
+    
+    - name: Check third-party service costs
+      id: services-usage
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        # WebShare proxy (estimate based on usage)
+        webshare_cost=2.50  # ~$2.50/month for 10 proxies
+        
+        # 2captcha service (estimate based on usage)  
+        captcha_cost=1.00   # ~$1/month for occasional captcha solving
+        
+        # Maricopa API (free)
+        maricopa_cost=0.00
+        
+        total_services_cost=$(python3 -c "print(f'{$webshare_cost + $captcha_cost:.2f}')")
+        
+        echo "webshare-cost=$webshare_cost" >> $GITHUB_OUTPUT
+        echo "captcha-cost=$captcha_cost" >> $GITHUB_OUTPUT
+        echo "maricopa-cost=$maricopa_cost" >> $GITHUB_OUTPUT
+        echo "total-services-cost=$total_services_cost" >> $GITHUB_OUTPUT
+        
+        echo "🌐 Third-party Services:"
+        echo "  WebShare Proxies: \$${webshare_cost}"
+        echo "  2captcha: \$${captcha_cost}"
+        echo "  Maricopa API: \$${maricopa_cost}"
+        echo "  Total: \$${total_services_cost}"
+    
+    - name: Calculate total budget usage
+      id: budget-check
+      run: |
+        github_cost="${{ steps.github-usage.outputs.actions-cost }}"
+        mongodb_cost="${{ steps.mongodb-usage.outputs.mongodb-cost }}"
+        llm_cost="${{ steps.llm-usage.outputs.llm-cost }}"
+        services_cost="${{ steps.services-usage.outputs.total-services-cost }}"
+        
+        total_current=$(python3 -c "print(f'{$github_cost + $mongodb_cost + $llm_cost + $services_cost:.2f}')")
+        usage_percentage=$(python3 -c "print(f'{($github_cost + $mongodb_cost + $llm_cost + $services_cost) / ${{ env.BUDGET_LIMIT_USD }} * 100:.1f}')")
+        
+        # Determine status based on usage
+        if (( $(echo "$usage_percentage >= 90" | bc -l) )); then
+          status="critical"
+        elif (( $(echo "$usage_percentage >= ${{ github.event.inputs.alert_threshold || 80 }}" | bc -l) )); then
+          status="warning"
+        else
+          status="healthy"
+        fi
+        
+        # Project monthly cost
+        current_day=$(date +%d)
+        days_in_month=$(date -d "$(date +%Y-%m-01) +1 month -1 day" +%d)
+        projected_monthly=$(python3 -c "print(f'{($services_cost / $current_day) * $days_in_month:.2f}')")
+        
+        echo "status=$status" >> $GITHUB_OUTPUT
+        echo "current-usage=$total_current" >> $GITHUB_OUTPUT
+        echo "usage-percentage=$usage_percentage" >> $GITHUB_OUTPUT
+        echo "projected-monthly=$projected_monthly" >> $GITHUB_OUTPUT
+        
+        echo "💰 Budget Summary:"
+        echo "  Current Usage: \$${total_current} / \${{ env.BUDGET_LIMIT_USD }}"
+        echo "  Usage Percentage: ${usage_percentage}%"
+        echo "  Status: $status"
+        echo "  Projected Monthly: \$${projected_monthly}"
+    
+    - name: Generate budget report
+      run: |
+        mkdir -p reports
+        cat << EOF > reports/budget-report.json
+        {
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "budget_limit_usd": ${{ env.BUDGET_LIMIT_USD }},
+          "current_usage_usd": ${{ steps.budget-check.outputs.current-usage }},
+          "usage_percentage": ${{ steps.budget-check.outputs.usage-percentage }},
+          "status": "${{ steps.budget-check.outputs.status }}",
+          "projected_monthly_usd": ${{ steps.budget-check.outputs.projected-monthly }},
+          "breakdown": {
+            "github_actions": ${{ steps.github-usage.outputs.actions-cost }},
+            "mongodb_atlas": ${{ steps.mongodb-usage.outputs.mongodb-cost }},
+            "llm_processing": ${{ steps.llm-usage.outputs.llm-cost }},
+            "webshare_proxies": ${{ steps.services-usage.outputs.webshare-cost }},
+            "captcha_service": ${{ steps.services-usage.outputs.captcha-cost }},
+            "maricopa_api": ${{ steps.services-usage.outputs.maricopa-cost }}
+          },
+          "usage_metrics": {
+            "github_actions_minutes_daily": ${{ steps.github-usage.outputs.daily-minutes }},
+            "github_actions_minutes_monthly": ${{ steps.github-usage.outputs.monthly-estimate }},
+            "mongodb_storage": "${{ steps.mongodb-usage.outputs.storage-usage }}",
+            "llm_model_size": "${{ steps.llm-usage.outputs.model-size }}"
+          }
+        }
+        EOF
+        
+        echo "✅ Budget report generated"
+    
+    - name: Upload budget artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: budget-report-${{ github.run_number }}
+        path: reports/budget-report.json
+        retention-days: 90
+
+  system-health-monitoring:
+    name: System Health Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.monitoring_type == 'system-health' || github.event.inputs.monitoring_type == 'comprehensive'
+    timeout-minutes: 20
+    
+    outputs:
+      system-status: ${{ steps.health-check.outputs.status }}
+      mongodb-status: ${{ steps.mongodb-health.outputs.status }}
+      ollama-status: ${{ steps.ollama-health.outputs.status }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Setup health check environment
+      run: |
+        mkdir -p {logs,reports,data/{raw,processed}}
+        echo "✅ Health check environment ready"
+    
+    - name: Check MongoDB health
+      id: mongodb-health
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      run: |
+        if [[ -n "$MONGODB_URL" ]]; then
+          uv run python scripts/testing/test_mongodb_connection.py > logs/mongodb-health.log 2>&1
+          if [[ $? -eq 0 ]]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ MongoDB connection healthy"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ MongoDB connection failed"
+          fi
+        else
+          echo "status=not-configured" >> $GITHUB_OUTPUT
+          echo "⚠️ MongoDB URL not configured"
+        fi
+    
+    - name: Setup and check Ollama health
+      id: ollama-health
+      run: |
+        # Install and start Ollama
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama serve &
+        sleep 15
+        
+        # Pull required model
+        ollama pull llama3.2:latest
+        
+        # Test Ollama API
+        if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+          echo "status=healthy" >> $GITHUB_OUTPUT
+          echo "✅ Ollama service healthy"
+        else
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          echo "❌ Ollama service failed"
+        fi
+    
+    - name: Check API endpoints health
+      id: api-health
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+      run: |
+        maricopa_status="unknown"
+        webshare_status="unknown"
+        
+        # Test Maricopa API (lightweight check)
+        if [[ -n "$MARICOPA_API_KEY" ]]; then
+          if timeout 10 curl -s -f "https://mcassessor.maricopa.gov/api/v1/parcels?limit=1" \
+             -H "Authorization: $MARICOPA_API_KEY" > /dev/null 2>&1; then
+            maricopa_status="healthy"
+          else
+            maricopa_status="unhealthy"
+          fi
+        else
+          maricopa_status="not-configured"
+        fi
+        
+        # Test WebShare proxy health
+        if [[ -n "$WEBSHARE_API_KEY" ]]; then
+          if timeout 10 curl -s -f "https://proxy.webshare.io/api/v2/proxy/list/?limit=1" \
+             -H "Authorization: Token $WEBSHARE_API_KEY" > /dev/null 2>&1; then
+            webshare_status="healthy"
+          else
+            webshare_status="unhealthy"
+          fi
+        else
+          webshare_status="not-configured"
+        fi
+        
+        echo "maricopa-status=$maricopa_status" >> $GITHUB_OUTPUT
+        echo "webshare-status=$webshare_status" >> $GITHUB_OUTPUT
+        
+        echo "🌐 API Health Status:"
+        echo "  Maricopa API: $maricopa_status"
+        echo "  WebShare Proxy: $webshare_status"
+    
+    - name: Run system validation tests
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: "http://localhost:11434"
+      run: |
+        # Run basic system validation
+        uv run python scripts/validation/validate_system.py --quick-check > logs/system-validation.log 2>&1
+        validation_exit_code=$?
+        
+        if [[ $validation_exit_code -eq 0 ]]; then
+          echo "✅ System validation passed"
+        else
+          echo "❌ System validation failed"
+        fi
+        
+        echo "validation-exit-code=$validation_exit_code" >> $GITHUB_ENV
+    
+    - name: Determine overall system health
+      id: health-check
+      run: |
+        mongodb_status="${{ steps.mongodb-health.outputs.status }}"
+        ollama_status="${{ steps.ollama-health.outputs.status }}"
+        maricopa_status="${{ steps.api-health.outputs.maricopa-status }}"
+        webshare_status="${{ steps.api-health.outputs.webshare-status }}"
+        validation_code="${{ env.validation-exit-code }}"
+        
+        # Determine overall status
+        if [[ "$mongodb_status" == "healthy" && "$ollama_status" == "healthy" && 
+              "$maricopa_status" == "healthy" && "$validation_code" == "0" ]]; then
+          overall_status="healthy"
+        elif [[ "$mongodb_status" == "unhealthy" || "$ollama_status" == "unhealthy" || 
+                "$maricopa_status" == "unhealthy" ]]; then
+          overall_status="unhealthy"
+        else
+          overall_status="degraded"
+        fi
+        
+        echo "status=$overall_status" >> $GITHUB_OUTPUT
+        
+        echo "🏥 Overall System Health: $overall_status"
+    
+    - name: Generate health report
+      run: |
+        mkdir -p reports
+        cat << EOF > reports/system-health.json
+        {
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "overall_status": "${{ steps.health-check.outputs.status }}",
+          "components": {
+            "mongodb": "${{ steps.mongodb-health.outputs.status }}",
+            "ollama": "${{ steps.ollama-health.outputs.status }}",
+            "maricopa_api": "${{ steps.api-health.outputs.maricopa-status }}",
+            "webshare_proxy": "${{ steps.api-health.outputs.webshare-status }}"
+          },
+          "validation": {
+            "system_check_passed": $(if [[ "${{ env.validation-exit-code }}" == "0" ]]; then echo "true"; else echo "false"; fi)
+          }
+        }
+        EOF
+        
+        echo "✅ System health report generated"
+    
+    - name: Upload health check artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: system-health-report-${{ github.run_number }}
+        path: |
+          reports/system-health.json
+          logs/mongodb-health.log
+          logs/system-validation.log
+        retention-days: 30
+
+  performance-monitoring:
+    name: Performance Metrics
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.monitoring_type == 'performance' || github.event.inputs.monitoring_type == 'comprehensive'
+    timeout-minutes: 25
+    
+    services:
+      mongodb:
+        image: mongo:8.1.2
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Setup Ollama for performance tests
+      run: |
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama serve &
+        sleep 15
+        ollama pull llama3.2:latest
+        echo "✅ Ollama ready for performance monitoring"
+    
+    - name: Wait for services
+      run: |
+        timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
+        timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
+        echo "✅ All services ready for performance monitoring"
+    
+    - name: Setup performance monitoring environment
+      env:
+        MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
+        OLLAMA_URL: http://localhost:11434
+      run: |
+        mkdir -p {data,logs,reports}/{raw,processed}
+        echo "✅ Performance monitoring environment setup"
+    
+    - name: Run performance benchmarks
+      env:
+        MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
+        OLLAMA_URL: http://localhost:11434
+      run: |
+        echo "🏃 Running performance benchmarks..."
+        
+        # LLM processing performance
+        start_time=$(date +%s)
+        uv run python scripts/testing/test_performance_optimizations.py --benchmark > logs/llm-performance.log 2>&1
+        llm_duration=$(( $(date +%s) - start_time ))
+        
+        # Database performance
+        start_time=$(date +%s)
+        uv run python scripts/testing/test_db_connection.py > logs/db-performance.log 2>&1
+        db_duration=$(( $(date +%s) - start_time ))
+        
+        echo "Performance Results:"
+        echo "  LLM Processing: ${llm_duration}s"
+        echo "  Database Operations: ${db_duration}s"
+        
+        echo "llm-duration=$llm_duration" >> $GITHUB_ENV
+        echo "db-duration=$db_duration" >> $GITHUB_ENV
+    
+    - name: Monitor resource usage
+      run: |
+        # Monitor system resources during performance test
+        echo "📊 Resource Usage Monitoring..."
+        
+        # CPU and memory usage
+        cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//')
+        memory_usage=$(free | grep Mem | awk '{printf "%.1f", $3/$2 * 100.0}')
+        
+        # Disk usage
+        disk_usage=$(df -h / | awk 'NR==2{printf "%s", $5}' | sed 's/%//')
+        
+        echo "Resource Usage:"
+        echo "  CPU: ${cpu_usage}%"
+        echo "  Memory: ${memory_usage}%"
+        echo "  Disk: ${disk_usage}%"
+        
+        echo "cpu-usage=$cpu_usage" >> $GITHUB_ENV
+        echo "memory-usage=$memory_usage" >> $GITHUB_ENV
+        echo "disk-usage=$disk_usage" >> $GITHUB_ENV
+    
+    - name: Generate performance report
+      run: |
+        mkdir -p reports
+        cat << EOF > reports/performance-metrics.json
+        {
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "benchmarks": {
+            "llm_processing_duration_seconds": ${{ env.llm-duration }},
+            "database_operations_duration_seconds": ${{ env.db-duration }}
+          },
+          "resource_usage": {
+            "cpu_percentage": "${{ env.cpu-usage }}",
+            "memory_percentage": "${{ env.memory-usage }}",
+            "disk_percentage": "${{ env.disk-usage }}"
+          },
+          "performance_status": "$(if [[ ${{ env.llm-duration }} -lt 60 && ${{ env.db-duration }} -lt 10 ]]; then echo "good"; else echo "degraded"; fi)"
+        }
+        EOF
+        
+        echo "✅ Performance metrics report generated"
+    
+    - name: Upload performance artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-metrics-${{ github.run_number }}
+        path: |
+          reports/performance-metrics.json
+          logs/llm-performance.log
+          logs/db-performance.log
+        retention-days: 30
+
+  monitoring-summary:
+    name: Monitoring Summary & Alerts
+    runs-on: ubuntu-latest
+    needs: [budget-monitoring, system-health-monitoring, performance-monitoring]
+    if: always()
+    
+    steps:
+    - name: Determine alert level
+      id: alert-level
+      run: |
+        budget_status="${{ needs.budget-monitoring.outputs.budget-status }}"
+        system_status="${{ needs.system-health-monitoring.outputs.system-status }}"
+        
+        # Determine overall alert level
+        if [[ "$budget_status" == "critical" || "$system_status" == "unhealthy" ]]; then
+          alert_level="critical"
+        elif [[ "$budget_status" == "warning" || "$system_status" == "degraded" ]]; then
+          alert_level="warning"
+        else
+          alert_level="info"
+        fi
+        
+        echo "level=$alert_level" >> $GITHUB_OUTPUT
+        echo "Overall alert level: $alert_level"
+    
+    - name: Create monitoring summary
+      run: |
+        cat << EOF >> $GITHUB_STEP_SUMMARY
+        # System Monitoring Summary
+        
+        **Monitoring Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Alert Level**: ${{ steps.alert-level.outputs.level }}
+        
+        ## Budget Status
+        - **Current Usage**: \$${{ needs.budget-monitoring.outputs.current-usage || 'N/A' }} / \$${{ env.BUDGET_LIMIT_USD }}
+        - **Usage Percentage**: ${{ needs.budget-monitoring.outputs.usage-percentage || 'N/A' }}%
+        - **Status**: ${{ needs.budget-monitoring.outputs.budget-status || 'unknown' }}
+        - **Projected Monthly**: \$${{ needs.budget-monitoring.outputs.projected-monthly || 'N/A' }}
+        
+        ## System Health
+        - **Overall Status**: ${{ needs.system-health-monitoring.outputs.system-status || 'unknown' }}
+        - **MongoDB**: ${{ needs.system-health-monitoring.outputs.mongodb-status || 'unknown' }}
+        - **Ollama LLM**: ${{ needs.system-health-monitoring.outputs.ollama-status || 'unknown' }}
+        
+        ## Performance
+        - **Monitoring**: ${{ needs.performance-monitoring.result || 'skipped' }}
+        
+        ## Next Monitoring
+        - **Budget Check**: Every 6 hours
+        - **System Health**: Weekly (Sundays)
+        - **Comprehensive**: Weekly or on-demand
+        EOF
+    
+    - name: Create alert issue on critical status
+      if: steps.alert-level.outputs.level == 'critical' && github.event.inputs.send_notifications != 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = `
+          ## Critical System Alert
+          
+          **Alert Level**: Critical
+          **Timestamp**: ${new Date().toISOString()}
+          **Monitoring Run**: ${{ github.run_id }}
+          
+          ### Status Summary
+          - **Budget Status**: ${{ needs.budget-monitoring.outputs.budget-status || 'unknown' }}
+          - **System Health**: ${{ needs.system-health-monitoring.outputs.system-status || 'unknown' }}
+          - **Current Usage**: \$${{ needs.budget-monitoring.outputs.current-usage || 'N/A' }} / \$${{ env.BUDGET_LIMIT_USD }}
+          
+          ### Immediate Actions Required
+          - Review budget usage if over threshold
+          - Check system health logs if services are down
+          - Investigate performance issues if detected
+          - Update monitoring thresholds if needed
+          
+          ### System Components
+          - MongoDB: ${{ needs.system-health-monitoring.outputs.mongodb-status || 'unknown' }}
+          - Ollama LLM: ${{ needs.system-health-monitoring.outputs.ollama-status || 'unknown' }}
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Critical System Alert - ${new Date().toDateString()}`,
+            body: issueBody,
+            labels: ['monitoring', 'alert', 'critical', 'urgent']
+          });

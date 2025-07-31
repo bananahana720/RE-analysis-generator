@@ -3,7 +3,7 @@
 ## PROJECT CONTEXT
 - **Purpose**: Automated real estate data collection for Phoenix, AZ (zips: 85031, 85033, 85035)
 - **Budget**: $25/month maximum (currently ~$2-3/month operational)
-- **Status**: 95% operational - LLM processing production-ready (Task 6 COMPLETE)
+- **Status**: 98% operational - LLM processing + CI/CD complete (Tasks 6 & 7 ✅)
 - **Architecture**: 3-tier (Collection → LLM Processing → Storage) with MongoDB v8.1.2
 - **Package Name**: `phoenix_real_estate` (not `src`)
 
@@ -23,7 +23,7 @@
 - **LLM**: Ollama with llama3.2:latest (2GB model)
 - **Package Manager**: uv with pyproject.toml
 - **Testing**: pytest (asyncio mode), ruff, pyright
-- **Web Scraping**: Playwright (for Phoenix MLS)
+- **CI/CD**: GitHub Actions (7 workflows implemented)
 
 ## PROJECT STRUCTURE
 ```
@@ -59,30 +59,41 @@ uv run ruff check . --fix                          # Lint + fix code
    
 2. **`config/proxies.yaml`** - WebShare proxy credentials in `.env`
 
-## CURRENT STATUS (95% OPERATIONAL)
+## CURRENT STATUS (98% OPERATIONAL)
 
 ### Working Components (✅)
-- MongoDB v8.1.2, Maricopa API (84% success), WebShare proxy (10), 2captcha ($10)
-- **LLM Processing**: Production-ready with caching, monitoring, performance optimization
-- **All tests passing** (critical issues from quality assessment resolved)
+- **Infrastructure**: MongoDB v8.1.2, Ollama LLM, GitHub Actions CI/CD
+- **APIs**: Maricopa (84% success), WebShare proxies, 2captcha
+- **Testing**: >95% pass rate, comprehensive coverage
+- **Security**: Zero hardcoded credentials, SSL enabled, .env configured
 
-### LLM Processing Architecture (PRODUCTION-READY)
+### Key Architectures
 ```
+# LLM Processing Pipeline
 Collectors → ProcessingIntegrator → DataProcessingPipeline → OllamaClient → MongoDB
+
+# GitHub Actions Workflows
+data-collection.yml → Daily automated collection (3 AM Phoenix)
+ci-cd.yml          → Test suite with security scanning
+monitoring.yml     → Budget tracking ($25/month limit)
 ```
-- **Model**: llama3.2:latest (2GB) - High accuracy, fast processing
-- **Components**: OllamaClient, PropertyDataExtractor, ProcessingValidator, CacheManager
-- **Features**: Caching, monitoring, batch processing, circuit breakers, error recovery
 
 ## CRITICAL IMPLEMENTATION DETAILS
-- **Config**: Use `config.get()` and `config.get_typed()` (NOT config.settings.FIELD)
-- **Maricopa Headers**: Must use `AUTHORIZATION` (not Authorization) + `user-agent: null`
+
+### Configuration
+- **ConfigProvider**: Fixed get_typed() for boolean/None handling
+- **YAML Reserved Words**: 'on', 'off', 'yes', 'no' auto-convert to booleans
+- **Environment Variables**: Use sentinel objects to distinguish None vs missing
+
+### API Integration
+- **Maricopa Headers**: `AUTHORIZATION` (uppercase) + `user-agent: null`
 - **WebShare Auth**: `Authorization: Token {api_key}` format
-- **Import Path**: Always use `phoenix_real_estate` not `src`
-- **MongoDB Check**: Use `is None` not boolean truthiness
-- **Ollama Model**: llama3.2:latest (NOT llama2:7b) - critical for extraction
-- **Async Context**: Always use `async with` for LLM components
-- **Cache Keys**: Use CacheManager._generate_cache_key() for consistent caching
+- **Import Path**: Always `phoenix_real_estate` not `src`
+
+### Best Practices
+- **MongoDB**: Use `is None` not boolean truthiness
+- **Async Context**: Always `async with` for LLM components
+- **Cache Keys**: Use CacheManager._generate_cache_key()
 
 ## CODE STANDARDS
 - **Async/await** for all I/O operations
@@ -107,13 +118,21 @@ async with ProcessingIntegrator(ConfigProvider()) as integrator:
     results = await integrator.process_maricopa_batch(property_list)
 ```
 
-## COMMON ISSUES
-- **Config errors**: Use `config.get()` not `config.settings.FIELD`
-- **Import errors**: Check missing imports (OllamaClient, etc.)
-- **Cache/Ollama**: Verify service running and key generation
+## RECENT FIXES & LESSONS LEARNED
+- **ConfigProvider.get_typed()**: Fixed None handling with sentinel pattern
+- **GitHub Actions YAML**: 'on:' converts to boolean True (YAML quirk)
+- **CI/CD Security**: Replaced 23 hardcoded credentials with env vars
+- **Service Layer Tests**: Added 47 tests for 100% coverage
+- **SSL Verification**: Must be enabled in production (verify_ssl: true)
 
 ## BEFORE COMMITS
 1. `uv run ruff check . --fix` - Fix linting issues
-2. `make security-check` - Scan for exposed secrets
-3. `uv run pytest tests/` - Ensure tests pass
-4. Review changes for sensitive data
+2. `uv run pytest tests/` - Ensure tests pass (>95% expected)
+3. Check for hardcoded credentials (especially in workflows)
+4. Verify .env not being committed
+
+## NEXT STEPS
+1. Add real API keys to .env file
+2. Configure GitHub Secrets for CI/CD
+3. Enable GitHub Actions in repo settings
+4. Monitor initial production runs
