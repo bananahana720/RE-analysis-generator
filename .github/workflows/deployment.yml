@@ -19,7 +19,7 @@ on:
         default: false
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
   MONGODB_VERSION: "8.1.2"
   OLLAMA_VERSION: "latest"
@@ -29,10 +29,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate-secrets:
+    name: Validate Production Secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    outputs:
+      validation-status: ${{ steps.validation.outputs.status }}
+    
+    steps:
+    - name: Validate Required Secrets
+      id: validation
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        TEST_MONGODB_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
+      run: |
+        missing_secrets=()
+        
+        # Check production secrets
+        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        [[ -z "$TEST_MONGODB_PASSWORD" ]] && missing_secrets+=("TEST_MONGODB_PASSWORD")
+        
+        if [ ${#missing_secrets[@]} -eq 0 ]; then
+          echo "✅ All required production secrets are configured"
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ Missing required production secrets:"
+          printf '%s\n' "${missing_secrets[@]}"
+          echo ""
+          echo "Please configure these secrets in:"
+          echo "Repository Settings → Secrets and variables → Actions → Environment secrets → production"
+          echo ""
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
   pre-deployment-checks:
     name: Pre-Deployment Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: validate-secrets
+    environment: production
+    secrets: inherit
     
     outputs:
       deploy-environment: ${{ steps.determine-env.outputs.environment }}
@@ -98,15 +136,17 @@ jobs:
   database-deployment:
     name: MongoDB Deployment Setup
     runs-on: ubuntu-latest
-    needs: pre-deployment-checks
+    needs: [validate-secrets, pre-deployment-checks]
     timeout-minutes: 15
+    environment: production
+    secrets: inherit
     
     services:
       mongodb:
         image: mongo:${{ env.MONGODB_VERSION }}
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         ports:
           - 27017:27017
         options: >-
@@ -161,8 +201,10 @@ jobs:
   application-deployment:
     name: Application Deployment
     runs-on: ubuntu-latest
-    needs: [pre-deployment-checks, database-deployment]
+    needs: [validate-secrets, pre-deployment-checks, database-deployment]
     timeout-minutes: 20
+    environment: production
+    secrets: inherit
     
     strategy:
       matrix:
@@ -235,16 +277,18 @@ jobs:
   health-checks:
     name: Post-Deployment Health Checks
     runs-on: ubuntu-latest
-    needs: [pre-deployment-checks, application-deployment]
+    needs: [validate-secrets, pre-deployment-checks, application-deployment]
     if: needs.pre-deployment-checks.outputs.health-check-required == 'true'
     timeout-minutes: 10
+    environment: production
+    secrets: inherit
     
     services:
       mongodb:
         image: mongo:${{ env.MONGODB_VERSION }}
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         ports:
           - 27017:27017
         options: >-
@@ -309,8 +353,10 @@ jobs:
   deployment-notification:
     name: Deployment Notification
     runs-on: ubuntu-latest
-    needs: [pre-deployment-checks, health-checks]
+    needs: [validate-secrets, pre-deployment-checks, health-checks]
     if: always()
+    environment: production
+    secrets: inherit
     
     steps:
     - name: Determine deployment status
@@ -359,8 +405,10 @@ jobs:
   rollback-on-failure:
     name: Automatic Rollback
     runs-on: ubuntu-latest
-    needs: [pre-deployment-checks, health-checks]
+    needs: [validate-secrets, pre-deployment-checks, health-checks]
     if: failure() && needs.pre-deployment-checks.outputs.deploy-environment == 'production'
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4

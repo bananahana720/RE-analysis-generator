@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
 
 jobs:

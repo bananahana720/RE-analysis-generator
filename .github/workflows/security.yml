@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
     - name: Run pip-audit
       run: |
         uv run pip install pip-audit
-        uv run pip-audit --format=json --output=vulnerability-report.json || true
+        uv run pip-audit --format=json --output=vulnerability-report.json
     
     - name: Upload vulnerability report
       if: always()
@@ -94,7 +94,7 @@ jobs:
     - name: Run Bandit
       run: |
         uv run pip install bandit
-        uv run bandit -r src/ -f json -o bandit-report.json || true
+        uv run bandit -r src/ -f json -o bandit-report.json
     
     - name: Upload security reports
       if: always()
@@ -125,7 +125,11 @@ jobs:
     
     - name: Validate secrets setup
       run: |
-        python scripts/setup_secrets.py validate .env || echo "Warning: .env validation failed"
+        if ! python scripts/setup_secrets.py validate .env; then
+          echo "❌ Critical: .env validation failed - security requirements not met"
+          exit 1
+        fi
+        echo "✅ Secret validation passed"
     
     - name: Check security files
       run: |

@@ -1,0 +1,93 @@
+name: Setup Ollama with Caching
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: 'Ollama model to pull'
+        required: false
+        default: 'llama3.2:latest'
+        type: string
+      timeout:
+        description: 'Timeout in minutes for model pull'
+        required: false
+        default: 30
+        type: number
+
+jobs:
+  setup:
+    name: Setup Ollama with Model Caching
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    
+    steps:
+    - name: Cache Ollama Models
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.ollama/models
+          /usr/share/ollama/.ollama/models
+        key: ollama-models-${{ inputs.model }}-${{ runner.os }}-v1
+        restore-keys: |
+          ollama-models-${{ inputs.model }}-${{ runner.os }}-
+          ollama-models-
+    
+    - name: Install Ollama
+      run: |
+        curl -fsSL https://ollama.com/install.sh | sh
+        echo "✅ Ollama installed successfully"
+    
+    - name: Start Ollama Service
+      run: |
+        ollama serve &
+        sleep 5
+        
+        # Wait for Ollama to be ready
+        max_attempts=30
+        attempt=0
+        while ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1; do
+          if [ $attempt -ge $max_attempts ]; then
+            echo "❌ Ollama failed to start after $max_attempts attempts"
+            exit 1
+          fi
+          echo "⏳ Waiting for Ollama to be ready... (attempt $((attempt+1))/$max_attempts)"
+          sleep 2
+          attempt=$((attempt+1))
+        done
+        echo "✅ Ollama service is ready"
+    
+    - name: Pull Model (if not cached)
+      if: steps.cache.outputs.cache-hit != 'true'
+      timeout-minutes: ${{ inputs.timeout }}
+      run: |
+        echo "📥 Pulling model ${{ inputs.model }}..."
+        ollama pull ${{ inputs.model }}
+        echo "✅ Model pulled successfully"
+    
+    - name: Verify Model
+      run: |
+        echo "🔍 Verifying model availability..."
+        ollama list | grep -q "${{ inputs.model }}" || {
+          echo "❌ Model ${{ inputs.model }} not found"
+          exit 1
+        }
+        echo "✅ Model ${{ inputs.model }} is available"
+    
+    - name: Save Model Info
+      run: |
+        echo "📊 Model information:"
+        ollama show ${{ inputs.model }}
+        
+        # Save model info for debugging
+        mkdir -p /tmp/ollama-info
+        ollama list > /tmp/ollama-info/models.txt
+        echo "${{ inputs.model }}" > /tmp/ollama-info/current-model.txt
+    
+    - name: Upload Model Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: ollama-model-info
+        path: /tmp/ollama-info/
+        retention-days: 1

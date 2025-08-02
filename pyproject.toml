@@ -44,6 +44,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+tdd_guard_project_root = "/Users/Andrew/.vscode/RE-analysis-generator"
 markers = [
     "production: marks tests as production scenario tests",
     "benchmark: marks tests as performance benchmarks",

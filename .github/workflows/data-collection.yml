@@ -24,7 +24,7 @@ on:
         default: false
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
   OLLAMA_VERSION: "latest"
   COLLECTION_TIMEOUT_MINUTES: 75
@@ -34,10 +34,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-secrets:
+    name: Validate Production Secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    outputs:
+      validation-status: ${{ steps.validation.outputs.status }}
+    
+    steps:
+    - name: Validate Required Secrets
+      id: validation
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        missing_secrets=()
+        
+        # Check production secrets
+        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
+        [[ -z "$WEBSHARE_API_KEY" ]] && missing_secrets+=("WEBSHARE_API_KEY")
+        [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
+        
+        if [ ${#missing_secrets[@]} -eq 0 ]; then
+          echo "✅ All required production secrets are configured"
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ Missing required production secrets:"
+          printf '%s\n' "${missing_secrets[@]}"
+          echo ""
+          echo "Please configure these secrets in:"
+          echo "Repository Settings → Secrets and variables → Actions → Environment secrets → production"
+          echo ""
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
   pre-collection-setup:
     name: Pre-Collection Setup
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: validate-secrets
+    environment: production
+    secrets: inherit
     
     outputs:
       collection-mode: ${{ steps.config.outputs.collection-mode }}
@@ -65,10 +107,13 @@ jobs:
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           echo "collection-mode=${{ github.event.inputs.collection_mode }}" >> $GITHUB_OUTPUT
-          echo "zip-codes=${{ github.event.inputs.zip_codes }}" >> $GITHUB_OUTPUT
+          # Convert comma-separated zip codes to JSON array
+          zip_codes="${{ github.event.inputs.zip_codes }}"
+          json_array=$(echo "$zip_codes" | awk -F',' '{printf "["; for(i=1;i<=NF;i++) printf "%s\"%s\"", (i>1?",":""), $i; printf "]"}')
+          echo "zip-codes=$json_array" >> $GITHUB_OUTPUT
         else
           echo "collection-mode=incremental" >> $GITHUB_OUTPUT
-          echo "zip-codes=85031,85033,85035" >> $GITHUB_OUTPUT
+          echo 'zip-codes=["85031","85033","85035"]' >> $GITHUB_OUTPUT
         fi
         echo "estimated-runtime=60" >> $GITHUB_OUTPUT
     
@@ -90,12 +135,14 @@ jobs:
   maricopa-collection:
     name: Maricopa County Data Collection
     runs-on: ubuntu-latest
-    needs: pre-collection-setup
+    needs: [validate-secrets, pre-collection-setup]
     timeout-minutes: 30
+    environment: production
+    secrets: inherit
     
     strategy:
       matrix:
-        zip_code: ${{ fromJson('[' + '"' + join(fromJson('["' + needs.pre-collection-setup.outputs.zip-codes + '"]')[0], '", "') + '"' + ']') }}
+        zip_code: ${{ fromJson(needs.pre-collection-setup.outputs.zip-codes) }}
       fail-fast: false
       
     steps:
@@ -145,8 +192,10 @@ jobs:
   phoenix-mls-collection:
     name: Phoenix MLS Data Collection  
     runs-on: ubuntu-latest
-    needs: pre-collection-setup
+    needs: [validate-secrets, pre-collection-setup]
     timeout-minutes: 45
+    environment: production
+    secrets: inherit
     
     services:
       # Use Playwright for browser automation
@@ -209,9 +258,11 @@ jobs:
   llm-data-processing:
     name: LLM Data Processing
     runs-on: ubuntu-latest
-    needs: [pre-collection-setup, maricopa-collection, phoenix-mls-collection]
+    needs: [validate-secrets, pre-collection-setup, maricopa-collection, phoenix-mls-collection]
     if: always() && (needs.maricopa-collection.result == 'success' || needs.phoenix-mls-collection.result == 'success')
     timeout-minutes: 30
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4
@@ -283,9 +334,11 @@ jobs:
   data-quality-validation:
     name: Data Quality Validation
     runs-on: ubuntu-latest
-    needs: [pre-collection-setup, llm-data-processing]
+    needs: [validate-secrets, pre-collection-setup, llm-data-processing]
     if: always() && needs.llm-data-processing.result == 'success'
     timeout-minutes: 10
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4
@@ -347,8 +400,10 @@ jobs:
   collection-notification:
     name: Collection Status Notification
     runs-on: ubuntu-latest
-    needs: [pre-collection-setup, maricopa-collection, phoenix-mls-collection, llm-data-processing, data-quality-validation]
+    needs: [validate-secrets, pre-collection-setup, maricopa-collection, phoenix-mls-collection, llm-data-processing, data-quality-validation]
     if: always()
+    environment: production
+    secrets: inherit
     
     steps:
     - name: Determine collection status

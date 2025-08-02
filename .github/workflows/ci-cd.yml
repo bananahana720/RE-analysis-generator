@@ -28,7 +28,7 @@ on:
         default: false
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}@localhost:27017/
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
   UV_VERSION: "latest"
   COVERAGE_THRESHOLD: 80
@@ -38,9 +38,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-secrets:
+    name: Validate Required Secrets
+    uses: ./.github/workflows/validate-secrets.yml
+    with:
+      environment: test
+    secrets: inherit
+
   code-quality:
     name: Code Quality & Linting
     runs-on: ubuntu-latest
+    needs: validate-secrets
     timeout-minutes: 10
     
     steps:
@@ -200,15 +208,15 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    needs: code-quality
+    needs: [code-quality, secret-validation]
     timeout-minutes: 30
     
     services:
       mongodb:
-        image: mongo:8.1.2
+        image: mongo:8.0
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         ports:
           - 27017:27017
         options: >-
@@ -235,6 +243,10 @@ jobs:
     
     - name: Setup Ollama for LLM tests
       run: |
+        # Kill any existing Ollama processes
+        pkill -f ollama || true
+        sleep 2
+        
         curl -fsSL https://ollama.ai/install.sh | sh
         ollama serve &
         sleep 15
@@ -261,8 +273,8 @@ jobs:
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
         OLLAMA_URL: http://localhost:11434
-        TEST_MARICOPA_API_KEY: "test-key"
-        TEST_WEBSHARE_API_KEY: "test-key"
+        TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
+        TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
       run: |
         uv run pytest tests/integration/ -v --cov=phoenix_real_estate --cov-report=xml --cov-report=html
       timeout-minutes: 25
@@ -304,10 +316,10 @@ jobs:
     
     services:
       mongodb:
-        image: mongo:8.1.2
+        image: mongo:8.0
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         ports:
           - 27017:27017
         options: >-
@@ -340,9 +352,9 @@ jobs:
     - name: Setup comprehensive test environment
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        TEST_MARICOPA_API_KEY: "test-key"
-        TEST_WEBSHARE_API_KEY: "test-key"
-        TEST_CAPTCHA_API_KEY: "test-key"
+        TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
+        TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
+        TEST_CAPTCHA_API_KEY: ${{ secrets.TEST_CAPTCHA_API_KEY }}
       run: |
         mkdir -p {data,logs,reports,test_data,config}/{raw,processed,cookies}
         cp -r tests/fixtures/* test_data/ 2>/dev/null || true
@@ -351,6 +363,10 @@ jobs:
     
     - name: Setup Ollama for E2E tests
       run: |
+        # Kill any existing Ollama processes
+        pkill -f ollama || true
+        sleep 2
+        
         curl -fsSL https://ollama.ai/install.sh | sh
         ollama serve &
         sleep 15
@@ -368,9 +384,9 @@ jobs:
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
         OLLAMA_URL: http://localhost:11434
-        TEST_MARICOPA_API_KEY: "test-key"
-        TEST_WEBSHARE_API_KEY: "test-key"
-        TEST_CAPTCHA_API_KEY: "test-key"
+        TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
+        TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
+        TEST_CAPTCHA_API_KEY: ${{ secrets.TEST_CAPTCHA_API_KEY }}
       run: |
         uv run pytest tests/e2e/ -v --cov=phoenix_real_estate --cov-report=xml --cov-report=html
       timeout-minutes: 35
@@ -397,10 +413,71 @@ jobs:
           screenshots/
         retention-days: 21
 
+  secret-validation:
+    name: Critical Secret Validation
+    runs-on: ubuntu-latest
+    needs: code-quality
+    timeout-minutes: 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: ${{ env.UV_VERSION }}
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Validate critical secrets exist
+      env:
+        TEST_MONGODB_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
+        TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
+        TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
+        TEST_CAPTCHA_API_KEY: ${{ secrets.TEST_CAPTCHA_API_KEY }}
+      run: |
+        echo "🔒 Validating critical secrets..."
+        missing_secrets=()
+        
+        if [[ -z "$TEST_MONGODB_PASSWORD" ]]; then
+          missing_secrets+=("TEST_MONGODB_PASSWORD")
+        fi
+        
+        if [[ -z "$TEST_MARICOPA_API_KEY" ]]; then
+          missing_secrets+=("TEST_MARICOPA_API_KEY")
+        fi
+        
+        if [[ -z "$TEST_WEBSHARE_API_KEY" ]]; then
+          missing_secrets+=("TEST_WEBSHARE_API_KEY")
+        fi
+        
+        if [[ -z "$TEST_CAPTCHA_API_KEY" ]]; then
+          missing_secrets+=("TEST_CAPTCHA_API_KEY")
+        fi
+        
+        if [[ ${#missing_secrets[@]} -gt 0 ]]; then
+          echo "❌ CRITICAL SECURITY FAILURE: Missing required secrets:"
+          for secret in "${missing_secrets[@]}"; do
+            echo "  - $secret"
+          done
+          echo ""
+          echo "🚨 WORKFLOW TERMINATED: Cannot proceed without proper secrets configuration"
+          echo "Please configure these secrets in GitHub repository settings."
+          exit 1
+        fi
+        
+        echo "✅ All critical secrets properly configured"
+
   security-scan:
     name: Security Scanning
     runs-on: ubuntu-latest
-    needs: code-quality
+    needs: [code-quality, secret-validation]
     if: github.event.inputs.skip_security_scan != 'true'
     timeout-minutes: 15
     
@@ -422,13 +499,13 @@ jobs:
     
     - name: Run Bandit security scan
       run: |
-        uv run bandit -r src/ -f json -o reports/bandit-report.json || true
+        uv run bandit -r src/ -f json -o reports/bandit-report.json
         uv run bandit -r src/ -f txt
         echo "✅ Bandit security scan completed"
     
     - name: Run Safety dependency scan
       run: |
-        uv run safety check --json --output reports/safety-report.json || true
+        uv run safety check --json --output reports/safety-report.json
         uv run safety check
         echo "✅ Safety dependency scan completed"
     
@@ -465,10 +542,10 @@ jobs:
     
     services:
       mongodb:
-        image: mongo:8.1.2
+        image: mongo:8.0
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD || 'test_secure_password_987654321' }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         ports:
           - 27017:27017
     
@@ -490,6 +567,10 @@ jobs:
     
     - name: Setup Ollama for performance tests
       run: |
+        # Kill any existing Ollama processes
+        pkill -f ollama || true
+        sleep 2
+        
         curl -fsSL https://ollama.ai/install.sh | sh
         ollama serve &
         sleep 15
@@ -540,7 +621,7 @@ jobs:
   deployment-preparation:
     name: Deployment Preparation
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, security-scan]
+    needs: [unit-tests, integration-tests, security-scan, secret-validation]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     timeout-minutes: 10
     
