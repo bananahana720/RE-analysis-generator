@@ -1,0 +1,461 @@
+name: Automated Proxy List Update
+
+on:
+  schedule:
+    # Update proxy list twice daily at 6 AM and 6 PM Phoenix time
+    - cron: '0 13 * * *'  # 6 AM Phoenix (1 PM UTC)
+    - cron: '0 1 * * *'   # 6 PM Phoenix (1 AM UTC next day)
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: 'Force refresh proxy cache'
+        required: false
+        type: boolean
+        default: true
+      test_proxies:
+        description: 'Test downloaded proxies'
+        required: false
+        type: boolean
+        default: true
+      update_config:
+        description: 'Update proxy configuration files'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: "3.13"
+  PROXY_UPDATE_TIMEOUT_MINUTES: 15
+
+concurrency:
+  group: proxy-update-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-proxy-api:
+    name: Validate WebShare API Access
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    outputs:
+      api-status: ${{ steps.validation.outputs.status }}
+      proxy-count: ${{ steps.validation.outputs.proxy_count }}
+    
+    steps:
+    - name: Validate WebShare API
+      id: validation
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+      run: |
+        if [[ -z "$WEBSHARE_API_KEY" ]]; then
+          echo "status=missing-key" >> $GITHUB_OUTPUT
+          echo "❌ WEBSHARE_API_KEY secret not configured"
+          exit 1
+        fi
+        
+        # Test API access
+        response=$(curl -s -w "%{http_code}" \
+          -H "Authorization: Token $WEBSHARE_API_KEY" \
+          "https://proxy.webshare.io/api/v2/proxy/list/?limit=1" \
+          -o /tmp/api_test.json)
+        
+        if [[ "$response" == "200" ]]; then
+          echo "status=healthy" >> $GITHUB_OUTPUT
+          echo "✅ WebShare API access validated"
+          
+          # Get proxy count if possible
+          if command -v jq >/dev/null 2>&1; then
+            count=$(jq -r '.count // 0' /tmp/api_test.json 2>/dev/null || echo "0")
+            echo "proxy_count=$count" >> $GITHUB_OUTPUT
+            echo "📊 Available proxies: $count"
+          fi
+        else
+          echo "status=api-error" >> $GITHUB_OUTPUT
+          echo "❌ WebShare API validation failed with HTTP $response"
+          exit 1
+        fi
+
+  download-proxy-list:
+    name: Download and Process Proxy List
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJson(env.PROXY_UPDATE_TIMEOUT_MINUTES) }}
+    environment: production
+    needs: validate-proxy-api
+    if: needs.validate-proxy-api.outputs.api-status == 'healthy'
+    outputs:
+      download-status: ${{ steps.download.outputs.status }}
+      proxy-count: ${{ steps.download.outputs.proxy_count }}
+      test-results: ${{ steps.test.outputs.results }}
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install UV Package Manager
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: Install Dependencies
+      run: |
+        uv sync
+        
+    - name: Download Proxy List
+      id: download
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+      run: |
+        echo "🔄 Downloading proxy list from WebShare API..."
+        
+        # Create download script
+        cat > download_proxies.py << 'EOF'
+        import asyncio
+        import os
+        import json
+        from datetime import datetime
+        
+        # Inline WebShare downloader for workflow
+        import httpx
+        
+        async def download_proxy_list():
+            api_key = os.getenv('WEBSHARE_API_KEY')
+            download_url = "https://proxy.webshare.io/api/v2/proxy/list/download/tagoovkuesfewwgoyhfkequxeznkuhyriiqckxto/-/any/username/direct/-/"
+            
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.get(download_url)
+                
+                if response.status_code != 200:
+                    raise Exception(f"HTTP {response.status_code}: {response.text}")
+                
+                # Parse proxy list
+                proxies = []
+                for line in response.text.strip().split('\n'):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # Parse format: username:password@host:port
+                    if '@' in line and ':' in line:
+                        auth, address = line.split('@')
+                        username, password = auth.split(':')
+                        host, port = address.split(':')
+                        
+                        proxies.append({
+                            'host': host,
+                            'port': int(port),
+                            'username': username,
+                            'password': password,
+                            'type': 'http'
+                        })
+                
+                return proxies
+        
+        async def main():
+            try:
+                proxies = await download_proxy_list()
+                
+                # Save proxy list
+                with open('proxy_list.json', 'w') as f:
+                    json.dump({
+                        'downloaded_at': datetime.now().isoformat(),
+                        'proxy_count': len(proxies),
+                        'proxies': proxies
+                    }, f, indent=2)
+                
+                print(f"✅ Downloaded {len(proxies)} proxies")
+                return len(proxies)
+                
+            except Exception as e:
+                print(f"❌ Download failed: {e}")
+                raise
+        
+        proxy_count = asyncio.run(main())
+        print(f"proxy_count={proxy_count}")
+        EOF
+        
+        # Execute download
+        if uv run python download_proxies.py > download_output.txt 2>&1; then
+          proxy_count=$(grep "proxy_count=" download_output.txt | cut -d'=' -f2)
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "proxy_count=${proxy_count:-0}" >> $GITHUB_OUTPUT
+          echo "✅ Proxy download completed successfully"
+          cat download_output.txt
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "❌ Proxy download failed"
+          cat download_output.txt
+          exit 1
+        fi
+        
+    - name: Test Proxy Connectivity
+      id: test
+      if: inputs.test_proxies == 'true' || inputs.test_proxies == ''
+      run: |
+        echo "🧪 Testing proxy connectivity..."
+        
+        # Create proxy test script
+        cat > test_proxies.py << 'EOF'
+        import asyncio
+        import json
+        import httpx
+        import random
+        
+        async def test_proxy(proxy):
+            proxy_url = f"http://{proxy['username']}:{proxy['password']}@{proxy['host']}:{proxy['port']}"
+            
+            try:
+                async with httpx.AsyncClient(
+                    proxies={"http://": proxy_url, "https://": proxy_url},
+                    timeout=10
+                ) as client:
+                    response = await client.get("https://httpbin.org/ip")
+                    
+                    if response.status_code == 200:
+                        return {"proxy": f"{proxy['host']}:{proxy['port']}", "status": "working", "ip": response.json().get('origin', 'unknown')}
+                    else:
+                        return {"proxy": f"{proxy['host']}:{proxy['port']}", "status": "failed", "error": f"HTTP {response.status_code}"}
+            except Exception as e:
+                return {"proxy": f"{proxy['host']}:{proxy['port']}", "status": "failed", "error": str(e)}
+        
+        async def main():
+            try:
+                with open('proxy_list.json', 'r') as f:
+                    data = json.load(f)
+                
+                proxies = data['proxies']
+                
+                # Test a sample of proxies (max 5 to avoid long execution)
+                test_proxies = random.sample(proxies, min(5, len(proxies)))
+                
+                results = []
+                for proxy in test_proxies:
+                    result = await test_proxy(proxy)
+                    results.append(result)
+                    print(f"Tested {result['proxy']}: {result['status']}")
+                
+                working_count = sum(1 for r in results if r['status'] == 'working')
+                total_count = len(results)
+                
+                print(f"✅ Test completed: {working_count}/{total_count} proxies working")
+                
+                return {
+                    'total_tested': total_count,
+                    'working_count': working_count,
+                    'success_rate': round(working_count / total_count * 100, 1) if total_count > 0 else 0,
+                    'results': results
+                }
+                
+            except Exception as e:
+                print(f"❌ Test failed: {e}")
+                raise
+        
+        test_results = asyncio.run(main())
+        print(f"results={test_results}")
+        EOF
+        
+        # Execute tests
+        if uv run python test_proxies.py > test_output.txt 2>&1; then
+          echo "✅ Proxy testing completed"
+          cat test_output.txt
+          # Extract results for output (simplified)
+          echo "results=completed" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ Proxy testing failed (continuing anyway)"
+          cat test_output.txt
+          echo "results=failed" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Upload Proxy List Artifact
+      uses: actions/upload-artifact@v4
+      if: steps.download.outputs.status == 'success'
+      with:
+        name: proxy-list-${{ github.run_id }}
+        path: |
+          proxy_list.json
+          download_output.txt
+          test_output.txt
+        retention-days: 7
+
+  update-proxy-config:
+    name: Update Proxy Configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: download-proxy-list
+    if: inputs.update_config == 'true' && needs.download-proxy-list.outputs.download-status == 'success'
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Download Proxy List Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: proxy-list-${{ github.run_id }}
+        
+    - name: Update Configuration Files
+      run: |
+        echo "🔄 Updating proxy configuration files..."
+        
+        # Create config update script
+        cat > update_config.py << 'EOF'
+        import json
+        import yaml
+        from datetime import datetime
+        
+        # Load downloaded proxy list
+        with open('proxy_list.json', 'r') as f:
+            data = json.load(f)
+        
+        proxies = data['proxies']
+        
+        # Update proxies.yaml configuration
+        config = {
+            'webshare': {
+                'enabled': True,
+                'api_key': '${WEBSHARE_API_KEY}',  # Will be replaced by env var
+                'proxy_list': [],
+                'rotation_strategy': 'round_robin',
+                'last_updated': datetime.now().isoformat()
+            },
+            'settings': {
+                'timeout': 30,
+                'max_retries': 3,
+                'verify_ssl': True
+            },
+            'validation': {
+                'check_on_startup': True,
+                'check_interval': 300,
+                'min_success_rate': 0.8
+            }
+        }
+        
+        # Add first 10 proxies to config (avoid huge config files)
+        for proxy in proxies[:10]:
+            config['webshare']['proxy_list'].append({
+                'host': proxy['host'],
+                'port': proxy['port'],
+                'username': proxy['username'],
+                'password': proxy['password']
+            })
+        
+        # Save updated config
+        with open('config/proxies_updated.yaml', 'w') as f:
+            yaml.dump(config, f, default_flow_style=False, indent=2)
+        
+        print(f"✅ Updated configuration with {len(config['webshare']['proxy_list'])} proxies")
+        print(f"📊 Total proxies available: {len(proxies)}")
+        EOF
+        
+        python update_config.py
+        
+        echo "📁 Updated configuration files:"
+        ls -la config/proxies_updated.yaml || echo "⚠️ Configuration update failed"
+        
+    - name: Commit Updated Configuration
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if [[ -f config/proxies_updated.yaml ]]; then
+          git add config/proxies_updated.yaml
+          git commit -m "chore: Update proxy configuration with fresh WebShare proxy list
+          
+          - Downloaded $(jq -r '.proxy_count' proxy_list.json) proxies
+          - Updated at $(date -u)
+          - Automated via GitHub Actions
+          
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+          
+          Co-Authored-By: Claude <noreply@anthropic.com>" || echo "No changes to commit"
+          
+          git push || echo "⚠️ Failed to push changes"
+          echo "✅ Configuration updated and committed"
+        else
+          echo "⚠️ No configuration file to commit"
+        fi
+
+  notify-completion:
+    name: Notify Completion
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: [validate-proxy-api, download-proxy-list, update-proxy-config]
+    if: always()
+    
+    steps:
+    - name: Generate Summary
+      run: |
+        echo "## 🔄 Proxy List Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # API Validation Status
+        echo "### 🔐 API Validation" >> $GITHUB_STEP_SUMMARY
+        case "${{ needs.validate-proxy-api.outputs.api-status }}" in
+          "healthy")
+            echo "✅ WebShare API access confirmed" >> $GITHUB_STEP_SUMMARY
+            if [[ -n "${{ needs.validate-proxy-api.outputs.proxy-count }}" ]]; then
+              echo "📊 Available proxies: ${{ needs.validate-proxy-api.outputs.proxy-count }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            ;;
+          "missing-key")
+            echo "❌ WEBSHARE_API_KEY secret not configured" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "api-error")
+            echo "❌ WebShare API access failed" >> $GITHUB_STEP_SUMMARY
+            ;;
+          *)
+            echo "⚠️ API validation status unknown" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Download Status
+        echo "### 📥 Proxy Download" >> $GITHUB_STEP_SUMMARY
+        case "${{ needs.download-proxy-list.outputs.download-status }}" in
+          "success")
+            echo "✅ Downloaded ${{ needs.download-proxy-list.outputs.proxy-count }} proxies" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "failed")
+            echo "❌ Proxy download failed" >> $GITHUB_STEP_SUMMARY
+            ;;
+          *)
+            echo "⚠️ Download was skipped or status unknown" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Test Results
+        echo "### 🧪 Proxy Testing" >> $GITHUB_STEP_SUMMARY
+        case "${{ needs.download-proxy-list.outputs.test-results }}" in
+          "completed")
+            echo "✅ Proxy connectivity tests completed" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "failed")
+            echo "⚠️ Proxy testing failed" >> $GITHUB_STEP_SUMMARY
+            ;;
+          *)
+            echo "⏭️ Proxy testing was skipped" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Configuration Update
+        if [[ "${{ inputs.update_config }}" == "true" ]]; then
+          echo "### ⚙️ Configuration Update" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.update-proxy-config.result }}" == "success" ]]; then
+            echo "✅ Proxy configuration files updated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Configuration update failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "### ⚙️ Configuration Update" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ Configuration update was skipped" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "**Next Update**: $(date -d '+12 hours' -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
