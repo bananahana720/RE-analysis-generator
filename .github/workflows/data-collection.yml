@@ -201,10 +201,6 @@ jobs:
     environment: production
     secrets: inherit
     
-    services:
-      # Use Playwright for browser automation
-      playwright:
-        image: mcr.microsoft.com/playwright:v1.40.0-focal
         
     steps:
     - uses: actions/checkout@v4
