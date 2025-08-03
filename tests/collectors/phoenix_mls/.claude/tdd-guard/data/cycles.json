@@ -1,9 +1,0 @@
-[
-  {
-    "component": "ProxyManager",
-    "phase": "RED",
-    "start_time": "2025-07-21T16:55:17.839031",
-    "test_name": "test_proxy_manager_exists",
-    "tests": []
-  }
-]

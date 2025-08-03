@@ -30,8 +30,8 @@ from collections import defaultdict
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.phoenix_real_estate.collectors.phoenix_mls.scraper import PhoenixMLSScraper
-from src.phoenix_real_estate.foundation.logging import get_logger
+from phoenix_real_estate.collectors.phoenix_mls.scraper import PhoenixMLSScraper
+from phoenix_real_estate.foundation.logging import get_logger
 
 logger = get_logger(__name__)
 

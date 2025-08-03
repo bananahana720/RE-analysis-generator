@@ -10,10 +10,11 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
 # Add scripts directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from scripts.validation.validate_mongodb_atlas import MongoDBAtlasValidator
-from setup_mongodb_atlas import validate_mongodb_uri
+from scripts.setup.setup_mongodb_atlas import validate_mongodb_uri
 
 
 class TestMongoDBAtlasScripts:
@@ -188,7 +189,7 @@ class TestScriptExecutability:
 
     def test_setup_script_help_message(self):
         """Test that setup script can show help without MongoDB connection."""
-        from setup_mongodb_atlas import validate_mongodb_uri, print_banner
+        from scripts.setup.setup_mongodb_atlas import validate_mongodb_uri, print_banner
 
         # These should not raise exceptions
         print_banner()

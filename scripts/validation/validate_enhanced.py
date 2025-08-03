@@ -52,7 +52,6 @@ def validate_directories() -> bool:
         "src/phoenix_real_estate/foundation/logging",
         "src/phoenix_real_estate/foundation/utils",
         "src/phoenix_real_estate/collectors",
-        "src/phoenix_real_estate/processors",
         "src/phoenix_real_estate/api",
         "src/phoenix_real_estate/orchestration",
         "tests/foundation",

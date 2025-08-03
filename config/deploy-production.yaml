@@ -1,0 +1,37 @@
+deployment:
+  environment: production
+  version: tagged
+  components:
+    collectors:
+      enabled: true
+      maricopa: true
+      phoenix_mls: true
+      rate_limiting: true
+    processors:
+      enabled: true
+      llm: true
+      batch_size: 10
+    orchestration:
+      enabled: true
+      monitoring: true
+      
+resources:
+  mongodb:
+    connections: 20
+    timeout: 3000
+    replication: true
+  ollama:
+    models: ["llama3.2:latest"]
+    memory_limit: "4GB"
+    gpu_enabled: false
+    
+security:
+  ssl_enabled: true
+  api_keys_required: true
+  proxy_validation: true
+  audit_logging: true
+  
+monitoring:
+  health_checks: true
+  metrics_collection: true
+  alerting: true

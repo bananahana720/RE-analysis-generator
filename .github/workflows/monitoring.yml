@@ -700,4 +700,23 @@ jobs:
             title: `Critical System Alert - ${new Date().toDateString()}`,
             body: issueBody,
             labels: ['monitoring', 'alert', 'critical', 'urgent']
-          });
+          });          });
+    
+    - name: Create success notification
+      if: steps.alert-level.outputs.level \!= 'critical'
+      run: |
+        echo "[OK] System monitoring completed successfully"
+        echo "Monitoring completed at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+        echo "Alert level: ${{ steps.alert-level.outputs.level }}"
+        echo "Budget usage: ${{ needs.budget-monitoring.outputs.current-usage || 'N/A' }} / ${{ env.BUDGET_LIMIT_USD }}"
+        echo "System health: ${{ needs.system-health-monitoring.outputs.system-status || 'unknown' }}"
+    
+    - name: Upload monitoring notification artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: monitoring-summary-${{ github.run_number }}
+        path: |
+          reports/*.json
+          logs/monitoring_*.log
+        retention-days: 60

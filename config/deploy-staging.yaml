@@ -1,0 +1,26 @@
+deployment:
+  environment: staging
+  version: auto
+  components:
+    collectors:
+      enabled: true
+      maricopa: true
+      phoenix_mls: true
+    processors:
+      enabled: true
+      llm: true
+    orchestration:
+      enabled: true
+      
+resources:
+  mongodb:
+    connections: 10
+    timeout: 5000
+  ollama:
+    models: ["llama3.2:latest"]
+    memory_limit: "2GB"
+    
+security:
+  ssl_enabled: true
+  api_keys_required: true
+  proxy_validation: true

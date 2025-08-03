@@ -828,4 +828,24 @@ jobs:
             title: `System Maintenance Failed - ${new Date().toDateString()}`,
             body: issueBody,
             labels: ['maintenance', 'failure', 'system', 'high-priority']
-          });
+          });          });
+    
+    - name: Create success notification
+      if: steps.status.outputs.status == 'success'
+      run: |
+        echo "[OK] System maintenance completed successfully"
+        echo "Maintenance completed at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+        echo "Maintenance type: ${{ needs.pre-maintenance-check.outputs.maintenance-type }}"
+        echo "Database cleanup: ${{ needs.database-maintenance.outputs.cleanup-stats }}"
+        echo "Logs cleaned: ${{ needs.log-rotation.outputs.logs-cleaned }} files"
+        echo "Space freed: ${{ needs.log-rotation.outputs.space-freed }}MB"
+    
+    - name: Upload maintenance notification artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: maintenance-summary-${{ github.run_number }}
+        path: |
+          reports/maintenance/*.json
+          logs/maintenance_*.log
+        retention-days: 90
