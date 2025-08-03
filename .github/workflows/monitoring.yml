@@ -64,14 +64,14 @@ jobs:
         [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
         
         if [ ${#missing_secrets[@]} -eq 0 ]; then
-          echo "✅ All required production secrets are configured"
+          echo "[OK] All required production secrets are configured"
           echo "status=success" >> $GITHUB_OUTPUT
         else
-          echo "❌ Missing required production secrets:"
+          echo "[FAIL] Missing required production secrets:"
           printf '%s\n' "${missing_secrets[@]}"
           echo ""
           echo "Please configure these secrets in:"
-          echo "Repository Settings → Secrets and variables → Actions → Environment secrets → production"
+          echo "Repository Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?] production"
           echo ""
           echo "status=failed" >> $GITHUB_OUTPUT
           exit 1
@@ -126,7 +126,7 @@ jobs:
         echo "monthly-estimate=$monthly_estimate" >> $GITHUB_OUTPUT
         echo "actions-cost=$actions_cost" >> $GITHUB_OUTPUT
         
-        echo "📊 GitHub Actions Usage:"
+        echo "[METRICS] GitHub Actions Usage:"
         echo "  Daily: $daily_minutes minutes"
         echo "  Monthly Estimate: $monthly_estimate minutes"
         echo "  Cost: \$${actions_cost}"
@@ -143,7 +143,7 @@ jobs:
         echo "mongodb-cost=$mongodb_cost" >> $GITHUB_OUTPUT
         echo "storage-usage=$storage_usage" >> $GITHUB_OUTPUT
         
-        echo "🗄️ MongoDB Atlas Usage:"
+        echo "[?][?] MongoDB Atlas Usage:"
         echo "  Tier: M0 (Free)"
         echo "  Storage: $storage_usage"
         echo "  Cost: \$${mongodb_cost}"
@@ -158,7 +158,7 @@ jobs:
         echo "llm-cost=$llm_cost" >> $GITHUB_OUTPUT
         echo "model-size=$model_size" >> $GITHUB_OUTPUT
         
-        echo "🤖 LLM Usage:"
+        echo "[ROBOT] LLM Usage:"
         echo "  Provider: Ollama (Local)"
         echo "  Model: llama3.2:latest ($model_size)"
         echo "  Cost: \$${llm_cost}"
@@ -185,7 +185,7 @@ jobs:
         echo "maricopa-cost=$maricopa_cost" >> $GITHUB_OUTPUT
         echo "total-services-cost=$total_services_cost" >> $GITHUB_OUTPUT
         
-        echo "🌐 Third-party Services:"
+        echo "[GLOBE] Third-party Services:"
         echo "  WebShare Proxies: \$${webshare_cost}"
         echo "  2captcha: \$${captcha_cost}"
         echo "  Maricopa API: \$${maricopa_cost}"
@@ -221,7 +221,7 @@ jobs:
         echo "usage-percentage=$usage_percentage" >> $GITHUB_OUTPUT
         echo "projected-monthly=$projected_monthly" >> $GITHUB_OUTPUT
         
-        echo "💰 Budget Summary:"
+        echo "[MONEY] Budget Summary:"
         echo "  Current Usage: \$${total_current} / \${{ env.BUDGET_LIMIT_USD }}"
         echo "  Usage Percentage: ${usage_percentage}%"
         echo "  Status: $status"
@@ -255,7 +255,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Budget report generated"
+        echo "[OK] Budget report generated"
     
     - name: Upload budget artifacts
       uses: actions/upload-artifact@v4
@@ -297,7 +297,7 @@ jobs:
     - name: Setup health check environment
       run: |
         mkdir -p {logs,reports,data/{raw,processed}}
-        echo "✅ Health check environment ready"
+        echo "[OK] Health check environment ready"
     
     - name: Check MongoDB health
       id: mongodb-health
@@ -313,15 +313,15 @@ jobs:
           echo "Testing MongoDB connection..." > logs/mongodb-health.log
           if timeout 30 uv run python scripts/testing/test_mongodb_connection.py >> logs/mongodb-health.log 2>&1; then
             echo "status=healthy" >> $GITHUB_OUTPUT
-            echo "✅ MongoDB connection healthy"
+            echo "[OK] MongoDB connection healthy"
           else
             echo "status=unhealthy" >> $GITHUB_OUTPUT
-            echo "❌ MongoDB connection failed"
+            echo "[FAIL] MongoDB connection failed"
             cat logs/mongodb-health.log
           fi
         else
           echo "status=not-configured" >> $GITHUB_OUTPUT
-          echo "⚠️ MongoDB credentials not configured"
+          echo "[WARN] MongoDB credentials not configured"
         fi
     
     - name: Setup and check Ollama health
@@ -349,17 +349,17 @@ jobs:
             ollama_healthy=true
             break
           fi
-          echo "⏳ Ollama not ready, retrying... ($((retry_count + 1))/$max_retries)"
+          echo "[HOURGLASS] Ollama not ready, retrying... ($((retry_count + 1))/$max_retries)"
           sleep 10
           retry_count=$((retry_count + 1))
         done
         
         if [[ "$ollama_healthy" == "true" ]]; then
           echo "status=healthy" >> $GITHUB_OUTPUT
-          echo "✅ Ollama service healthy"
+          echo "[OK] Ollama service healthy"
         else
           echo "status=unhealthy" >> $GITHUB_OUTPUT
-          echo "❌ Ollama service failed after $max_retries attempts"
+          echo "[FAIL] Ollama service failed after $max_retries attempts"
           # Show Ollama logs for debugging
           ps aux | grep ollama || true
           curl -v http://localhost:11434/api/tags || true
@@ -401,7 +401,7 @@ jobs:
         echo "maricopa-status=$maricopa_status" >> $GITHUB_OUTPUT
         echo "webshare-status=$webshare_status" >> $GITHUB_OUTPUT
         
-        echo "🌐 API Health Status:"
+        echo "[GLOBE] API Health Status:"
         echo "  Maricopa API: $maricopa_status"
         echo "  WebShare Proxy: $webshare_status"
     
@@ -415,9 +415,9 @@ jobs:
         validation_exit_code=$?
         
         if [[ $validation_exit_code -eq 0 ]]; then
-          echo "✅ System validation passed"
+          echo "[OK] System validation passed"
         else
-          echo "❌ System validation failed"
+          echo "[FAIL] System validation failed"
         fi
         
         echo "validation-exit-code=$validation_exit_code" >> $GITHUB_ENV
@@ -444,7 +444,7 @@ jobs:
         
         echo "status=$overall_status" >> $GITHUB_OUTPUT
         
-        echo "🏥 Overall System Health: $overall_status"
+        echo "[HOSPITAL] Overall System Health: $overall_status"
     
     - name: Generate health report
       run: |
@@ -465,7 +465,7 @@ jobs:
         }
         EOF
         
-        echo "✅ System health report generated"
+        echo "[OK] System health report generated"
     
     - name: Upload health check artifacts
       uses: actions/upload-artifact@v4
@@ -518,13 +518,13 @@ jobs:
         ollama serve &
         sleep 15
         ollama pull llama3.2:latest
-        echo "✅ Ollama ready for performance monitoring"
+        echo "[OK] Ollama ready for performance monitoring"
     
     - name: Wait for services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
         timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "✅ All services ready for performance monitoring"
+        echo "[OK] All services ready for performance monitoring"
     
     - name: Setup performance monitoring environment
       env:
@@ -532,14 +532,14 @@ jobs:
         OLLAMA_URL: http://localhost:11434
       run: |
         mkdir -p {data,logs,reports}/{raw,processed}
-        echo "✅ Performance monitoring environment setup"
+        echo "[OK] Performance monitoring environment setup"
     
     - name: Run performance benchmarks
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
         OLLAMA_URL: http://localhost:11434
       run: |
-        echo "🏃 Running performance benchmarks..."
+        echo "[RUNNER] Running performance benchmarks..."
         
         # LLM processing performance
         start_time=$(date +%s)
@@ -561,7 +561,7 @@ jobs:
     - name: Monitor resource usage
       run: |
         # Monitor system resources during performance test
-        echo "📊 Resource Usage Monitoring..."
+        echo "[METRICS] Resource Usage Monitoring..."
         
         # CPU and memory usage
         cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//')
@@ -598,7 +598,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Performance metrics report generated"
+        echo "[OK] Performance metrics report generated"
     
     - name: Upload performance artifacts
       uses: actions/upload-artifact@v4

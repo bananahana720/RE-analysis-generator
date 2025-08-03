@@ -127,10 +127,10 @@ jobs:
     - name: Validate secrets setup
       run: |
         if ! python scripts/setup_secrets.py validate .env; then
-          echo "❌ Critical: .env validation failed - security requirements not met"
+          echo "[FAIL] Critical: .env validation failed - security requirements not met"
           exit 1
         fi
-        echo "✅ Secret validation passed"
+        echo "[OK] Secret validation passed"
     
     - name: Check security files
       run: |

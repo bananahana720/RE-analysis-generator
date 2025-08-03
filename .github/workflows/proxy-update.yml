@@ -49,7 +49,7 @@ jobs:
       run: |
         if [[ -z "$WEBSHARE_API_KEY" ]]; then
           echo "status=missing-key" >> $GITHUB_OUTPUT
-          echo "❌ WEBSHARE_API_KEY secret not configured"
+          echo "[FAIL] WEBSHARE_API_KEY secret not configured"
           exit 1
         fi
         
@@ -61,17 +61,17 @@ jobs:
         
         if [[ "$response" == "200" ]]; then
           echo "status=healthy" >> $GITHUB_OUTPUT
-          echo "✅ WebShare API access validated"
+          echo "[OK] WebShare API access validated"
           
           # Get proxy count if possible
           if command -v jq >/dev/null 2>&1; then
             count=$(jq -r '.count // 0' /tmp/api_test.json 2>/dev/null || echo "0")
             echo "proxy_count=$count" >> $GITHUB_OUTPUT
-            echo "📊 Available proxies: $count"
+            echo "[METRICS] Available proxies: $count"
           fi
         else
           echo "status=api-error" >> $GITHUB_OUTPUT
-          echo "❌ WebShare API validation failed with HTTP $response"
+          echo "[FAIL] WebShare API validation failed with HTTP $response"
           exit 1
         fi
 
@@ -110,7 +110,7 @@ jobs:
       env:
         WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
       run: |
-        echo "🔄 Downloading proxy list from WebShare API..."
+        echo "[REFRESH] Downloading proxy list from WebShare API..."
         
         # Create download script
         cat > download_proxies.py << 'EOF'
@@ -167,11 +167,11 @@ jobs:
                         'proxies': proxies
                     }, f, indent=2)
                 
-                print(f"✅ Downloaded {len(proxies)} proxies")
+                print(f"[OK] Downloaded {len(proxies)} proxies")
                 return len(proxies)
                 
             except Exception as e:
-                print(f"❌ Download failed: {e}")
+                print(f"[FAIL] Download failed: {e}")
                 raise
         
         proxy_count = asyncio.run(main())
@@ -183,11 +183,11 @@ jobs:
           proxy_count=$(grep "proxy_count=" download_output.txt | cut -d'=' -f2)
           echo "status=success" >> $GITHUB_OUTPUT
           echo "proxy_count=${proxy_count:-0}" >> $GITHUB_OUTPUT
-          echo "✅ Proxy download completed successfully"
+          echo "[OK] Proxy download completed successfully"
           cat download_output.txt
         else
           echo "status=failed" >> $GITHUB_OUTPUT
-          echo "❌ Proxy download failed"
+          echo "[FAIL] Proxy download failed"
           cat download_output.txt
           exit 1
         fi
@@ -196,7 +196,7 @@ jobs:
       id: test
       if: inputs.test_proxies == 'true' || inputs.test_proxies == ''
       run: |
-        echo "🧪 Testing proxy connectivity..."
+        echo "[TEST] Testing proxy connectivity..."
         
         # Create proxy test script
         cat > test_proxies.py << 'EOF'
@@ -241,7 +241,7 @@ jobs:
                 working_count = sum(1 for r in results if r['status'] == 'working')
                 total_count = len(results)
                 
-                print(f"✅ Test completed: {working_count}/{total_count} proxies working")
+                print(f"[OK] Test completed: {working_count}/{total_count} proxies working")
                 
                 return {
                     'total_tested': total_count,
@@ -251,7 +251,7 @@ jobs:
                 }
                 
             except Exception as e:
-                print(f"❌ Test failed: {e}")
+                print(f"[FAIL] Test failed: {e}")
                 raise
         
         test_results = asyncio.run(main())
@@ -260,12 +260,12 @@ jobs:
         
         # Execute tests
         if uv run python test_proxies.py > test_output.txt 2>&1; then
-          echo "✅ Proxy testing completed"
+          echo "[OK] Proxy testing completed"
           cat test_output.txt
           # Extract results for output (simplified)
           echo "results=completed" >> $GITHUB_OUTPUT
         else
-          echo "⚠️ Proxy testing failed (continuing anyway)"
+          echo "[WARN] Proxy testing failed (continuing anyway)"
           cat test_output.txt
           echo "results=failed" >> $GITHUB_OUTPUT
         fi
@@ -299,7 +299,7 @@ jobs:
         
     - name: Update Configuration Files
       run: |
-        echo "🔄 Updating proxy configuration files..."
+        echo "[REFRESH] Updating proxy configuration files..."
         
         # Create config update script
         cat > update_config.py << 'EOF'
@@ -347,14 +347,14 @@ jobs:
         with open('config/proxies_updated.yaml', 'w') as f:
             yaml.dump(config, f, default_flow_style=False, indent=2)
         
-        print(f"✅ Updated configuration with {len(config['webshare']['proxy_list'])} proxies")
-        print(f"📊 Total proxies available: {len(proxies)}")
+        print(f"[OK] Updated configuration with {len(config['webshare']['proxy_list'])} proxies")
+        print(f"[METRICS] Total proxies available: {len(proxies)}")
         EOF
         
         python update_config.py
         
-        echo "📁 Updated configuration files:"
-        ls -la config/proxies_updated.yaml || echo "⚠️ Configuration update failed"
+        echo "[?] Updated configuration files:"
+        ls -la config/proxies_updated.yaml || echo "[WARN] Configuration update failed"
         
     - name: Commit Updated Configuration
       if: success()
@@ -370,14 +370,14 @@ jobs:
           - Updated at $(date -u)
           - Automated via GitHub Actions
           
-          🤖 Generated with [Claude Code](https://claude.ai/code)
+          [ROBOT] Generated with [Claude Code](https://claude.ai/code)
           
           Co-Authored-By: Claude <noreply@anthropic.com>" || echo "No changes to commit"
           
-          git push || echo "⚠️ Failed to push changes"
-          echo "✅ Configuration updated and committed"
+          git push || echo "[WARN] Failed to push changes"
+          echo "[OK] Configuration updated and committed"
         else
-          echo "⚠️ No configuration file to commit"
+          echo "[WARN] No configuration file to commit"
         fi
 
   notify-completion:
@@ -390,71 +390,71 @@ jobs:
     steps:
     - name: Generate Summary
       run: |
-        echo "## 🔄 Proxy List Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## [REFRESH] Proxy List Update Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # API Validation Status
-        echo "### 🔐 API Validation" >> $GITHUB_STEP_SUMMARY
+        echo "### [?] API Validation" >> $GITHUB_STEP_SUMMARY
         case "${{ needs.validate-proxy-api.outputs.api-status }}" in
           "healthy")
-            echo "✅ WebShare API access confirmed" >> $GITHUB_STEP_SUMMARY
+            echo "[OK] WebShare API access confirmed" >> $GITHUB_STEP_SUMMARY
             if [[ -n "${{ needs.validate-proxy-api.outputs.proxy-count }}" ]]; then
-              echo "📊 Available proxies: ${{ needs.validate-proxy-api.outputs.proxy-count }}" >> $GITHUB_STEP_SUMMARY
+              echo "[METRICS] Available proxies: ${{ needs.validate-proxy-api.outputs.proxy-count }}" >> $GITHUB_STEP_SUMMARY
             fi
             ;;
           "missing-key")
-            echo "❌ WEBSHARE_API_KEY secret not configured" >> $GITHUB_STEP_SUMMARY
+            echo "[FAIL] WEBSHARE_API_KEY secret not configured" >> $GITHUB_STEP_SUMMARY
             ;;
           "api-error")
-            echo "❌ WebShare API access failed" >> $GITHUB_STEP_SUMMARY
+            echo "[FAIL] WebShare API access failed" >> $GITHUB_STEP_SUMMARY
             ;;
           *)
-            echo "⚠️ API validation status unknown" >> $GITHUB_STEP_SUMMARY
+            echo "[WARN] API validation status unknown" >> $GITHUB_STEP_SUMMARY
             ;;
         esac
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Download Status
-        echo "### 📥 Proxy Download" >> $GITHUB_STEP_SUMMARY
+        echo "### [INBOX] Proxy Download" >> $GITHUB_STEP_SUMMARY
         case "${{ needs.download-proxy-list.outputs.download-status }}" in
           "success")
-            echo "✅ Downloaded ${{ needs.download-proxy-list.outputs.proxy-count }} proxies" >> $GITHUB_STEP_SUMMARY
+            echo "[OK] Downloaded ${{ needs.download-proxy-list.outputs.proxy-count }} proxies" >> $GITHUB_STEP_SUMMARY
             ;;
           "failed")
-            echo "❌ Proxy download failed" >> $GITHUB_STEP_SUMMARY
+            echo "[FAIL] Proxy download failed" >> $GITHUB_STEP_SUMMARY
             ;;
           *)
-            echo "⚠️ Download was skipped or status unknown" >> $GITHUB_STEP_SUMMARY
+            echo "[WARN] Download was skipped or status unknown" >> $GITHUB_STEP_SUMMARY
             ;;
         esac
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Test Results
-        echo "### 🧪 Proxy Testing" >> $GITHUB_STEP_SUMMARY
+        echo "### [TEST] Proxy Testing" >> $GITHUB_STEP_SUMMARY
         case "${{ needs.download-proxy-list.outputs.test-results }}" in
           "completed")
-            echo "✅ Proxy connectivity tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "[OK] Proxy connectivity tests completed" >> $GITHUB_STEP_SUMMARY
             ;;
           "failed")
-            echo "⚠️ Proxy testing failed" >> $GITHUB_STEP_SUMMARY
+            echo "[WARN] Proxy testing failed" >> $GITHUB_STEP_SUMMARY
             ;;
           *)
-            echo "⏭️ Proxy testing was skipped" >> $GITHUB_STEP_SUMMARY
+            echo "[SKIP] Proxy testing was skipped" >> $GITHUB_STEP_SUMMARY
             ;;
         esac
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Configuration Update
         if [[ "${{ inputs.update_config }}" == "true" ]]; then
-          echo "### ⚙️ Configuration Update" >> $GITHUB_STEP_SUMMARY
+          echo "### [?][?] Configuration Update" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ needs.update-proxy-config.result }}" == "success" ]]; then
-            echo "✅ Proxy configuration files updated" >> $GITHUB_STEP_SUMMARY
+            echo "[OK] Proxy configuration files updated" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Configuration update failed" >> $GITHUB_STEP_SUMMARY
+            echo "[FAIL] Configuration update failed" >> $GITHUB_STEP_SUMMARY
           fi
         else
-          echo "### ⚙️ Configuration Update" >> $GITHUB_STEP_SUMMARY
-          echo "⏭️ Configuration update was skipped" >> $GITHUB_STEP_SUMMARY
+          echo "### [?][?] Configuration Update" >> $GITHUB_STEP_SUMMARY
+          echo "[SKIP] Configuration update was skipped" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         

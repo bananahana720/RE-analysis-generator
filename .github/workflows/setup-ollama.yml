@@ -37,7 +37,7 @@ jobs:
     - name: Install Ollama
       run: |
         curl -fsSL https://ollama.com/install.sh | sh
-        echo "✅ Ollama installed successfully"
+        echo "[OK] Ollama installed successfully"
     
     - name: Start Ollama Service
       run: |
@@ -49,35 +49,35 @@ jobs:
         attempt=0
         while ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1; do
           if [ $attempt -ge $max_attempts ]; then
-            echo "❌ Ollama failed to start after $max_attempts attempts"
+            echo "[FAIL] Ollama failed to start after $max_attempts attempts"
             exit 1
           fi
-          echo "⏳ Waiting for Ollama to be ready... (attempt $((attempt+1))/$max_attempts)"
+          echo "[HOURGLASS] Waiting for Ollama to be ready... (attempt $((attempt+1))/$max_attempts)"
           sleep 2
           attempt=$((attempt+1))
         done
-        echo "✅ Ollama service is ready"
+        echo "[OK] Ollama service is ready"
     
     - name: Pull Model (if not cached)
       if: steps.cache.outputs.cache-hit != 'true'
       timeout-minutes: ${{ inputs.timeout }}
       run: |
-        echo "📥 Pulling model ${{ inputs.model }}..."
+        echo "[INBOX] Pulling model ${{ inputs.model }}..."
         ollama pull ${{ inputs.model }}
-        echo "✅ Model pulled successfully"
+        echo "[OK] Model pulled successfully"
     
     - name: Verify Model
       run: |
-        echo "🔍 Verifying model availability..."
+        echo "[SEARCH] Verifying model availability..."
         ollama list | grep -q "${{ inputs.model }}" || {
-          echo "❌ Model ${{ inputs.model }} not found"
+          echo "[FAIL] Model ${{ inputs.model }} not found"
           exit 1
         }
-        echo "✅ Model ${{ inputs.model }} is available"
+        echo "[OK] Model ${{ inputs.model }} is available"
     
     - name: Save Model Info
       run: |
-        echo "📊 Model information:"
+        echo "[METRICS] Model information:"
         ollama show ${{ inputs.model }}
         
         # Save model info for debugging

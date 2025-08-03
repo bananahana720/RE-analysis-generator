@@ -59,14 +59,14 @@ jobs:
         [[ -z "$TEST_MONGODB_PASSWORD" ]] && missing_secrets+=("TEST_MONGODB_PASSWORD")
         
         if [ ${#missing_secrets[@]} -eq 0 ]; then
-          echo "✅ All required production secrets are configured"
+          echo "[OK] All required production secrets are configured"
           echo "status=success" >> $GITHUB_OUTPUT
         else
-          echo "❌ Missing required production secrets:"
+          echo "[FAIL] Missing required production secrets:"
           printf '%s\n' "${missing_secrets[@]}"
           echo ""
           echo "Please configure these secrets in:"
-          echo "Repository Settings → Secrets and variables → Actions → Environment secrets → production"
+          echo "Repository Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?] production"
           echo ""
           echo "status=failed" >> $GITHUB_OUTPUT
           exit 1
@@ -124,7 +124,7 @@ jobs:
         last_maintenance=$(date -d "7 days ago" +%Y-%m-%d)
         echo "last-maintenance=$last_maintenance" >> $GITHUB_OUTPUT
         
-        echo "✅ Maintenance configuration determined"
+        echo "[OK] Maintenance configuration determined"
     
     - name: Validate system state before maintenance
       run: |
@@ -135,7 +135,7 @@ jobs:
     - name: Create maintenance directories
       run: |
         mkdir -p {logs,reports,backups}/{maintenance,cleanup}
-        echo "✅ Maintenance directories created"
+        echo "[OK] Maintenance directories created"
 
   database-maintenance:
     name: Database Cleanup & Optimization
@@ -171,7 +171,7 @@ jobs:
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
       run: |
         mkdir -p {logs,reports,backups}/maintenance
-        echo "✅ Database maintenance environment ready"
+        echo "[OK] Database maintenance environment ready"
     
     - name: Create pre-maintenance backup
       id: backup
@@ -203,10 +203,10 @@ jobs:
           
           echo "created=true" >> $GITHUB_OUTPUT
           echo "backup-name=$backup_name" >> $GITHUB_OUTPUT
-          echo "✅ Pre-maintenance backup created: $backup_name"
+          echo "[OK] Pre-maintenance backup created: $backup_name"
         else
           echo "created=false" >> $GITHUB_OUTPUT
-          echo "⚠️ MongoDB URL not configured, skipping backup"
+          echo "[WARN] MongoDB URL not configured, skipping backup"
         fi
     
     - name: Clean old processed data
@@ -216,7 +216,7 @@ jobs:
         if [[ -n "$MONGODB_URL" ]]; then
           retention_days="${{ env.DEFAULT_DATA_RETENTION_DAYS }}"
           
-          echo "🧹 Cleaning processed data older than $retention_days days..."
+          echo "[CLEAN] Cleaning processed data older than $retention_days days..."
           
           # Run database cleanup script
           uv run python -c "
@@ -240,9 +240,9 @@ jobs:
               json.dump(cleanup_stats, f, indent=2)
           "
           
-          echo "✅ Database cleanup completed"
+          echo "[OK] Database cleanup completed"
         else
-          echo "⚠️ MongoDB URL not configured, skipping database cleanup"
+          echo "[WARN] MongoDB URL not configured, skipping database cleanup"
         fi
     
     - name: Optimize database indexes
@@ -250,7 +250,7 @@ jobs:
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
       run: |
         if [[ -n "$MONGODB_URL" ]]; then
-          echo "🔧 Optimizing database indexes..."
+          echo "[TOOLS] Optimizing database indexes..."
           
           # Run index optimization
           uv run python -c "
@@ -272,9 +272,9 @@ jobs:
               json.dump(optimization_stats, f, indent=2)
           "
           
-          echo "✅ Database index optimization completed"
+          echo "[OK] Database index optimization completed"
         else
-          echo "⚠️ MongoDB URL not configured, skipping index optimization"
+          echo "[WARN] MongoDB URL not configured, skipping index optimization"
         fi
     
     - name: Clean duplicate records
@@ -283,7 +283,7 @@ jobs:
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
       run: |
         if [[ -n "$MONGODB_URL" && "${{ needs.pre-maintenance-check.outputs.is-monthly }}" == "true" ]]; then
-          echo "🔍 Checking for and removing duplicate records..."
+          echo "[SEARCH] Checking for and removing duplicate records..."
           
           # Run deduplication script
           duplicates_removed=0
@@ -292,10 +292,10 @@ jobs:
           cleanup_stats="{\"duplicates_removed\": $duplicates_removed, \"space_freed_mb\": $space_freed}"
           echo "stats=$cleanup_stats" >> $GITHUB_OUTPUT
           
-          echo "✅ Duplicate cleanup completed: $duplicates_removed duplicates removed"
+          echo "[OK] Duplicate cleanup completed: $duplicates_removed duplicates removed"
         else
           echo "stats={\"duplicates_removed\": 0, \"space_freed_mb\": 0}" >> $GITHUB_OUTPUT
-          echo "ℹ️ Duplicate cleanup skipped (not monthly maintenance)"
+          echo "[INFO] Duplicate cleanup skipped (not monthly maintenance)"
         fi
     
     - name: Generate database maintenance report
@@ -313,7 +313,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Database maintenance report generated"
+        echo "[OK] Database maintenance report generated"
     
     - name: Upload database maintenance artifacts
       uses: actions/upload-artifact@v4
@@ -357,14 +357,14 @@ jobs:
     - name: Setup log rotation environment
       run: |
         mkdir -p {logs,reports}/maintenance
-        echo "✅ Log rotation environment ready"
+        echo "[OK] Log rotation environment ready"
     
     - name: Rotate and compress old logs
       id: log-cleanup
       run: |
         retention_days="${{ github.event.inputs.retention_days || env.DEFAULT_LOG_RETENTION_DAYS }}"
         
-        echo "📋 Rotating logs older than $retention_days days..."
+        echo "[CLIPBOARD] Rotating logs older than $retention_days days..."
         
         # Create simulated log rotation
         files_cleaned=0
@@ -396,11 +396,11 @@ jobs:
         }
         EOF
         
-        echo "✅ Log rotation completed: $files_cleaned files, ${space_freed}MB freed"
+        echo "[OK] Log rotation completed: $files_cleaned files, ${space_freed}MB freed"
     
     - name: Clean application logs
       run: |
-        echo "🧹 Cleaning application logs..."
+        echo "[CLEAN] Cleaning application logs..."
         
         # Clean logs from different components
         components=("maricopa" "phoenix_mls" "llm_processing" "orchestration")
@@ -410,12 +410,12 @@ jobs:
           # In real implementation: find and clean component-specific logs
         done
         
-        echo "✅ Application log cleanup completed"
+        echo "[OK] Application log cleanup completed"
     
     - name: Archive important logs
       if: needs.pre-maintenance-check.outputs.is-monthly == 'true'
       run: |
-        echo "📦 Archiving important logs for monthly maintenance..."
+        echo "[PACKAGE] Archiving important logs for monthly maintenance..."
         
         # Create archive of important logs
         archive_name="logs-archive-$(date +%Y%m)"
@@ -433,7 +433,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Log archival completed: $archive_name"
+        echo "[OK] Log archival completed: $archive_name"
     
     - name: Generate log rotation report
       run: |
@@ -449,7 +449,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Log maintenance report generated"
+        echo "[OK] Log maintenance report generated"
     
     - name: Upload log maintenance artifacts
       uses: actions/upload-artifact@v4
@@ -491,11 +491,11 @@ jobs:
     - name: Setup system cleanup environment
       run: |
         mkdir -p {reports,logs}/maintenance
-        echo "✅ System cleanup environment ready"
+        echo "[OK] System cleanup environment ready"
     
     - name: Clean temporary files
       run: |
-        echo "🧹 Cleaning temporary files..."
+        echo "[CLEAN] Cleaning temporary files..."
         
         # Clean common temporary directories
         temp_dirs=("data/temp" "logs/temp" "backups/temp" ".cache" "__pycache__")
@@ -514,11 +514,11 @@ jobs:
         echo "temp-files-removed=$files_removed" >> $GITHUB_ENV
         echo "temp-space-freed=$space_freed" >> $GITHUB_ENV
         
-        echo "✅ Temporary file cleanup: $files_removed files, ${space_freed}MB"
+        echo "[OK] Temporary file cleanup: $files_removed files, ${space_freed}MB"
     
     - name: Clean old artifacts and reports
       run: |
-        echo "📋 Cleaning old artifacts and reports..."
+        echo "[CLIPBOARD] Cleaning old artifacts and reports..."
         
         retention_days=90  # Keep reports for 90 days
         
@@ -529,11 +529,11 @@ jobs:
         echo "old-reports-removed=$old_reports_removed" >> $GITHUB_ENV
         echo "reports-space-freed=$reports_space_freed" >> $GITHUB_ENV
         
-        echo "✅ Old artifacts cleanup: $old_reports_removed files, ${reports_space_freed}MB"
+        echo "[OK] Old artifacts cleanup: $old_reports_removed files, ${reports_space_freed}MB"
     
     - name: Clean Python cache and build artifacts
       run: |
-        echo "🐍 Cleaning Python cache and build artifacts..."
+        echo "[?] Cleaning Python cache and build artifacts..."
         
         # Clean Python-specific temporary files
         cache_files_removed=12
@@ -551,11 +551,11 @@ jobs:
         echo "cache-files-removed=$cache_files_removed" >> $GITHUB_ENV
         echo "cache-space-freed=$cache_space_freed" >> $GITHUB_ENV
         
-        echo "✅ Python cache cleanup: $cache_files_removed files, ${cache_space_freed}MB"
+        echo "[OK] Python cache cleanup: $cache_files_removed files, ${cache_space_freed}MB"
     
     - name: Vacuum package cache
       run: |
-        echo "📦 Cleaning package manager cache..."
+        echo "[PACKAGE] Cleaning package manager cache..."
         
         # Clean uv cache
         uv cache clean || echo "No uv cache to clean"
@@ -565,7 +565,7 @@ jobs:
         
         echo "package-cache-freed=$package_cache_freed" >> $GITHUB_ENV
         
-        echo "✅ Package cache cleanup: ${package_cache_freed}MB freed"
+        echo "[OK] Package cache cleanup: ${package_cache_freed}MB freed"
     
     - name: Generate system cleanup summary
       id: system-cleanup
@@ -604,7 +604,7 @@ jobs:
         }
         EOF
         
-        echo "✅ System cleanup completed: $total_files_removed files, ${total_space_freed}MB freed"
+        echo "[OK] System cleanup completed: $total_files_removed files, ${total_space_freed}MB freed"
     
     - name: Upload system cleanup artifacts
       uses: actions/upload-artifact@v4
@@ -641,11 +641,11 @@ jobs:
     - name: Setup backup management environment
       run: |
         mkdir -p {backups,reports}/maintenance
-        echo "✅ Backup management environment ready"
+        echo "[OK] Backup management environment ready"
     
     - name: Clean old backups
       run: |
-        echo "🗂️ Managing backup retention..."
+        echo "[FOLDER] Managing backup retention..."
         
         retention_days="${{ env.BACKUP_RETENTION_DAYS }}"
         
@@ -663,12 +663,12 @@ jobs:
         }
         EOF
         
-        echo "✅ Backup cleanup: $old_backups_removed old backups removed, ${backup_space_freed}MB freed"
+        echo "[OK] Backup cleanup: $old_backups_removed old backups removed, ${backup_space_freed}MB freed"
     
     - name: Verify backup integrity
       if: needs.pre-maintenance-check.outputs.is-monthly == 'true'
       run: |
-        echo "🔍 Verifying backup integrity..."
+        echo "[SEARCH] Verifying backup integrity..."
         
         # Verify recent backups (simulation)
         backups_verified=5
@@ -683,7 +683,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Backup verification: $backups_verified backups verified, $integrity_issues issues found"
+        echo "[OK] Backup verification: $backups_verified backups verified, $integrity_issues issues found"
     
     - name: Generate backup management report
       run: |
@@ -700,7 +700,7 @@ jobs:
         }
         EOF
         
-        echo "✅ Backup management report generated"
+        echo "[OK] Backup management report generated"
     
     - name: Upload backup management artifacts
       uses: actions/upload-artifact@v4
@@ -741,25 +741,25 @@ jobs:
         echo "status=$overall_status" >> $GITHUB_OUTPUT
         
         if [[ "$overall_status" == "success" ]]; then
-          echo "message=✅ System maintenance completed successfully" >> $GITHUB_OUTPUT
+          echo "message=[OK] System maintenance completed successfully" >> $GITHUB_OUTPUT
         elif [[ "$overall_status" == "failure" ]]; then
-          echo "message=❌ System maintenance failed" >> $GITHUB_OUTPUT
+          echo "message=[FAIL] System maintenance failed" >> $GITHUB_OUTPUT
         else
-          echo "message=⚠️ System maintenance completed with some issues" >> $GITHUB_OUTPUT
+          echo "message=[WARN] System maintenance completed with some issues" >> $GITHUB_OUTPUT
         fi
     
     - name: Post-maintenance validation
       if: steps.status.outputs.status == 'success'
       run: |
-        echo "🔍 Running post-maintenance validation..."
+        echo "[SEARCH] Running post-maintenance validation..."
         
         # Simulate post-maintenance checks
-        echo "  ✅ Database connectivity verified"
-        echo "  ✅ Log rotation successful"
-        echo "  ✅ Backup integrity confirmed"
-        echo "  ✅ System cleanup completed"
+        echo "  [OK] Database connectivity verified"
+        echo "  [OK] Log rotation successful"
+        echo "  [OK] Backup integrity confirmed"
+        echo "  [OK] System cleanup completed"
         
-        echo "✅ Post-maintenance validation passed"
+        echo "[OK] Post-maintenance validation passed"
     
     - name: Create maintenance summary
       run: |

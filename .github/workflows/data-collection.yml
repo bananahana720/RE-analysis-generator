@@ -60,14 +60,14 @@ jobs:
         [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
         
         if [ ${#missing_secrets[@]} -eq 0 ]; then
-          echo "✅ All required production secrets are configured"
+          echo "[OK] All required production secrets are configured"
           echo "status=success" >> $GITHUB_OUTPUT
         else
-          echo "❌ Missing required production secrets:"
+          echo "[FAIL] Missing required production secrets:"
           printf '%s\n' "${missing_secrets[@]}"
           echo ""
           echo "Please configure these secrets in:"
-          echo "Repository Settings → Secrets and variables → Actions → Environment secrets → production"
+          echo "Repository Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?] production"
           echo ""
           echo "status=failed" >> $GITHUB_OUTPUT
           exit 1
@@ -125,12 +125,12 @@ jobs:
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
       run: |
         uv run python scripts/workflow_validator.py validate data-collection
-        echo "✅ Environment validation passed"
+        echo "[OK] Environment validation passed"
     
     - name: Check service health
       run: |
         uv run python scripts/testing/verify_e2e_setup.py --quick-check
-        echo "✅ Service health check completed"
+        echo "[OK] Service health check completed"
 
   maricopa-collection:
     name: Maricopa County Data Collection
@@ -168,7 +168,7 @@ jobs:
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
       run: |
         mkdir -p data/processed data/raw logs
-        echo "✅ Collection environment setup for ZIP code $ZIP_CODE"
+        echo "[OK] Collection environment setup for ZIP code $ZIP_CODE"
     
     - name: Execute Maricopa API collection
       env:
@@ -231,7 +231,7 @@ jobs:
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
       run: |
         mkdir -p data/{processed,raw,cookies} logs
-        echo "✅ Phoenix MLS environment setup"
+        echo "[OK] Phoenix MLS environment setup"
     
     - name: Execute Phoenix MLS scraping
       env:
@@ -286,7 +286,7 @@ jobs:
         ollama serve &
         sleep 10
         ollama pull llama3.2:latest
-        echo "✅ Ollama LLM service ready"
+        echo "[OK] Ollama LLM service ready"
     
     - name: Download collection artifacts
       uses: actions/download-artifact@v4
@@ -303,7 +303,7 @@ jobs:
         # Copy artifacts to working directories
         find collection-artifacts/ -name "*.json" -exec cp {} data/raw/ \;
         find collection-artifacts/ -name "*.html" -exec cp {} data/raw/ \;
-        echo "✅ LLM processing environment ready"
+        echo "[OK] LLM processing environment ready"
     
     - name: Execute LLM data processing
       env:
@@ -318,7 +318,7 @@ jobs:
     - name: Validate processing results
       run: |
         uv run python scripts/testing/test_performance_optimizations.py --validate-results
-        echo "✅ LLM processing validation completed"
+        echo "[OK] LLM processing validation completed"
     
     - name: Upload LLM processing artifacts
       uses: actions/upload-artifact@v4
@@ -367,7 +367,7 @@ jobs:
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
       run: |
         cp -r processing-results/data/processed/* data/processed/ 2>/dev/null || true
-        echo "✅ Validation environment setup"
+        echo "[OK] Validation environment setup"
     
     - name: Run data quality checks
       env:
@@ -375,7 +375,7 @@ jobs:
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
       run: |
         uv run python scripts/validation/validate_system.py --check-data-quality
-        echo "✅ Data quality validation completed"
+        echo "[OK] Data quality validation completed"
     
     - name: Generate collection summary report
       env:
@@ -384,7 +384,7 @@ jobs:
         ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
       run: |
         uv run python scripts/testing/test_maricopa_summary.py --generate-report
-        echo "✅ Collection summary report generated"
+        echo "[OK] Collection summary report generated"
     
     - name: Upload validation artifacts
       uses: actions/upload-artifact@v4
@@ -416,16 +416,16 @@ jobs:
         
         if [[ "$validation_status" == "success" ]]; then
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "message=✅ Daily data collection completed successfully" >> $GITHUB_OUTPUT
+          echo "message=[OK] Daily data collection completed successfully" >> $GITHUB_OUTPUT
         elif [[ "$llm_status" == "success" ]]; then
           echo "status=partial" >> $GITHUB_OUTPUT
-          echo "message=⚠️ Data collection completed with validation issues" >> $GITHUB_OUTPUT
+          echo "message=[WARN] Data collection completed with validation issues" >> $GITHUB_OUTPUT
         elif [[ "$maricopa_status" == "success" || "$phoenix_mls_status" == "success" ]]; then
           echo "status=partial" >> $GITHUB_OUTPUT
-          echo "message=⚠️ Data collection completed but LLM processing failed" >> $GITHUB_OUTPUT
+          echo "message=[WARN] Data collection completed but LLM processing failed" >> $GITHUB_OUTPUT
         else
           echo "status=failure" >> $GITHUB_OUTPUT
-          echo "message=❌ Data collection failed completely" >> $GITHUB_OUTPUT
+          echo "message=[FAIL] Data collection failed completely" >> $GITHUB_OUTPUT
         fi
     
     - name: Create collection summary

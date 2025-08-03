@@ -72,17 +72,25 @@ jobs:
     - name: Run ruff linting
       run: |
         uv run ruff check src/ tests/ scripts/ --output-format=github
-        echo "✅ Ruff linting completed"
+        echo "[OK] Ruff linting completed"
     
     - name: Run ruff formatting check
       run: |
         uv run ruff format --check src/ tests/ scripts/
-        echo "✅ Code formatting check completed"
+        echo "[OK] Code formatting check completed"
+    
+    - name: Install Node.js for pyright
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install pyright
+      run: npm install -g pyright
     
     - name: Run pyright type checking
       run: |
-        uv run pyright src/
-        echo "✅ Type checking completed"
+        pyright src/
+        echo "[OK] Type checking completed"
     
     - name: Check import sorting
       run: |
@@ -109,17 +117,17 @@ jobs:
             print(f'Import check failed for: {failed_files}')
             sys.exit(1)
         else:
-            print('✅ Import sorting check completed')
+            print('[OK] Import sorting check completed')
         "
     
     - name: Generate code quality report
       run: |
         mkdir -p reports
         echo "# Code Quality Report" > reports/code-quality.md
-        echo "- **Linting**: ✅ Pass" >> reports/code-quality.md
-        echo "- **Formatting**: ✅ Pass" >> reports/code-quality.md
-        echo "- **Type Checking**: ✅ Pass" >> reports/code-quality.md
-        echo "- **Import Sorting**: ✅ Pass" >> reports/code-quality.md
+        echo "- **Linting**: [OK] Pass" >> reports/code-quality.md
+        echo "- **Formatting**: [OK] Pass" >> reports/code-quality.md
+        echo "- **Type Checking**: [OK] Pass" >> reports/code-quality.md
+        echo "- **Import Sorting**: [OK] Pass" >> reports/code-quality.md
     
     - name: Upload code quality artifacts
       uses: actions/upload-artifact@v4
@@ -158,7 +166,7 @@ jobs:
     - name: Setup test environment
       run: |
         mkdir -p {data,logs,reports,test_data}/{raw,processed,cookies}
-        echo "✅ Test environment setup for ${{ matrix.test-group }}"
+        echo "[OK] Test environment setup for ${{ matrix.test-group }}"
     
     - name: Run unit tests
       if: github.event.inputs.test_suite == '' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'unit'
@@ -251,13 +259,13 @@ jobs:
         ollama serve &
         sleep 15
         ollama pull llama3.2:latest
-        echo "✅ Ollama setup completed"
+        echo "[OK] Ollama setup completed"
     
     - name: Wait for services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
         timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "✅ All services ready"
+        echo "[OK] All services ready"
     
     - name: Setup integration test environment
       env:
@@ -266,7 +274,7 @@ jobs:
       run: |
         mkdir -p {data,logs,reports,test_data}/{raw,processed,cookies}
         cp -r tests/fixtures/* test_data/ 2>/dev/null || true
-        echo "✅ Integration test environment setup"
+        echo "[OK] Integration test environment setup"
     
     - name: Run integration tests
       if: github.event.inputs.test_suite == '' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration'
@@ -285,7 +293,7 @@ jobs:
       run: |
         uv run python scripts/testing/test_db_connection.py
         uv run python scripts/testing/test_mongodb_connection.py
-        echo "✅ Database integration tests completed"
+        echo "[OK] Database integration tests completed"
     
     - name: Run LLM processing integration tests
       env:
@@ -293,7 +301,7 @@ jobs:
         OLLAMA_URL: http://localhost:11434
       run: |
         uv run python scripts/testing/test_property_extractor.py
-        echo "✅ LLM integration tests completed"
+        echo "[OK] LLM integration tests completed"
     
     - name: Upload integration test artifacts
       uses: actions/upload-artifact@v4
@@ -359,7 +367,7 @@ jobs:
         mkdir -p {data,logs,reports,test_data,config}/{raw,processed,cookies}
         cp -r tests/fixtures/* test_data/ 2>/dev/null || true
         cp config/base.yaml config/testing.yaml 2>/dev/null || true
-        echo "✅ E2E test environment setup"
+        echo "[OK] E2E test environment setup"
     
     - name: Setup Ollama for E2E tests
       run: |
@@ -371,13 +379,13 @@ jobs:
         ollama serve &
         sleep 15
         ollama pull llama3.2:latest
-        echo "✅ Ollama ready for E2E tests"
+        echo "[OK] Ollama ready for E2E tests"
     
     - name: Wait for all services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
         timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "✅ All E2E services ready"
+        echo "[OK] All E2E services ready"
     
     - name: Run E2E test suite
       if: github.event.inputs.test_suite == '' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'e2e'
@@ -398,7 +406,7 @@ jobs:
       run: |
         uv run python scripts/testing/quick_e2e_check.py
         uv run python scripts/testing/run_e2e_tests.py
-        echo "✅ E2E validation completed"
+        echo "[OK] E2E validation completed"
     
     - name: Upload E2E test artifacts
       uses: actions/upload-artifact@v4
@@ -442,7 +450,7 @@ jobs:
         TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
         TEST_CAPTCHA_API_KEY: ${{ secrets.TEST_CAPTCHA_API_KEY }}
       run: |
-        echo "🔒 Validating critical secrets..."
+        echo "[LOCK] Validating critical secrets..."
         missing_secrets=()
         
         if [[ -z "$TEST_MONGODB_PASSWORD" ]]; then
@@ -462,17 +470,17 @@ jobs:
         fi
         
         if [[ ${#missing_secrets[@]} -gt 0 ]]; then
-          echo "❌ CRITICAL SECURITY FAILURE: Missing required secrets:"
+          echo "[FAIL] CRITICAL SECURITY FAILURE: Missing required secrets:"
           for secret in "${missing_secrets[@]}"; do
             echo "  - $secret"
           done
           echo ""
-          echo "🚨 WORKFLOW TERMINATED: Cannot proceed without proper secrets configuration"
+          echo "[ALERT] WORKFLOW TERMINATED: Cannot proceed without proper secrets configuration"
           echo "Please configure these secrets in GitHub repository settings."
           exit 1
         fi
         
-        echo "✅ All critical secrets properly configured"
+        echo "[OK] All critical secrets properly configured"
 
   security-scan:
     name: Security Scanning
@@ -501,18 +509,18 @@ jobs:
       run: |
         uv run bandit -r src/ -f json -o reports/bandit-report.json
         uv run bandit -r src/ -f txt
-        echo "✅ Bandit security scan completed"
+        echo "[OK] Bandit security scan completed"
     
     - name: Run Safety dependency scan
       run: |
         uv run safety check --json --output reports/safety-report.json
         uv run safety check
-        echo "✅ Safety dependency scan completed"
+        echo "[OK] Safety dependency scan completed"
     
     - name: Scan for secrets
       run: |
         uv run python scripts/validate_secrets.py --scan-code
-        echo "✅ Secret scan completed"
+        echo "[OK] Secret scan completed"
     
     - name: Generate security report
       run: |
@@ -520,7 +528,7 @@ jobs:
         echo "# Security Scan Report" > reports/security-summary.md
         echo "- **Bandit**: $(if [[ -f reports/bandit-report.json ]]; then echo 'Completed'; else echo 'Failed'; fi)" >> reports/security-summary.md
         echo "- **Safety**: $(if [[ -f reports/safety-report.json ]]; then echo 'Completed'; else echo 'Failed'; fi)" >> reports/security-summary.md
-        echo "- **Secret Scan**: ✅ Pass" >> reports/security-summary.md
+        echo "- **Secret Scan**: [OK] Pass" >> reports/security-summary.md
     
     - name: Upload security artifacts
       uses: actions/upload-artifact@v4
@@ -575,13 +583,13 @@ jobs:
         ollama serve &
         sleep 15
         ollama pull llama3.2:latest
-        echo "✅ Ollama ready for performance tests"
+        echo "[OK] Ollama ready for performance tests"
     
     - name: Wait for services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
         timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "✅ Performance test services ready"
+        echo "[OK] Performance test services ready"
     
     - name: Setup performance test environment
       env:
@@ -589,7 +597,7 @@ jobs:
         OLLAMA_URL: http://localhost:11434
       run: |
         mkdir -p {data,logs,reports}/{raw,processed}
-        echo "✅ Performance test environment setup"
+        echo "[OK] Performance test environment setup"
     
     - name: Run performance benchmarks
       env:
@@ -598,7 +606,7 @@ jobs:
       run: |
         uv run python scripts/testing/test_performance_optimizations.py --benchmark
         uv run python scripts/testing/demo_performance_optimizations.py
-        echo "✅ Performance benchmarks completed"
+        echo "[OK] Performance benchmarks completed"
     
     - name: Generate performance report
       run: |
@@ -662,25 +670,25 @@ jobs:
         # Check if all required tests passed
         if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
           deployment_ready="false"
-          echo "❌ Unit tests failed"
+          echo "[FAIL] Unit tests failed"
         fi
         
         if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then
           deployment_ready="false"
-          echo "❌ Integration tests failed"
+          echo "[FAIL] Integration tests failed"
         fi
         
         if [[ "${{ needs.security-scan.result }}" != "success" ]]; then
           deployment_ready="false"
-          echo "❌ Security scan failed"
+          echo "[FAIL] Security scan failed"
         fi
         
         echo "ready=$deployment_ready" >> $GITHUB_OUTPUT
         
         if [[ "$deployment_ready" == "true" ]]; then
-          echo "✅ Deployment ready"
+          echo "[OK] Deployment ready"
         else
-          echo "❌ Deployment not ready"
+          echo "[FAIL] Deployment not ready"
         fi
     
     - name: Create deployment summary
@@ -703,10 +711,10 @@ jobs:
         
         ## Next Steps
         $(if [[ "${{ steps.deploy-check.outputs.ready }}" == "true" ]]; then
-          echo "- ✅ Ready for deployment"
+          echo "- [OK] Ready for deployment"
           echo "- Trigger deployment workflow if needed"
         else
-          echo "- ❌ Fix failing tests before deployment"
+          echo "- [FAIL] Fix failing tests before deployment"
           echo "- Review test results and logs"
         fi)
         EOF
@@ -744,9 +752,9 @@ jobs:
         echo "status=$overall_status" >> $GITHUB_OUTPUT
         
         if [[ "$overall_status" == "success" ]]; then
-          echo "message=✅ CI/CD pipeline completed successfully" >> $GITHUB_OUTPUT
+          echo "message=[OK] CI/CD pipeline completed successfully" >> $GITHUB_OUTPUT
         else
-          echo "message=❌ CI/CD pipeline failed" >> $GITHUB_OUTPUT
+          echo "message=[FAIL] CI/CD pipeline failed" >> $GITHUB_OUTPUT
         fi
     
     - name: Create issue on critical failure
