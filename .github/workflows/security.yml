@@ -65,8 +65,8 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
-        head: HEAD
+
+
 
   code-security-scan:
     name: Static Code Security Analysis
@@ -93,7 +93,7 @@ jobs:
     
     - name: Run Bandit
       run: |
-        uv run pip install bandit
+        # Using bandit from dev dependencies
         uv run bandit -r src/ -f json -o bandit-report.json
     
     - name: Upload security reports
