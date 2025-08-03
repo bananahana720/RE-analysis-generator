@@ -38,7 +38,9 @@ dev = [
     "tdd-guard==0.5.2",
     "mutmut>=2.4.0",
     "playwright>=1.40.0",
-    "httpx>=0.25.0"
+    "httpx>=0.25.0",
+    "bandit>=1.7.0",
+    "safety>=3.0.0"
 ]
 
 [tool.pytest.ini_options]
