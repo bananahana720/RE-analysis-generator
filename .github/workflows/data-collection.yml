@@ -486,3 +486,20 @@ jobs:
             body: issueBody,
             labels: ['automation', 'data-collection', 'failure', 'high-priority']
           });
+    
+    - name: Create success notification
+      if: steps.status.outputs.status == 'success'
+      run: |
+        echo "[OK] Daily data collection completed successfully"
+        echo "Collection completed at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+        echo "ZIP codes processed: ${{ needs.pre-collection-setup.outputs.zip-codes }}"
+        echo "Collection mode: ${{ needs.pre-collection-setup.outputs.collection-mode }}"
+    
+    - name: Upload collection notification artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: collection-summary-${{ github.run_number }}
+        path: |
+          logs/collection_*.log
+        retention-days: 30
