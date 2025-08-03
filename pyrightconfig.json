@@ -1,0 +1,1 @@
+{"include": ["src"], "exclude": ["**/node_modules", "**/__pycache__", "**/.*"], "reportMissingImports": "error", "reportMissingTypeStubs": "warning", "reportAttributeAccessIssue": "error", "reportPossiblyUnboundVariable": "error", "reportGeneralTypeIssues": "error", "reportCallIssue": "error", "pythonVersion": "3.13", "typeCheckingMode": "standard"}

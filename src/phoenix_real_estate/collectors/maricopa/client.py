@@ -182,6 +182,7 @@ class MaricopaAPIClient(RateLimitObserver):
 
         except Exception as e:
             await self._handle_request_error(e, "search_property", query=query[:50], page=page)
+            return {"results": [], "error": str(e)}
 
     async def get_parcel_details(self, apn: str) -> Optional[Dict[str, Any]]:
         """Get all parcel information for a given APN.
@@ -328,6 +329,7 @@ class MaricopaAPIClient(RateLimitObserver):
 
         except Exception as e:
             await self._handle_request_error(e, "get_owner_details", apn="[SANITIZED]")
+            return []
 
     # Backward compatibility methods - these wrap the new API methods
     async def search_by_zipcode(self, zipcode: str) -> List[Dict[str, Any]]:

@@ -82,6 +82,20 @@ class ConfigProviderImpl:
         """
         return self._provider.get_typed(key, bool, default)
 
+
+    def get_typed(self, key: str, value_type: type, default: Any = None) -> Any:
+        """Retrieve a configuration value with type conversion.
+
+        Args:
+            key: The configuration key to retrieve
+            value_type: The expected type for the value
+            default: Default value if key is not found
+
+        Returns:
+            The configuration value converted to the specified type
+        """
+        return self._provider.get_typed(key, value_type, default)
+
     def get_dict(self, key: str, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Retrieve a configuration value as dictionary.
 

@@ -43,7 +43,7 @@ class HealthCheckService:
         }
         self.max_history_size = 100
 
-    def _add_health_record(self, component: str, healthy: bool, details: str):
+    def _add_health_record(self, component: str, healthy: bool, details: str) -> None:
         """Add a health record to history."""
         record = {"timestamp": datetime.now().isoformat(), "healthy": healthy, "details": details}
 
@@ -94,7 +94,14 @@ class HealthCheckService:
             await self.db_client.health_check()
 
             # Performance check - count documents
-            count = await self.db_client.properties.count_documents({})
+            count = 0
+            try:
+                async with self.db_client.get_database() as db:
+                    properties_collection = db["properties"]
+                    count = await properties_collection.count_documents({})
+            except Exception as e:
+                logger.warning(f"Could not count documents: {e}")
+                count = -1
 
             response_time = (time.time() - start_time) * 1000
 
@@ -103,8 +110,8 @@ class HealthCheckService:
                 "response_time_ms": round(response_time, 2),
                 "document_count": count,
                 "connection_pool": {
-                    "active": getattr(self.db_client, "active_connections", 0),
-                    "available": getattr(self.db_client, "available_connections", 0),
+                    "max_size": getattr(self.db_client, "max_pool_size", 0),
+                    "min_size": getattr(self.db_client, "min_pool_size", 0),
                 },
             }
 
@@ -142,14 +149,14 @@ class HealthCheckService:
             # Get model info
             model_info = {
                 "name": self.ollama_client.model_name,
-                "temperature": self.ollama_client.temperature,
-                "timeout": self.ollama_client.timeout,
+                "base_url": self.ollama_client.base_url,
+                "timeout_seconds": self.ollama_client.timeout_seconds,
             }
 
             # Test with a simple prompt
             test_start = time.time()
             try:
-                await self.ollama_client._generate("Test", max_tokens=10)
+                await self.ollama_client.generate_completion("Test prompt", max_tokens=10)
                 inference_time = (time.time() - test_start) * 1000
                 model_info["test_inference_ms"] = round(inference_time, 2)
             except Exception:
@@ -161,13 +168,7 @@ class HealthCheckService:
                 "status": "healthy",
                 "response_time_ms": round(response_time, 2),
                 "model": model_info,
-                "circuit_breaker": {
-                    "state": self.ollama_client.circuit_breaker.state.name,
-                    "failure_count": self.ollama_client.circuit_breaker.failure_count,
-                    "success_count": self.ollama_client.circuit_breaker.success_count,
-                    "last_failure": self.ollama_client.circuit_breaker.last_failure_time,
-                },
-            }
+                }
 
             self._add_health_record("ollama", True, f"Response time: {response_time:.2f}ms")
             return health_data
@@ -465,6 +466,9 @@ async def component_health_handler(request: web.Request) -> web.Response:
         )
 
     try:
+        # Initialize result to avoid unbound variable error
+        result: Dict[str, Any] = {"status": "error", "error": "Unknown component"}
+        
         if component == "database":
             result = await health_service.check_database_health()
         elif component == "ollama":
