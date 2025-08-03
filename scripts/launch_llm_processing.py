@@ -20,12 +20,12 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-# Add project root to path
+# Add project root to path (required before project imports)
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from phoenix_real_estate.foundation import EnvironmentConfigProvider, get_logger
-from phoenix_real_estate.foundation.database import DatabaseConnection
+from phoenix_real_estate.foundation import EnvironmentConfigProvider, get_logger  # noqa: E402
+from phoenix_real_estate.foundation.database import DatabaseConnection  # noqa: E402
 
 console = Console()
 logger = get_logger(__name__)

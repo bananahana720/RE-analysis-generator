@@ -29,6 +29,18 @@ from phoenix_real_estate.foundation import (
 from phoenix_real_estate.foundation.config import (
     EnvironmentConfigProvider,
 )
+from phoenix_real_estate.foundation.database.connection import (
+    DatabaseConnection,
+    get_database_connection,
+    close_database_connection,
+)
+from phoenix_real_estate.foundation.database.repositories import (
+    RepositoryFactory,
+)
+from phoenix_real_estate.foundation.utils.exceptions import (
+    ConfigurationError,
+    DatabaseError,
+)
 
 
 # Create a simple test config provider
@@ -62,20 +74,6 @@ class SimpleConfigProvider:
         if isinstance(value, str):
             return value.lower() in ("true", "yes", "1", "on")
         return bool(value)
-
-
-from phoenix_real_estate.foundation.database.connection import (
-    DatabaseConnection,
-    get_database_connection,
-    close_database_connection,
-)
-from phoenix_real_estate.foundation.database.repositories import (
-    RepositoryFactory,
-)
-from phoenix_real_estate.foundation.utils.exceptions import (
-    ConfigurationError,
-    DatabaseError,
-)
 
 
 class TestDatabaseConfigurationIntegration:

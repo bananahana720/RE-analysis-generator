@@ -15,10 +15,10 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "tests"))
 
-from phoenix_real_estate.foundation.config import get_config
-from phoenix_real_estate.foundation.logging import get_logger
-from phoenix_real_estate.foundation.database.connection import DatabaseConnection
-from phoenix_real_estate.collectors.processing.pipeline import DataProcessingPipeline
+from phoenix_real_estate.foundation.config import get_config  # noqa: E402
+from phoenix_real_estate.foundation.logging import get_logger  # noqa: E402
+from phoenix_real_estate.foundation.database.connection import DatabaseConnection  # noqa: E402
+from phoenix_real_estate.collectors.processing.pipeline import DataProcessingPipeline  # noqa: E402
 
 
 logger = get_logger("e2e.verify")

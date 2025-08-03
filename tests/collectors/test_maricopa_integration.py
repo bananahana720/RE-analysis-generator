@@ -393,7 +393,7 @@ class TestEndToEndWorkflowIntegration:
         with patch.object(config, "get_typed") as mock_get_typed:
 
             def mock_get_typed_side_effect(key, type_class, default=None):
-                if type_class == int:
+                if type_class is int:
                     return {
                         "maricopa.collection.batch_size": 50,
                         "maricopa.collection.max_retries": 3,
@@ -596,7 +596,7 @@ class TestComponentIntegrationTesting:
                 "MARICOPA_TIMEOUT": 30,
                 "MARICOPA_RATE_LIMIT": 600,  # 10 per second as requests per minute
             }.get(key, default)
-            if type_class == int
+            if type_class is int
             else default
         )
 
@@ -748,7 +748,7 @@ class TestComponentIntegrationTesting:
         with patch.object(config, "get_typed") as mock_get_typed:
 
             def mock_typed_effect(key, type_class, default=None):
-                if type_class == int:
+                if type_class is int:
                     return {
                         "maricopa.collection.batch_size": 10,
                         "maricopa.collection.max_retries": 2,
@@ -825,7 +825,7 @@ class TestPerformanceRateLimitingIntegration:
                 "MARICOPA_RATE_LIMIT": 1000,
                 "MARICOPA_TIMEOUT": 5,
             }.get(key, default)
-            if type_class == int
+            if type_class is int
             else default
         )
 
@@ -1217,7 +1217,7 @@ class TestIntegrationBenchmarks:
             }.get(key, default)
 
             def mock_typed_effect(key, type_class, default=None):
-                if type_class == int:
+                if type_class is int:
                     return {
                         "maricopa.collection.batch_size": 100,
                         "MARICOPA_RATE_LIMIT": 1000,

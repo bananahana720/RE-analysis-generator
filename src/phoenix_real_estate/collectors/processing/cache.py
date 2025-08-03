@@ -298,8 +298,8 @@ class CacheManager:
         # Create deterministic string representation
         data_str = json.dumps(cache_data, sort_keys=True)
         
-        # Generate hash
-        hash_value = hashlib.md5(data_str.encode()).hexdigest()
+        # Generate hash (not for security, just for caching)
+        hash_value = hashlib.md5(data_str.encode(), usedforsecurity=False).hexdigest()
         
         return f"llm:{operation}:{hash_value}"
     

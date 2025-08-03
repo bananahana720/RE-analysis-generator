@@ -1,5 +1,6 @@
 """Test suite for LLM response caching functionality."""
 
+import asyncio
 import pytest
 import time
 from typing import Dict, Any
@@ -393,7 +394,3 @@ class TestCacheIntegration:
         # Should now have 2 entries in cache
         cache_metrics = cache_manager.get_metrics()  
         assert cache_metrics["entries"] == 2
-
-
-# Import asyncio for async tests
-import asyncio

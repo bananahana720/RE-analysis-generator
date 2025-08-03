@@ -297,8 +297,8 @@ class PropertySamples:
                         "construction_type": "FRAME/STUCCO",
                         "roof_type": "TILE",
                         "garage_spaces": 3,
-                        "pool": true,
-                        "solar_panels": true
+                        "pool": True,
+                        "solar_panels": True
                     },
                     "valuation": {
                         "market_value": 525000,

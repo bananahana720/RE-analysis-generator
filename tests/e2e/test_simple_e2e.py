@@ -68,31 +68,31 @@ class TestSimpleE2E:
         # Skip metrics test as it requires full config setup
         pytest.skip("Metrics collector requires full configuration with response_time_buckets")
         
-        # Start metrics collection
-        metrics_task = asyncio.create_task(metrics.start())
+        # TODO: Implement metrics collection test when metrics module is available
+        # metrics_task = asyncio.create_task(metrics.start())
         
-        try:
-            # Record some test metrics
-            for i in range(5):
-                metrics.record_property_stored()
-                await asyncio.sleep(0.1)
-            
-            # Get current metrics
-            current_metrics = metrics.get_metrics()
-            
-            # Verify metrics
-            assert "properties_stored" in current_metrics, "Missing properties_stored metric"
-            assert current_metrics["properties_stored"] == 5, f"Wrong count: {current_metrics['properties_stored']}"
-            
-            print(f"\n[SUCCESS] Metrics system recorded {current_metrics['properties_stored']} properties")
-            
-        finally:
-            # Stop metrics collection
-            metrics.stop()
-            try:
-                await asyncio.wait_for(metrics_task, timeout=1.0)
-            except asyncio.TimeoutError:
-                metrics_task.cancel()
+        # try:
+        #     # Record some test metrics
+        #     for i in range(5):
+        #         metrics.record_property_stored()
+        #         await asyncio.sleep(0.1)
+        #     
+        #     # Get current metrics
+        #     current_metrics = metrics.get_metrics()
+        #     
+        #     # Verify metrics
+        #     assert "properties_stored" in current_metrics, "Missing properties_stored metric"
+        #     assert current_metrics["properties_stored"] == 5, f"Wrong count: {current_metrics['properties_stored']}"
+        #     
+        #     print(f"\n[SUCCESS] Metrics system recorded {current_metrics['properties_stored']} properties")
+        #     
+        # finally:
+        #     # Stop metrics collection
+        #     metrics.stop()
+        #     try:
+        #         await asyncio.wait_for(metrics_task, timeout=1.0)
+        #     except asyncio.TimeoutError:
+        #         metrics_task.cancel()
     
     @pytest.mark.asyncio
     async def test_data_parsing_logic(self):
