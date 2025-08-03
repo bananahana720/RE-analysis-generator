@@ -82,7 +82,6 @@ class ConfigProviderImpl:
         """
         return self._provider.get_typed(key, bool, default)
 
-
     def get_typed(self, key: str, value_type: type, default: Any = None) -> Any:
         """Retrieve a configuration value with type conversion.
 

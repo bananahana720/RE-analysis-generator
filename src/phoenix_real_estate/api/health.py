@@ -168,7 +168,7 @@ class HealthCheckService:
                 "status": "healthy",
                 "response_time_ms": round(response_time, 2),
                 "model": model_info,
-                }
+            }
 
             self._add_health_record("ollama", True, f"Response time: {response_time:.2f}ms")
             return health_data
@@ -468,7 +468,7 @@ async def component_health_handler(request: web.Request) -> web.Response:
     try:
         # Initialize result to avoid unbound variable error
         result: Dict[str, Any] = {"status": "error", "error": "Unknown component"}
-        
+
         if component == "database":
             result = await health_service.check_database_health()
         elif component == "ollama":
