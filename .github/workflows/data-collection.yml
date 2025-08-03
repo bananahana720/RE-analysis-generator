@@ -23,6 +23,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  issues: write
+
 env:
   TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"

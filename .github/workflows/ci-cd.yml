@@ -27,6 +27,11 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 env:
   TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
   PYTHON_VERSION: "3.13"
@@ -216,7 +221,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    needs: [code-quality, secret-validation]
+    needs: [code-quality, validate-secrets]
     timeout-minutes: 30
     
     services:
@@ -421,7 +426,7 @@ jobs:
           screenshots/
         retention-days: 21
 
-  secret-validation:
+  validate-secrets:
     name: Critical Secret Validation
     runs-on: ubuntu-latest
     needs: code-quality
@@ -485,7 +490,7 @@ jobs:
   security-scan:
     name: Security Scanning
     runs-on: ubuntu-latest
-    needs: [code-quality, secret-validation]
+    needs: [code-quality, validate-secrets]
     if: github.event.inputs.skip_security_scan != 'true'
     timeout-minutes: 15
     
@@ -629,7 +634,7 @@ jobs:
   deployment-preparation:
     name: Deployment Preparation
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, security-scan, secret-validation]
+    needs: [unit-tests, integration-tests, security-scan, validate-secrets]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     timeout-minutes: 10
     
