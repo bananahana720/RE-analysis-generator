@@ -230,7 +230,7 @@ class BenchmarkSuite:
             start = time.perf_counter()
             try:
                 factory._validate_config(simple_config)
-            except:
+            except Exception:
                 pass
             elapsed = time.perf_counter() - start
             simple_times.append(elapsed)
@@ -259,7 +259,7 @@ class BenchmarkSuite:
             start = time.perf_counter()
             try:
                 factory._validate_config(complex_config)
-            except:
+            except Exception:
                 pass
             elapsed = time.perf_counter() - start
             complex_times.append(elapsed)
@@ -291,7 +291,7 @@ class BenchmarkSuite:
             start = time.perf_counter()
             try:
                 validator.validate_environment(Environment.DEVELOPMENT)
-            except:
+            except Exception:
                 pass
             elapsed = time.perf_counter() - start
             custom_times.append(elapsed)
@@ -531,7 +531,7 @@ class BenchmarkSuite:
             start = time.perf_counter()
             try:
                 secret_manager.get_required_secret(key)
-            except:
+            except Exception:
                 pass
             elapsed = time.perf_counter() - start
             validation_times.append(elapsed)

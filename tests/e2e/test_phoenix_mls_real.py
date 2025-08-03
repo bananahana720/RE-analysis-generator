@@ -16,10 +16,10 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.collection.phoenix_mls_scraper import PhoenixMLSScraper
-from src.config.settings import Settings
-from src.database.mongo_client import MongoDBClient
-from src.database.property_repository import PropertyRepository
+from phoenix_real_estate.collection.phoenix_mls_scraper import PhoenixMLSScraper
+from phoenix_real_estate.config.settings import Settings
+from phoenix_real_estate.database.mongo_client import MongoDBClient
+from phoenix_real_estate.database.property_repository import PropertyRepository
 
 
 class TestPhoenixMLSE2E:

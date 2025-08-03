@@ -12,7 +12,7 @@ import sys
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from tests.foundation.config.benchmarks import BenchmarkSuite
+from .benchmarks import BenchmarkSuite
 
 
 @pytest.mark.benchmark

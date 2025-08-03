@@ -4,12 +4,9 @@ Simulates GitHub Actions environment and executes workflow jobs locally.
 Built for Phoenix Real Estate Data Collector workflow testing.
 """
 
-import asyncio
-import os
-import tempfile
 import yaml
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from pathlib import Path
 
 from phoenix_real_estate.foundation.utils.exceptions import ValidationError

@@ -111,7 +111,7 @@ class SetupChecker:
                 try:
                     await client.admin.command('ping')
                     return True
-                except:
+                except Exception:
                     return False
             
             connected = loop.run_until_complete(test())

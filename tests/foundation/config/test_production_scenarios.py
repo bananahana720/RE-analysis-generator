@@ -446,7 +446,7 @@ class TestErrorRecovery:
                         reset_config_cache()
                         config = get_config()
                         recovered += 1
-                    except:
+                    except Exception:
                         pass
 
         # Run concurrent workers
@@ -535,7 +535,7 @@ class TestProductionValidation:
         factory = EnvironmentFactory()
         try:
             factory._validate_config(config)
-        except:
+        except Exception:
             pass  # We're testing performance, not correctness
         validation_time = time.time() - validator_start
 

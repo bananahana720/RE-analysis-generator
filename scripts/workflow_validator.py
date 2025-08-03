@@ -6,7 +6,6 @@ Validates YAML syntax, secrets, dependencies, and action versions.
 import yaml
 import re
 from typing import Dict, Any, List, Set, Optional
-from pathlib import Path
 
 from phoenix_real_estate.foundation import ConfigProvider, get_logger
 from phoenix_real_estate.foundation.utils.exceptions import ValidationError

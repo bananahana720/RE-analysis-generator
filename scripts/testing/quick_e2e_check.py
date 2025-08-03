@@ -17,7 +17,7 @@ def check_mongodb():
         if result.returncode == 0:
             print("[OK] MongoDB is running")
             return True
-    except:
+    except Exception:
         pass
     print("[FAIL] MongoDB is not running")
     print("      Run: net start MongoDB (as Administrator)")
@@ -41,7 +41,7 @@ def check_ollama():
                 else:
                     print("[WARN] llama3.2:latest model not found")
                     print("      Run: ollama pull llama3.2:latest")
-    except:
+    except Exception:
         pass
     print("[INFO] Ollama not running (tests will use mock mode)")
     return False

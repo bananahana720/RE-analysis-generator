@@ -10,7 +10,15 @@ import signal
 import sys
 from typing import Optional
 
-import uvloop
+# Windows-compatible uvloop import
+try:
+    import uvloop
+    # Only use uvloop on Unix-like systems
+    if sys.platform != "win32":
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    # uvloop not available (Windows or not installed)
+    pass
 from aiohttp import web
 from prometheus_client import (
     Counter,
@@ -20,15 +28,14 @@ from prometheus_client import (
     CONTENT_TYPE_LATEST,
 )
 
-from phoenix_real_estate.foundation import ConfigProvider, get_logger
-from phoenix_real_estate.foundation.database import DatabaseClient
+from phoenix_real_estate.foundation import EnvironmentConfigProvider, get_logger
+from phoenix_real_estate.foundation.database import DatabaseConnection
 from phoenix_real_estate.orchestration import ProcessingIntegrator
 from phoenix_real_estate.collectors.processing.monitoring import ProcessingMonitor, ResourceMonitor, ResourceLimits
 from phoenix_real_estate.collectors.processing import OllamaClient
 from phoenix_real_estate.api.health import HealthCheckService, detailed_health_handler, component_health_handler
 
 # Set up high-performance event loop
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 # Metrics
 processing_requests = Counter(
@@ -61,8 +68,8 @@ class LLMProcessingService:
     def __init__(self, config_path: Optional[str] = None):
         """Initialize the service."""
         self.logger = get_logger(__name__)
-        self.config = ConfigProvider(environment="production")
-        self.db_client: Optional[DatabaseClient] = None
+        self.config = EnvironmentConfigProvider(environment="production")
+        self.db_client: Optional[DatabaseConnection] = None
         self.processing_integrator: Optional[ProcessingIntegrator] = None
         self.monitor: Optional[ProcessingMonitor] = None
         self.resource_monitor: Optional[ResourceMonitor] = None
@@ -234,7 +241,7 @@ class LLMProcessingService:
         
         try:
             # Initialize database connection
-            self.db_client = DatabaseClient(self.config)
+            self.db_client = DatabaseConnection(self.config)
             await self.db_client.connect()
             
             # Initialize processing integrator
@@ -362,10 +369,10 @@ if __name__ == "__main__":
         async def health_check():
             """Simple health check for systemd."""
             try:
-                config = ConfigProvider(environment="production")
+                config = EnvironmentConfigProvider(environment="production")
                 
                 # Check MongoDB
-                db_client = DatabaseClient(config)
+                db_client = DatabaseConnection(config)
                 await db_client.connect()
                 await db_client.health_check()
                 await db_client.close()

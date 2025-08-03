@@ -4,7 +4,7 @@ Following TDD principles - tests written first.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from typing import Dict, Any
 
 

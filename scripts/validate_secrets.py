@@ -6,14 +6,12 @@ Secrets validation script for Phoenix Real Estate Data Collector.
 
 import os
 import sys
-import json
 import logging
 import argparse
 import re
 import time
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional, Any, NamedTuple
+from typing import List, Optional, NamedTuple
 from dataclasses import dataclass
 
 # Configure logging
@@ -78,8 +76,8 @@ def main():
     parser = argparse.ArgumentParser(description="Phoenix Real Estate Secrets Validator")
     subparsers = parser.add_subparsers(dest="command")
     
-    validate_parser = subparsers.add_parser("validate")
-    health_parser = subparsers.add_parser("health")
+    subparsers.add_parser("validate")
+    subparsers.add_parser("health")
     
     args = parser.parse_args()
     

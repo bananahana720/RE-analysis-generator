@@ -9,7 +9,7 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta, UTC
 
-from scripts.validate_phoenix_mls_performance import PerformanceValidator
+from scripts.validation.validate_phoenix_mls_performance import PerformanceValidator
 
 
 class TestPerformanceValidator:
@@ -163,7 +163,7 @@ class TestPerformanceValidator:
 
         try:
             await task
-        except:
+        except Exception:
             pass  # Task might be cancelled
 
         # Verify calls were made
@@ -188,7 +188,7 @@ class TestPerformanceValidator:
 
         try:
             await task
-        except:
+        except Exception:
             pass
 
         # Check error was recorded
@@ -213,7 +213,7 @@ class TestPerformanceValidator:
 
                 try:
                     await task
-                except:
+                except Exception:
                     pass
 
                 # Check samples were collected
@@ -237,7 +237,7 @@ class TestPerformanceValidator:
 
         try:
             await task
-        except:
+        except Exception:
             pass
 
         # Check throughput was calculated
@@ -279,7 +279,7 @@ class TestPerformanceValidator:
 
         try:
             await task
-        except:
+        except Exception:
             pass
 
         # Check rate limit was detected

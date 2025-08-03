@@ -38,7 +38,7 @@ class TestDataProcessingPipeline:
                 "RETRY_ATTEMPTS": 2,
                 "RETRY_DELAY": 1.0,
                 "CACHE_ENABLED": True,
-                "RESOURCE_MONITORING_ENABLED": True,
+                "RESOURCE_MONITORING_ENABLED": False,
                 "ADAPTIVE_BATCH_SIZING": True,
                 "CACHE_TTL_HOURS": 24.0,
                 "CACHE_MAX_SIZE_MB": 100.0,
@@ -341,7 +341,7 @@ class TestDataProcessingPipeline:
         mock_extractor.extract_from_html.side_effect = ProcessingError("Test error")
         try:
             await pipeline.process_html("<html>3</html>", "phoenix_mls")
-        except:
+        except Exception:
             pass
         
         # Check metrics

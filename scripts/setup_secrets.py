@@ -4,7 +4,6 @@
 Secrets setup script for Phoenix Real Estate Data Collector.
 """
 
-import os
 import sys
 import json
 import hashlib
@@ -13,7 +12,7 @@ import argparse
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 
 # Add src to path for imports
@@ -179,7 +178,7 @@ def main():
     
     elif args.command == "generate":
         print(f"Generating GitHub secrets configuration from {args.env_file}...")
-        config = setup.generate_github_config(args.env_file)
+        setup.generate_github_config(args.env_file)
         print("✅ Configuration generated")
 
 

@@ -25,7 +25,13 @@ from typing import (
     Awaitable,
     Callable,
     Tuple,
+    TYPE_CHECKING,
 )
+
+if TYPE_CHECKING:
+    from .epic_1_interfaces import Epic1ServiceProvider
+    from .epic_2_interfaces import Epic2ServiceProvider  
+    from .epic_3_interfaces import Epic3ServiceProvider
 from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass, field

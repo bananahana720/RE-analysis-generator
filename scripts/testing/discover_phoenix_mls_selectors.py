@@ -415,7 +415,7 @@ class SelectorDiscovery:
                             return selector
                     else:
                         return selector
-            except:
+            except Exception:
                 continue
 
         return None

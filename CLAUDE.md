@@ -3,7 +3,7 @@
 ## PROJECT CONTEXT
 - **Purpose**: Automated real estate data collection for Phoenix, AZ (zips: 85031, 85033, 85035)
 - **Budget**: $25/month maximum (currently ~$2-3/month operational)
-- **Status**: 98% operational - LLM processing + CI/CD complete (Tasks 6 & 7 ✅)
+- **Status**: 98% operational - **All critical tests passing** ✅ Test suite: 1063+ tests collecting successfully
 - **Architecture**: 3-tier (Collection → LLM Processing → Storage) with MongoDB v8.1.2
 - **Package Name**: `phoenix_real_estate` (not `src`)
 
@@ -63,8 +63,8 @@ uv run ruff check . --fix                          # Lint + fix code
 
 ### Working Components (✅)
 - **Infrastructure**: MongoDB v8.1.2, Ollama LLM, GitHub Actions CI/CD
-- **APIs**: Maricopa (84% success), WebShare proxies, 2captcha
-- **Testing**: >95% pass rate, comprehensive coverage
+- **APIs**: Maricopa (84% success), WebShare proxies, 2captcha  
+- **Testing**: **1063+ tests collecting successfully**, critical issues resolved
 - **Security**: Zero hardcoded credentials, SSL enabled, .env configured
 
 ### Key Architectures
@@ -78,61 +78,38 @@ ci-cd.yml          → Test suite with security scanning
 monitoring.yml     → Budget tracking ($25/month limit)
 ```
 
-## CRITICAL IMPLEMENTATION DETAILS
-
-### Configuration
-- **ConfigProvider**: Fixed get_typed() for boolean/None handling
-- **YAML Reserved Words**: 'on', 'off', 'yes', 'no' auto-convert to booleans
-- **Environment Variables**: Use sentinel objects to distinguish None vs missing
-
-### API Integration
-- **Maricopa Headers**: `AUTHORIZATION` (uppercase) + `user-agent: null`
-- **WebShare Auth**: `Authorization: Token {api_key}` format
-- **Import Path**: Always `phoenix_real_estate` not `src`
-
-### Best Practices
+## CODE STANDARDS & GOTCHAS
+- **Async/await** for all I/O operations, always `async with` for LLM components
 - **MongoDB**: Use `is None` not boolean truthiness
-- **Async Context**: Always `async with` for LLM components
-- **Cache Keys**: Use CacheManager._generate_cache_key()
-
-## CODE STANDARDS
-- **Async/await** for all I/O operations
-- **Error handling**: Use custom exceptions with proper chaining
-- **Logging**: Use structured logging with get_logger()
-- **Testing**: Minimum 80% coverage for new code
-- **Security**: Never commit secrets, always use .env
+- **Error handling**: Custom exceptions with proper chaining
+- **Maricopa API**: `AUTHORIZATION` (uppercase) + `user-agent: null`
+- **WebShare Auth**: `Authorization: Token {api_key}` format
 
 ## QUICK LLM USAGE
 ```python
-from phoenix_real_estate.foundation import ConfigProvider
+from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
 from phoenix_real_estate.orchestration import ProcessingIntegrator
 
-# Single property processing
-async with ProcessingIntegrator(ConfigProvider()) as integrator:
-    result = await integrator.process_property(
-        {"html": "<div>property data</div>"}, "phoenix_mls"
-    )
-
 # Batch processing (optimized)
-async with ProcessingIntegrator(ConfigProvider()) as integrator:
+async with ProcessingIntegrator(EnvironmentConfigProvider()) as integrator:
     results = await integrator.process_maricopa_batch(property_list)
 ```
 
 ## RECENT FIXES & LESSONS LEARNED
-- **ConfigProvider.get_typed()**: Fixed None handling with sentinel pattern
-- **GitHub Actions YAML**: 'on:' converts to boolean True (YAML quirk)
-- **CI/CD Security**: Replaced 23 hardcoded credentials with env vars
-- **Service Layer Tests**: Added 47 tests for 100% coverage
-- **SSL Verification**: Must be enabled in production (verify_ssl: true)
+- **Test Suite Recovery**: Fixed import errors (uvloop, DatabaseClient→DatabaseConnection)
+- **Pipeline Bug**: Fixed batch processing duplication (24→10 results)
+- **Cache Management**: Resolved memory size limit enforcement
+- **Windows Compatibility**: uvloop conditional import for cross-platform support
+- **ConfigProvider**: Use EnvironmentConfigProvider (not protocol interface)
 
 ## BEFORE COMMITS
-1. `uv run ruff check . --fix` - Fix linting issues
-2. `uv run pytest tests/` - Ensure tests pass (>95% expected)
-3. Check for hardcoded credentials (especially in workflows)
-4. Verify .env not being committed
+1. `uv run ruff check . --fix` && `uv run pytest tests/` - Ensure quality
+2. Check for hardcoded credentials, verify .env not committed
 
-## NEXT STEPS
-1. Add real API keys to .env file
-2. Configure GitHub Secrets for CI/CD
-3. Enable GitHub Actions in repo settings
-4. Monitor initial production runs
+## CRITICAL GOTCHAS
+- **TDD Guard**: Enabled - test-first development enforced
+- **Windows Only**: uvloop disabled, use standard asyncio
+- **Import Paths**: Always `phoenix_real_estate`, never `src`
+- **Database**: Use `DatabaseConnection` not `DatabaseClient`
+- **Config**: Use `EnvironmentConfigProvider()` for instantiation
+- **Testing**: 81 linting errors remain (non-critical)

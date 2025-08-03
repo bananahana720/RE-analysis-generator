@@ -12,7 +12,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
 
-from validate_mongodb_atlas import MongoDBAtlasValidator
+from scripts.validation.validate_mongodb_atlas import MongoDBAtlasValidator
 from setup_mongodb_atlas import validate_mongodb_uri
 
 

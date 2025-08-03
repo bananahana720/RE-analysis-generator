@@ -24,8 +24,8 @@ from rich.table import Table
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from phoenix_real_estate.foundation import ConfigProvider, get_logger
-from phoenix_real_estate.foundation.database import DatabaseClient
+from phoenix_real_estate.foundation import EnvironmentConfigProvider, get_logger
+from phoenix_real_estate.foundation.database import DatabaseConnection
 
 console = Console()
 logger = get_logger(__name__)
@@ -35,13 +35,13 @@ class ServiceValidator:
     """Validates required services are running and healthy."""
     
     def __init__(self):
-        self.config = ConfigProvider()
+        self.config = EnvironmentConfigProvider()
         self.services_status: Dict[str, Dict[str, any]] = {}
         
     async def check_mongodb(self) -> Tuple[bool, str]:
         """Check MongoDB connection and health."""
         try:
-            client = DatabaseClient(self.config)
+            client = DatabaseConnection(self.config)
             await client.connect()
             await client.health_check()
             await client.close()
@@ -83,7 +83,7 @@ class ServiceValidator:
                             try:
                                 proc = psutil.Process(conn.pid)
                                 return False, f"Port in use by {proc.name()} (PID: {conn.pid})"
-                            except:
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
                                 pass
                     return False, "Port already in use"
                 else:
@@ -180,7 +180,7 @@ class ServiceLauncher:
     """Launches and manages the LLM processing service."""
     
     def __init__(self):
-        self.config = ConfigProvider()
+        self.config = EnvironmentConfigProvider()
         self.process: Optional[subprocess.Popen] = None
         
     def start_service(self) -> bool:

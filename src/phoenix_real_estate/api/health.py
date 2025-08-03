@@ -9,7 +9,7 @@ import psutil
 from aiohttp import web
 
 from phoenix_real_estate.foundation import get_logger
-from phoenix_real_estate.foundation.database import DatabaseClient
+from phoenix_real_estate.foundation.database import DatabaseConnection
 from phoenix_real_estate.collectors.processing.llm_client import OllamaClient
 from phoenix_real_estate.collectors.processing.monitoring import ResourceMonitor
 
@@ -20,7 +20,7 @@ class HealthCheckService:
     """Comprehensive health check service with detailed component status."""
     
     def __init__(self, 
-                 db_client: Optional[DatabaseClient] = None,
+                 db_client: Optional[DatabaseConnection] = None,
                  ollama_client: Optional[OllamaClient] = None,
                  resource_monitor: Optional[ResourceMonitor] = None,
                  processing_queue: Optional[asyncio.Queue] = None):
@@ -158,7 +158,7 @@ class HealthCheckService:
                 )
                 inference_time = (time.time() - test_start) * 1000
                 model_info["test_inference_ms"] = round(inference_time, 2)
-            except:
+            except Exception:
                 model_info["test_inference_ms"] = None
             
             response_time = (time.time() - start_time) * 1000

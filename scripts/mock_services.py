@@ -3,10 +3,8 @@
 Provides MongoDB, Ollama, and API mocks with circuit breaker simulation.
 """
 
-import asyncio
 import random
 from typing import Dict, Any, List, Optional
-from unittest.mock import AsyncMock, MagicMock
 
 from phoenix_real_estate.foundation import ConfigProvider, get_logger
 from phoenix_real_estate.foundation.utils.exceptions import DatabaseError, PhoenixREError
@@ -109,12 +107,12 @@ class MockMongoDBService:
     async def insert_one(self, collection: str, document: Dict[str, Any]) -> str:
         """Mock insert operation."""
         if self.circuit_breaker_active and random.random() < self.failure_rate:
-            raise DatabaseError(f"Circuit breaker active for MongoDB")
+            raise DatabaseError("Circuit breaker active for MongoDB")
             
         if collection not in self.collections:
             self.collections[collection] = []
             
-        document_id = f"mock_id_{len(self.collections[collection])}")
+        document_id = f"mock_id_{len(self.collections[collection])}"
         document["_id"] = document_id
         self.collections[collection].append(document)
         
@@ -123,7 +121,7 @@ class MockMongoDBService:
     async def find_one(self, collection: str, query: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Mock find operation."""
         if self.circuit_breaker_active and random.random() < self.failure_rate:
-            raise DatabaseError(f"Circuit breaker active for MongoDB")
+            raise DatabaseError("Circuit breaker active for MongoDB")
             
         if collection not in self.collections:
             return None
@@ -154,7 +152,7 @@ class MockOllamaService:
     async def generate_response(self, prompt: str, model: str = "llama3.2:latest") -> Dict[str, Any]:
         """Mock LLM response generation."""
         if self.circuit_breaker_active and random.random() < self.failure_rate:
-            raise PhoenixREError(f"Circuit breaker active for Ollama")
+            raise PhoenixREError("Circuit breaker active for Ollama")
             
         # Generate mock response based on prompt
         if "property" in prompt.lower():

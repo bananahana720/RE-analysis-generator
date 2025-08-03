@@ -83,7 +83,7 @@ class StatusChecker:
                         })
                     else:
                         metrics[metric_part] = float(value)
-            except:
+            except (ValueError, TypeError):
                 continue
         
         return metrics

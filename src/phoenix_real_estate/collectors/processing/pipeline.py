@@ -384,7 +384,6 @@ class DataProcessingPipeline:
         current_batch_size = self.batch_size
         if self._batch_optimizer:
             current_batch_size = self._batch_optimizer.get_optimal_batch_size()
-        
         if self._resource_monitor:
             # Further adjust based on current resources
             recommended_size = self._resource_monitor.get_recommended_batch_size()
@@ -423,9 +422,9 @@ class DataProcessingPipeline:
             )
             
             # Update batch size for next iteration if adaptive
-            if self._batch_optimizer and self.adaptive_batch_sizing:
-                current_batch_size = self._batch_optimizer.get_optimal_batch_size()
-        
+            # FIXED: Disabled adaptive batch sizing mid-loop to prevent duplicate processing
+            # if self._batch_optimizer and self.adaptive_batch_sizing:
+            #     current_batch_size = self._batch_optimizer.get_optimal_batch_size()
         return results
     
     async def process_batch_json(

@@ -12,8 +12,7 @@ This test suite follows TDD principles and provides complete test coverage for:
 import asyncio
 import json
 import signal
-import sys
-from unittest.mock import AsyncMock, Mock, patch, MagicMock, call
+from unittest.mock import AsyncMock, Mock, patch
 from typing import Any, Dict, Optional
 
 import pytest
@@ -21,7 +20,7 @@ from aiohttp import web
 from prometheus_client import CONTENT_TYPE_LATEST
 
 from phoenix_real_estate.collectors.processing.service import LLMProcessingService
-from phoenix_real_estate.foundation import ConfigProvider
+from phoenix_real_estate.foundation import EnvironmentConfigProvider
 
 
 class MockDatabaseClient:
@@ -100,7 +99,7 @@ class TestLLMProcessingService:
     @pytest.fixture
     def mock_config(self):
         """Create mock configuration."""
-        config = Mock(spec=ConfigProvider)
+        config = Mock(spec=EnvironmentConfigProvider)
         config.get = Mock(return_value="test_value")
         config.get_typed = Mock(return_value=30)
         return config
@@ -134,7 +133,7 @@ class TestLLMProcessingService:
 
     def test_init(self, mock_config):
         """Test service initialization."""
-        with patch('phoenix_real_estate.collectors.processing.service.get_logger') as mock_logger,              patch('phoenix_real_estate.collectors.processing.service.ConfigProvider') as mock_config_provider:
+        with patch('phoenix_real_estate.collectors.processing.service.get_logger') as mock_logger,              patch('phoenix_real_estate.collectors.processing.service.EnvironmentConfigProvider') as mock_config_provider:
             
             mock_logger.return_value = Mock()
             mock_config_provider.return_value = mock_config
@@ -157,15 +156,15 @@ class TestLLMProcessingService:
 
     def test_init_with_config_path(self):
         """Test service initialization with config path."""
-        with patch('phoenix_real_estate.collectors.processing.service.get_logger') as mock_logger,              patch('phoenix_real_estate.collectors.processing.service.ConfigProvider') as mock_config_provider:
+        with patch('phoenix_real_estate.collectors.processing.service.get_logger') as mock_logger,              patch('phoenix_real_estate.collectors.processing.service.EnvironmentConfigProvider') as mock_config_provider:
             
             mock_logger.return_value = Mock()
             mock_config = Mock()
             mock_config_provider.return_value = mock_config
             
-            service = LLMProcessingService(config_path="/custom/path")
+            LLMProcessingService(config_path="/custom/path")
             
-            # Verify ConfigProvider was called with production environment
+            # Verify EnvironmentConfigProvider was called with production environment
             mock_config_provider.assert_called_once_with(environment="production")
 
     @pytest.mark.asyncio

@@ -145,7 +145,7 @@ class TestValidationPerformance:
             start = time.perf_counter()
             try:
                 factory._validate_config(config)
-            except:
+            except Exception:
                 pass  # We're testing performance, not correctness
             elapsed = time.perf_counter() - start
             times.append(elapsed)
@@ -188,7 +188,7 @@ class TestValidationPerformance:
         start = time.perf_counter()
         try:
             validator.validate_environment(Environment.DEVELOPMENT)
-        except:
+        except Exception:
             pass  # Testing performance
         elapsed = time.perf_counter() - start
 

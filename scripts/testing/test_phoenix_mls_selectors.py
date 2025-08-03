@@ -112,7 +112,7 @@ class SelectorTester:
         try:
             await page.wait_for_load_state("networkidle", timeout=10000)
             await asyncio.sleep(2)  # Extra wait for dynamic content
-        except:
+        except Exception:
             print("  ⚠️  Search did not complete successfully")
             return
 
@@ -259,7 +259,7 @@ class SelectorTester:
                     try:
                         text = await elements[0].text_content()
                         result["sample_text"] = text[:100] if text else None
-                    except:
+                    except Exception:
                         pass
 
                 return result
@@ -280,7 +280,7 @@ class SelectorTester:
                         try:
                             text = await elements[0].text_content()
                             result["sample_text"] = text[:100] if text else None
-                        except:
+                        except Exception:
                             pass
 
                     return result

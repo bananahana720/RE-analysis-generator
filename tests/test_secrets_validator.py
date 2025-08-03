@@ -5,7 +5,6 @@ Tests for secrets validation script.
 import os
 import sys
 import pytest
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 

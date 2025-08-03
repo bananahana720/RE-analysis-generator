@@ -1,5 +1,5 @@
-# TDD Guard Configuration for Phoenix MLS Scraper
-project_name: "Phoenix MLS Scraper"
+# TDD Guard Configuration for RE-analysis-generator
+project_name: "RE-analysis-generator"
 enforce_tdd: true
 test_first_required: true
 
@@ -17,14 +17,6 @@ coverage:
 mutation:
   enabled: true
   minimum_score: 85
-  
-# Paths
-source_paths:
-  - src/phoenix_real_estate/collectors/phoenix_mls
-  - src/phoenix_real_estate/collectors/maricopa
-test_paths:
-  - tests/collectors/phoenix_mls
-  - tests/collectors/maricopa
 
 # Pre-commit hooks
 hooks:

@@ -28,12 +28,9 @@ try:
         get_config,
         reset_config_cache,
         ConfigurationError,
-        EnvironmentConfigProvider,
     )
     from phoenix_real_estate.foundation.config.secrets import (
         get_secret_manager,
-        SecretNotFoundError,
-        SecretValidationError,
     )
 except ImportError as e:
     print(f"❌ Failed to import Phoenix Real Estate modules: {e}")

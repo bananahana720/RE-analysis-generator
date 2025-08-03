@@ -32,7 +32,7 @@ class TestOllamaIntegration:
                 async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
-        except:
+        except Exception:
             pytest.skip("Ollama service not running")
         
         async with OllamaClient(real_config) as client:
@@ -48,7 +48,7 @@ class TestOllamaIntegration:
                 async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
-        except:
+        except Exception:
             pytest.skip("Ollama service not running")
         
         async with OllamaClient(real_config) as client:
@@ -70,7 +70,7 @@ class TestOllamaIntegration:
                 async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
-        except:
+        except Exception:
             pytest.skip("Ollama service not running")
         
         async with OllamaClient(real_config) as client:

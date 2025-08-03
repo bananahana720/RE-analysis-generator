@@ -5,8 +5,8 @@ Following TDD principles - tests written first.
 """
 
 import pytest
-from typing import Dict, Any, Optional
-from unittest.mock import AsyncMock, MagicMock
+from typing import Dict, Any
+from unittest.mock import MagicMock
 
 
 class MockServiceManager:

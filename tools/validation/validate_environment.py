@@ -351,8 +351,7 @@ class EnvironmentValidator:
         """Validate testing framework setup."""
         try:
             # Check pytest configuration
-            import pytest
-            
+
             # Check if tests directory exists and has tests
             tests_dir = Path('tests')
             if tests_dir.exists():

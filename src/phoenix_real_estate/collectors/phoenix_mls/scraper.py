@@ -112,6 +112,8 @@ class PhoenixMLSScraper:
                 "maintenance": 0,
                 "other": 0,
             },
+            "operations": {},
+            "durations": [],
         }
 
         logger.info(f"PhoenixMLSScraper initialized with base URL: {self.base_url}")
@@ -508,7 +510,7 @@ class PhoenixMLSScraper:
 
         try:
             # Navigate to search page
-            search_url = urljoin(self.base_url, self.search_endpoint)
+            search_url = f"{urljoin(self.base_url, self.search_endpoint)}?zipcode={zipcode}"
             response = await self.page.goto(search_url, wait_until="networkidle")
 
             # Check for captcha immediately after navigation
@@ -578,6 +580,10 @@ class PhoenixMLSScraper:
             try:
                 # Extract basic info from card
                 property_data = {}
+                # Property ID
+                property_id = await card.get_attribute("data-property-id")
+                if property_id:
+                    property_data["property_id"] = property_id
 
                 # Property link
                 link_element = await card.query_selector('a[href*="property"], a.property-link')
@@ -757,9 +763,26 @@ class PhoenixMLSScraper:
 
         # Calculate success rate
         if stats["total_requests"] > 0:
-            stats["success_rate"] = (stats["successful_requests"] / stats["total_requests"]) * 100
+            stats["success_rate"] = (stats["successful_requests"] / stats["total_requests"])
         else:
             stats["success_rate"] = 0
+
+        # Add per-operation success rates and timing statistics
+        for operation, op_stats in stats["operations"].items():
+            if op_stats["count"] > 0:
+                op_stats["success_rate"] = op_stats["successful"] / op_stats["count"]
+            else:
+                op_stats["success_rate"] = 0
+
+        # Add timing statistics
+        if stats["durations"]:
+            stats["average_duration"] = sum(stats["durations"]) / len(stats["durations"])
+            stats["min_duration"] = min(stats["durations"])
+            stats["max_duration"] = max(stats["durations"])
+        else:
+            stats["average_duration"] = 0
+            stats["min_duration"] = 0
+            stats["max_duration"] = 0
 
         # Add proxy statistics
         if self.proxy_manager:
@@ -771,6 +794,42 @@ class PhoenixMLSScraper:
         stats["captcha_stats"] = self.captcha_handler.get_statistics()
 
         return stats
+
+    def _record_request(self, operation: str, success: bool, duration: float) -> None:
+        """Record request statistics for monitoring.
+        
+        Args:
+            operation: The operation type (e.g., "search", "details")
+            success: Whether the operation succeeded
+            duration: Duration in seconds
+        """
+        # Update overall stats
+        self.stats["total_requests"] += 1
+        if success:
+            self.stats["successful_requests"] += 1
+        else:
+            self.stats["failed_requests"] += 1
+        
+        # Track per-operation stats
+        if operation not in self.stats["operations"]:
+            self.stats["operations"][operation] = {
+                "count": 0,
+                "successful": 0,
+                "failed": 0,
+                "total_duration": 0.0
+            }
+        
+        op_stats = self.stats["operations"][operation]
+        op_stats["count"] += 1
+        op_stats["total_duration"] += duration
+        
+        if success:
+            op_stats["successful"] += 1
+        else:
+            op_stats["failed"] += 1
+        
+        # Track durations for overall statistics
+        self.stats["durations"].append(duration)
 
     async def scrape_properties_batch(self, property_urls: List[str]) -> List[Dict[str, Any]]:
         """Scrape multiple properties in batch with error recovery.
@@ -876,6 +935,142 @@ class PhoenixMLSScraper:
             return False
 
         return True
+
+    def validate_and_clean_property_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate and clean scraped property data.
+        
+        Args:
+            raw_data: Raw scraped data dictionary
+            
+        Returns:
+            Cleaned and validated data dictionary
+        """
+        from datetime import datetime
+        import re
+        
+        cleaned_data = {}
+        
+        # Clean address - trim whitespace
+        if "address" in raw_data and raw_data["address"]:
+            cleaned_data["address"] = raw_data["address"].strip()
+        else:
+            cleaned_data["address"] = ""
+            
+        # Parse price from string format like "$450,000"
+        if "price" in raw_data and raw_data["price"]:
+            price_str = str(raw_data["price"]).replace("$", "").replace(",", "")
+            try:
+                cleaned_data["price"] = int(price_str)
+            except ValueError:
+                cleaned_data["price"] = 0
+        else:
+            cleaned_data["price"] = 0
+            
+        # Parse bedrooms from text like "3 beds"
+        if "bedrooms" in raw_data and raw_data["bedrooms"]:
+            bedrooms_str = str(raw_data["bedrooms"])
+            match = re.search(r"(\d+)", bedrooms_str)
+            if match:
+                cleaned_data["bedrooms"] = int(match.group(1))
+            else:
+                cleaned_data["bedrooms"] = 0
+        else:
+            cleaned_data["bedrooms"] = 0
+            
+        # Parse bathrooms from string
+        if "bathrooms" in raw_data and raw_data["bathrooms"]:
+            try:
+                cleaned_data["bathrooms"] = float(raw_data["bathrooms"])
+            except ValueError:
+                cleaned_data["bathrooms"] = 0.0
+        else:
+            cleaned_data["bathrooms"] = 0.0
+            
+        # Parse square feet from formatted text like "1,850 sqft"
+        if "square_feet" in raw_data and raw_data["square_feet"]:
+            sqft_str = str(raw_data["square_feet"]).replace(",", "").replace(" sqft", "")
+            try:
+                cleaned_data["square_feet"] = int(sqft_str)
+            except ValueError:
+                cleaned_data["square_feet"] = 0
+        else:
+            cleaned_data["square_feet"] = 0
+            
+        # Handle description - convert None to empty string
+        if "description" in raw_data and raw_data["description"]:
+            cleaned_data["description"] = str(raw_data["description"])
+        else:
+            cleaned_data["description"] = ""
+            
+        # Add validation timestamp
+        cleaned_data["validated_at"] = datetime.now().isoformat()
+        
+        return cleaned_data
+
+
+    async def get_property_details(self, property_id: str) -> Dict[str, Any]:
+        """Get detailed information for a property by ID.
+        
+        Args:
+            property_id: The property ID
+            
+        Returns:
+            Dictionary with detailed property information
+        """
+        # This method is mainly for testing compatibility
+        # In real implementation, we would construct URL from property_id
+        # and call scrape_property_details
+        property_url = f"{self.base_url}/property/{property_id}"
+        return await self.scrape_property_details(property_url)
+
+
+    async def search_by_zipcode(self, zipcode: str) -> List[Dict[str, Any]]:
+        """Alias for search_properties_by_zipcode for compatibility.
+        
+        Args:
+            zipcode: The zipcode to search
+            
+        Returns:
+            List of property data dictionaries
+        """
+        return await self.search_properties_by_zipcode(zipcode)
+
+
+    async def scrape_zipcode(self, zipcode: str, include_details: bool = False) -> List[Dict[str, Any]]:
+        """Search for properties in a zipcode, optionally including detailed information.
+        
+        Args:
+            zipcode: The zipcode to search
+            include_details: Whether to fetch detailed information for each property
+            
+        Returns:
+            List of property data dictionaries
+        """
+        # First get the basic search results
+        properties = await self.search_by_zipcode(zipcode)
+        
+        if not include_details:
+            return properties
+            
+        # Get detailed information for each property
+        detailed_properties = []
+        for prop in properties:
+            if "property_id" in prop:
+                try:
+                    details = await self.get_property_details(prop["property_id"])
+                    # Merge basic info with details
+                    detailed_prop = {**prop, **details}
+                    detailed_properties.append(detailed_prop)
+                except Exception as e:
+                    prop_id = prop.get("property_id", "unknown")
+                    logger.warning(f"Failed to get details for property {prop_id}: {e}")
+                    # Include the basic property info even if details failed
+                    detailed_properties.append(prop)
+            else:
+                detailed_properties.append(prop)
+                
+        return detailed_properties
+
 
     def __repr__(self) -> str:
         """String representation of PhoenixMLSScraper."""
