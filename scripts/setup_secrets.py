@@ -181,7 +181,7 @@ def main():
     if args.command == "validate":
         print(f"Validating {args.env_file}...")
         is_valid = setup.validate_env_file(args.env_file)
-        print("Validation passed\!" if is_valid else "Validation failed\!")
+        print("Validation passed!" if is_valid else "Validation failed!")
 
     elif args.command == "generate":
         print(f"Generating GitHub secrets configuration from {args.env_file}...")

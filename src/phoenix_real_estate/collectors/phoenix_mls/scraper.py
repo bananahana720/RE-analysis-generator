@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, UTC
 from urllib.parse import urljoin
 from pathlib import Path
-import pickle
+import json
 from tenacity import retry, stop_after_attempt, wait_exponential
 from playwright.async_api import async_playwright, Page, Browser, BrowserContext
 
@@ -228,8 +228,8 @@ class PhoenixMLSScraper:
             return False
 
         try:
-            with open(self.session_file, "rb") as f:
-                session_data = pickle.load(f)
+            with open(self.session_file, "r", encoding="utf-8") as f:
+                session_data = json.load(f)  # Safe JSON deserialization
 
             self.cookies = session_data.get("cookies", [])
             self.local_storage = session_data.get("local_storage", {})
@@ -277,8 +277,8 @@ class PhoenixMLSScraper:
                 "saved_at": datetime.now(UTC).isoformat(),
             }
 
-            with open(self.session_file, "wb") as f:
-                pickle.dump(session_data, f)
+            with open(self.session_file, "w", encoding="utf-8") as f:
+                json.dump(session_data, f, indent=2)  # Safe JSON serialization
 
             logger.info(f"Session saved with {len(self.cookies)} cookies")
             return True

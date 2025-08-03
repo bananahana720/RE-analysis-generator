@@ -4,7 +4,7 @@ import asyncio
 import time
 from typing import List, Dict, Any
 
-from phoenix_real_estate.foundation.config import ConfigProvider
+from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
 from phoenix_real_estate.collectors.processing import DataProcessingPipeline, PerformanceBenchmark
 
 
@@ -42,7 +42,7 @@ async def test_cache_performance():
     """Test cache impact on performance."""
     print("\n=== Cache Performance Test ===")
 
-    config = ConfigProvider()
+    config = EnvironmentConfigProvider()
 
     # Test without cache
     print("\nTesting without cache...")
@@ -85,7 +85,7 @@ async def test_batch_size_optimization():
     """Test dynamic batch size optimization."""
     print("\n=== Batch Size Optimization Test ===")
 
-    config = ConfigProvider()
+    config = EnvironmentConfigProvider()
     config.settings.ADAPTIVE_BATCH_SIZING = True
     config.settings.BATCH_SIZE = 5  # Start small
 
@@ -117,7 +117,7 @@ async def test_resource_monitoring():
     """Test resource monitoring and adaptive control."""
     print("\n=== Resource Monitoring Test ===")
 
-    config = ConfigProvider()
+    config = EnvironmentConfigProvider()
     config.settings.RESOURCE_MONITORING_ENABLED = True
     config.settings.MAX_MEMORY_MB = 512  # Simulate constraint
     config.settings.MAX_CPU_PERCENT = 70
@@ -151,7 +151,7 @@ async def run_performance_benchmark():
     """Run comprehensive performance benchmark."""
     print("\n=== Comprehensive Performance Benchmark ===")
 
-    config = ConfigProvider()
+    config = EnvironmentConfigProvider()
     # Enable all optimizations
     config.settings.CACHE_ENABLED = True
     config.settings.RESOURCE_MONITORING_ENABLED = True

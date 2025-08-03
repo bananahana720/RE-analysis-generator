@@ -1,4 +1,4 @@
-# \!/usr/bin/env python3
+# \\!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Secrets validation script for Phoenix Real Estate Data Collector.
@@ -94,9 +94,9 @@ def main():
     if args.command == "validate":
         result = validator.validate_all_secrets()
         if result.is_valid:
-            print("All secrets validation passed\!")
+            print("All secrets validation passed\\!")
         else:
-            print("Secrets validation failed\!")
+            print("Secrets validation failed\\!")
             for error in result.errors:
                 print(f"  - {error}")
             sys.exit(1)

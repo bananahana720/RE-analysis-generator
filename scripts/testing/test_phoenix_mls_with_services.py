@@ -17,11 +17,11 @@ import json
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from playwright.async_api import async_playwright
-from src.phoenix_real_estate.foundation.config import get_config
-from src.phoenix_real_estate.foundation.logging import get_logger
-from src.phoenix_real_estate.collectors.phoenix_mls.scraper import PhoenixMLSScraper
-from src.phoenix_real_estate.collectors.phoenix_mls.proxy_manager import ProxyManager
-from src.phoenix_real_estate.collectors.phoenix_mls.captcha_handler import CaptchaHandler
+from phoenix_real_estate.foundation.config import get_config
+from phoenix_real_estate.foundation.logging import get_logger
+from phoenix_real_estate.collectors.phoenix_mls.scraper import PhoenixMLSScraper
+from phoenix_real_estate.collectors.phoenix_mls.proxy_manager import ProxyManager
+from phoenix_real_estate.collectors.phoenix_mls.captcha_handler import CaptchaHandler
 
 logger = get_logger(__name__)
 

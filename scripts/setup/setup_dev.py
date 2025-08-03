@@ -1,4 +1,4 @@
-# \!/usr/bin/env python3
+# \\!/usr/bin/env python3
 """Development Environment Setup Script for Phoenix Real Estate Project."""
 
 import subprocess
@@ -230,7 +230,7 @@ def main() -> int:
 
     if overall_success:
         print(
-            f"\n{Colors.GREEN}{Colors.BOLD}Development environment setup completed successfully!{Colors.ENDC}"
+            f"\n{Colors.GREEN}{Colors.BOLD}Development environment setup completed successfully\!{Colors.ENDC}"
         )
         return 0
     else:

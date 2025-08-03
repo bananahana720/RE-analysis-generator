@@ -267,7 +267,7 @@ class LLMProcessingService:
             # Start web server
             runner = web.AppRunner(self.app)
             await runner.setup()
-            site = web.TCPSite(runner, "0.0.0.0", 8080)
+            site = web.TCPSite(runner, "127.0.0.1", 8080)  # Bind to localhost only for security
             await site.start()
 
             self.logger.info("LLM Processing Service started successfully")

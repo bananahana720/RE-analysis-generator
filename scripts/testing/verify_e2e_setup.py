@@ -15,7 +15,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / "tests"))
 
-from phoenix_real_estate.foundation.config import get_config  # noqa: E402
+from phoenix_real_estate.foundation.config import EnvironmentConfigProvider  # noqa: E402
 from phoenix_real_estate.foundation.logging import get_logger  # noqa: E402
 from phoenix_real_estate.foundation.database.connection import DatabaseConnection  # noqa: E402
 from phoenix_real_estate.collectors.processing.pipeline import DataProcessingPipeline  # noqa: E402
@@ -28,16 +28,14 @@ async def verify_mongodb():
     """Verify MongoDB connection."""
     print("1. Checking MongoDB connection...")
     try:
-        get_config()
         mongodb_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
         db_conn = DatabaseConnection.get_instance(mongodb_uri, "phoenix_real_estate_e2e_test")
         await db_conn.connect()
 
-        # Test basic operations
-        db = db_conn.get_database()
-        # Get collection names directly from database object
-        collections = await db.list_collection_names()
-        print(f"   [OK] Connected to MongoDB (found {len(collections)} collections)")
+        # Test basic operations using async context manager
+        async with db_conn.get_database() as db:
+            collections = await db.list_collection_names()
+            print(f"   [OK] Connected to MongoDB (found {len(collections)} collections)")
 
         await db_conn.close()
         return True
@@ -76,7 +74,7 @@ async def verify_pipeline():
     """Verify processing pipeline can be initialized."""
     print("\n3. Checking processing pipeline...")
     try:
-        config = get_config()
+        config = EnvironmentConfigProvider()
         pipeline = DataProcessingPipeline(config)
 
         # Test initialization
@@ -101,7 +99,7 @@ async def verify_e2e_fixtures():
     """Verify E2E test fixtures are available."""
     print("\n4. Checking E2E test fixtures...")
     try:
-        from tests.e2e.fixtures import PropertySamples
+        from e2e.fixtures import PropertySamples
 
         # Check sample data
         phoenix_samples = PropertySamples.get_phoenix_mls_samples()
@@ -123,7 +121,7 @@ def check_dependencies():
     print("\n5. Checking Python dependencies...")
     required = [
         ("pytest", "Testing framework"),
-        ("pytest-asyncio", "Async test support"),
+        ("pytest_asyncio", "Async test support"),
         ("httpx", "HTTP client for Ollama"),
         ("motor", "MongoDB async driver"),
     ]

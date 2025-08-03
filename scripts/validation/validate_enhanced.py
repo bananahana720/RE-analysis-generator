@@ -1,4 +1,4 @@
-# \!/usr/bin/env python3
+# \\!/usr/bin/env python3
 """Comprehensive Project Structure Validation Script."""
 
 import subprocess
@@ -207,7 +207,7 @@ def main() -> int:
 
     if overall_success:
         print(
-            f"\n{Colors.GREEN}{Colors.BOLD}All validations passed! Project structure is valid.{Colors.ENDC}"
+            f"\n{Colors.GREEN}{Colors.BOLD}All validations passed\! Project structure is valid.{Colors.ENDC}"
         )
         return 0
     else:

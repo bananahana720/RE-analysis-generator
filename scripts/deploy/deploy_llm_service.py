@@ -13,6 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Dict
+import tempfile
 
 import yaml
 
@@ -163,7 +164,7 @@ WantedBy=multi-user.target
             "/var/log/phoenix_real_estate",
             "/var/lib/phoenix_real_estate",
             "/etc/phoenix_real_estate",
-            "/tmp/phoenix_llm",
+            str(Path(tempfile.gettempdir()) / "phoenix_llm"),
         ]
 
         for directory in directories:
@@ -172,7 +173,9 @@ WantedBy=multi-user.target
         # Set permissions
         subprocess.run(["chown", "-R", "phoenix:phoenix", "/var/log/phoenix_real_estate"])
         subprocess.run(["chown", "-R", "phoenix:phoenix", "/var/lib/phoenix_real_estate"])
-        subprocess.run(["chown", "-R", "phoenix:phoenix", "/tmp/phoenix_llm"])
+        subprocess.run(
+            ["chown", "-R", "phoenix:phoenix", str(Path(tempfile.gettempdir()) / "phoenix_llm")]
+        )
 
         print("✅ Application directories created")
         return True
