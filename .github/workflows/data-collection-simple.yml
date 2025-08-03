@@ -1,0 +1,33 @@
+name: Data Collection Simple Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: "Test mode"
+        required: false
+        type: choice
+        options: ["quick", "full"]
+        default: "quick"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  test-basic:
+    name: Test Basic Functionality
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+    - name: Check environment
+      run: |
+        echo "Testing basic workflow functionality..."
+        echo "GitHub event: ${{ github.event_name }}"
+        echo "Test mode: ${{ github.event.inputs.test_mode || \"quick\" }}"
+        
+    - name: Validate functionality
+      run: |
+        echo "Simple test completed successfully"
+        echo "Workflow dispatch working correctly"
