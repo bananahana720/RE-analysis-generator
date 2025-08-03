@@ -60,4 +60,3 @@ strict = true
 [tool.ruff]
 target-version = "py313"
 line-length = 100
-EOF < /dev/null
