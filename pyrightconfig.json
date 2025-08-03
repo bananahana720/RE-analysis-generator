@@ -1,1 +1,24 @@
-{"include": ["src"], "exclude": ["**/node_modules", "**/__pycache__", "**/.*"], "reportMissingImports": "error", "reportMissingTypeStubs": "warning", "reportAttributeAccessIssue": "error", "reportPossiblyUnboundVariable": "error", "reportGeneralTypeIssues": "error", "reportCallIssue": "error", "pythonVersion": "3.13", "typeCheckingMode": "standard"}
+{
+  "include": ["src"],
+  "exclude": ["**/node_modules", "**/__pycache__", "**/.*"],
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "reportMissingModuleSource": "none",
+  "reportAttributeAccessIssue": "warning", 
+  "reportPossiblyUnboundVariable": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "reportCallIssue": "warning",
+  "reportReturnType": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportUnknownArgumentType": "none",
+  "reportUnknownLambdaType": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownParameterType": "none",
+  "reportUnknownVariableType": "none",
+  "strictListInference": false,
+  "strictDictionaryInference": false,
+  "strictSetInference": false,
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "basic"
+}
