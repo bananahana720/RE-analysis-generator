@@ -10,12 +10,12 @@ from typing import Dict, Any
 
 class MockWorkflowValidator:
     """Mock workflow validator for testing - implementation will be created after tests."""
-    
+
     def __init__(self, config_provider=None):
         self.config = config_provider
         self.validation_errors = []
         self.required_secrets = []
-        
+
     def validate_yaml_syntax(self, workflow_content: str) -> Dict[str, Any]:
         """Validate YAML syntax and structure."""
         raise NotImplementedError("Implementation needed")
@@ -29,7 +29,7 @@ def mock_config():
     return config
 
 
-@pytest.fixture 
+@pytest.fixture
 def workflow_validator(mock_config):
     """Create workflow validator instance."""
     return MockWorkflowValidator(mock_config)
@@ -38,7 +38,7 @@ def workflow_validator(mock_config):
 @pytest.mark.unit
 class TestWorkflowValidatorInitialization:
     """Test workflow validator initialization."""
-    
+
     def test_validator_creation(self, mock_config):
         """Test creating validator with config."""
         validator = MockWorkflowValidator(mock_config)
@@ -50,7 +50,7 @@ class TestWorkflowValidatorInitialization:
 @pytest.mark.unit
 class TestYAMLSyntaxValidation:
     """Test YAML syntax validation."""
-    
+
     def test_validate_valid_yaml(self, workflow_validator):
         """Test validation of valid YAML."""
         yaml_content = "name: Test"

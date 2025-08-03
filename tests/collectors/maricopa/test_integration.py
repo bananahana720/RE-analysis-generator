@@ -63,7 +63,7 @@ class TestMaricopaIntegration:
                 "city": "Phoenix",
                 "state": "AZ",
                 "zipcode": "85048-1234",
-                "full_address": "1234 Desert Willow Ln, Phoenix, AZ 85048-1234"
+                "full_address": "1234 Desert Willow Ln, Phoenix, AZ 85048-1234",
             },
             "residential_details": {
                 "bedrooms": 4,
@@ -77,7 +77,7 @@ class TestMaricopaIntegration:
                 "pool": "Yes",
                 "fireplace": "No",
                 "ac_type": "Central Air",
-                "heating_type": "Gas Forced Air"
+                "heating_type": "Gas Forced Air",
             },
             "valuation": {
                 "assessed_value": 425000,
@@ -86,11 +86,11 @@ class TestMaricopaIntegration:
                 "improvement_value": 335000,
                 "tax_amount": 4980,
                 "tax_year": 2024,
-                "assessment_date": "2024-01-01"
+                "assessment_date": "2024-01-01",
             },
             "ownership": {
                 "owner_name": "Jane Smith",
-                "mailing_address": "1234 Desert Willow Ln, Phoenix, AZ 85048"
+                "mailing_address": "1234 Desert Willow Ln, Phoenix, AZ 85048",
             },
             "sales_history": [
                 {
@@ -98,21 +98,23 @@ class TestMaricopaIntegration:
                     "sale_date": "2023-06-15",
                     "document_type": "Warranty Deed",
                     "buyer": "Jane Smith",
-                    "seller": "ABC Properties LLC"
+                    "seller": "ABC Properties LLC",
                 }
-            ]
+            ],
         }
 
     @pytest.mark.asyncio
-    async def test_complete_workflow_search_to_property(self, client, adapter, realistic_api_response):
+    async def test_complete_workflow_search_to_property(
+        self, client, adapter, realistic_api_response
+    ):
         """Test complete workflow: search → get details → adapt data."""
         # Mock search response
         search_response = {
             "Real Property": [
                 {"apn": "123-45-678", "property_type": "Residential"},
-                {"apn": "124-46-789", "property_type": "Residential"}
+                {"apn": "124-46-789", "property_type": "Residential"},
             ],
-            "totals": {"Real Property": 2}
+            "totals": {"Real Property": 2},
         }
 
         with patch("aiohttp.ClientSession.request") as mock_request:
@@ -152,7 +154,7 @@ class TestMaricopaIntegration:
 
                 # Step 3: Transform to Epic 1 schema
                 property_obj = await adapter.adapt_property(property_details)
-                
+
                 # Verify complete transformation
                 assert isinstance(property_obj, Property)
                 assert property_obj.property_id.startswith("maricopa_")
@@ -168,22 +170,26 @@ class TestMaricopaIntegration:
     async def test_pagination_handling(self, client):
         """Test pagination across multiple pages of search results."""
         page_1_response = {
-            "Real Property": [{"apn": f"12{i}-45-678", "property_type": "Residential"} for i in range(25)],
-            "totals": {"Real Property": 50}
+            "Real Property": [
+                {"apn": f"12{i}-45-678", "property_type": "Residential"} for i in range(25)
+            ],
+            "totals": {"Real Property": 50},
         }
-        
+
         page_2_response = {
-            "Real Property": [{"apn": f"13{i}-45-678", "property_type": "Residential"} for i in range(25)],
-            "totals": {"Real Property": 50}
+            "Real Property": [
+                {"apn": f"13{i}-45-678", "property_type": "Residential"} for i in range(25)
+            ],
+            "totals": {"Real Property": 50},
         }
 
         with patch("aiohttp.ClientSession.request") as mock_request:
             # Configure responses for different pages
             mock_responses = [
                 AsyncMock(status=200, json=AsyncMock(return_value=page_1_response)),
-                AsyncMock(status=200, json=AsyncMock(return_value=page_2_response))
+                AsyncMock(status=200, json=AsyncMock(return_value=page_2_response)),
             ]
-            
+
             for response in mock_responses:
                 response.headers = {"Content-Length": "2000"}
 
@@ -208,13 +214,15 @@ class TestMaricopaIntegration:
         with patch("aiohttp.ClientSession.request") as mock_request:
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(return_value={"Real Property": [], "totals": {"Real Property": 0}})
+            mock_response.json = AsyncMock(
+                return_value={"Real Property": [], "totals": {"Real Property": 0}}
+            )
             mock_response.headers = {"Content-Length": "100"}
             mock_request.return_value.__aenter__.return_value = mock_response
 
             # Track rate limiter calls
             rate_limit_calls = []
-            
+
             async def mock_wait(source):
                 rate_limit_calls.append(source)
                 return 0.1  # Small delay to simulate rate limiting
@@ -234,10 +242,27 @@ class TestMaricopaIntegration:
         """Test error recovery and retry mechanisms."""
         # Simulate server error followed by success
         responses = [
-            AsyncMock(status=500, reason="Internal Server Error", text=AsyncMock(return_value="Server Error")),
-            AsyncMock(status=200, json=AsyncMock(return_value={"apn": "123-45-678", "address": {"house_number": "123", "street_name": "Main", "street_type": "St", "zipcode": "85001"}}))
+            AsyncMock(
+                status=500,
+                reason="Internal Server Error",
+                text=AsyncMock(return_value="Server Error"),
+            ),
+            AsyncMock(
+                status=200,
+                json=AsyncMock(
+                    return_value={
+                        "apn": "123-45-678",
+                        "address": {
+                            "house_number": "123",
+                            "street_name": "Main",
+                            "street_type": "St",
+                            "zipcode": "85001",
+                        },
+                    }
+                ),
+            ),
         ]
-        
+
         for response in responses:
             response.headers = {"Content-Length": "200"}
 
@@ -246,7 +271,7 @@ class TestMaricopaIntegration:
 
             with patch.object(client.rate_limiter, "wait_if_needed") as mock_wait:
                 mock_wait.return_value = 0.0
-                
+
                 # First call should fail and retry, second call should succeed
                 with patch("asyncio.sleep", new_callable=AsyncMock):  # Speed up retries
                     with patch("time.sleep"):
@@ -269,20 +294,20 @@ class TestMaricopaIntegration:
                 "street_type": "St",
                 "city": "Phoenix",
                 "state": "AZ",
-                "zipcode": "85001"
+                "zipcode": "85001",
             },
             "residential_details": {
                 "bedrooms": 3,
                 "bathrooms": 2.5,
                 "living_area_sqft": 1850,
-                "year_built": 2010
+                "year_built": 2010,
             },
             "valuation": {
                 "assessed_value": 300000,
                 "market_value": 350000,
                 "tax_amount": 3500,
-                "tax_year": 2024
-            }
+                "tax_year": 2024,
+            },
         }
 
         result = await adapter.adapt_property(high_quality_data)
@@ -295,8 +320,8 @@ class TestMaricopaIntegration:
                 "house_number": "456",
                 "street_name": "Oak",
                 "street_type": "Ave",
-                "zipcode": "85002"
-            }
+                "zipcode": "85002",
+            },
             # Missing most other data
         }
 
@@ -312,7 +337,9 @@ class TestMaricopaIntegration:
             for i in range(10):
                 mock_response = AsyncMock()
                 mock_response.status = 200
-                mock_response.json = AsyncMock(return_value={"apn": f"12{i}-45-678", "address": {"zipcode": f"8500{i}"}})
+                mock_response.json = AsyncMock(
+                    return_value={"apn": f"12{i}-45-678", "address": {"zipcode": f"8500{i}"}}
+                )
                 mock_response.headers = {"Content-Length": "300"}
                 responses.append(mock_response)
 
@@ -362,10 +389,7 @@ class TestMaricopaIntegration:
 
         # Test invalid address data
         with pytest.raises(ValidationError, match="Missing required address fields"):
-            await adapter.adapt_property({
-                "apn": "123-45-678",
-                "address": {"incomplete": "data"}
-            })
+            await adapter.adapt_property({"apn": "123-45-678", "address": {"incomplete": "data"}})
 
     @pytest.mark.asyncio
     async def test_performance_metrics_collection(self, client):
@@ -373,7 +397,9 @@ class TestMaricopaIntegration:
         with patch("aiohttp.ClientSession.request") as mock_request:
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(return_value={"Real Property": [], "totals": {"Real Property": 0}})
+            mock_response.json = AsyncMock(
+                return_value={"Real Property": [], "totals": {"Real Property": 0}}
+            )
             mock_response.headers = {"Content-Length": "150"}
             mock_request.return_value.__aenter__.return_value = mock_response
 
@@ -395,16 +421,15 @@ class TestMaricopaIntegration:
                 assert "rate_limiting" in metrics
                 assert "configuration" in metrics
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_large_result_set_handling(self, client, adapter):
         """Test handling of large result sets and memory efficiency."""
         # Simulate large search result
         large_response = {
             "Real Property": [
-                {"apn": f"{i:03d}-45-678", "property_type": "Residential"} 
-                for i in range(100)
+                {"apn": f"{i:03d}-45-678", "property_type": "Residential"} for i in range(100)
             ],
-            "totals": {"Real Property": 100}
+            "totals": {"Real Property": 100},
         }
 
         with patch("aiohttp.ClientSession.request") as mock_request:
@@ -418,7 +443,7 @@ class TestMaricopaIntegration:
                 mock_wait.return_value = 0.0
 
                 results = await client.search_property("85001")
-                
+
                 # Verify large result set handling
                 assert len(results) == 100
                 assert results[0]["apn"] == "000-45-678"
@@ -461,13 +486,19 @@ class TestMaricopaProductionScenarios:
                 def create_mock_response(zip_code):
                     mock_response = AsyncMock()
                     mock_response.status = 200
-                    mock_response.json = AsyncMock(return_value={
-                        "Real Property": [
-                            {"apn": f"{zip_code[-3:]}-{i:02d}-{j:03d}", "property_type": "Residential"}
-                            for i in range(2) for j in range(5)  # 10 properties per zip
-                        ],
-                        "totals": {"Real Property": 10}
-                    })
+                    mock_response.json = AsyncMock(
+                        return_value={
+                            "Real Property": [
+                                {
+                                    "apn": f"{zip_code[-3:]}-{i:02d}-{j:03d}",
+                                    "property_type": "Residential",
+                                }
+                                for i in range(2)
+                                for j in range(5)  # 10 properties per zip
+                            ],
+                            "totals": {"Real Property": 10},
+                        }
+                    )
                     mock_response.headers = {"Content-Length": "2000"}
                     return mock_response
 
@@ -496,13 +527,29 @@ class TestMaricopaProductionScenarios:
             # Simulate mixed success/failure scenario
             responses = [
                 AsyncMock(status=500, reason="Server Error"),  # Failure
-                AsyncMock(status=200, json=AsyncMock(return_value={"Real Property": [{"apn": "123-45-678"}], "totals": {"Real Property": 1}})),  # Success
+                AsyncMock(
+                    status=200,
+                    json=AsyncMock(
+                        return_value={
+                            "Real Property": [{"apn": "123-45-678"}],
+                            "totals": {"Real Property": 1},
+                        }
+                    ),
+                ),  # Success
                 AsyncMock(status=429, headers={"Retry-After": "1"}),  # Rate limit
-                AsyncMock(status=200, json=AsyncMock(return_value={"Real Property": [{"apn": "124-46-789"}], "totals": {"Real Property": 1}})),  # Success
+                AsyncMock(
+                    status=200,
+                    json=AsyncMock(
+                        return_value={
+                            "Real Property": [{"apn": "124-46-789"}],
+                            "totals": {"Real Property": 1},
+                        }
+                    ),
+                ),  # Success
             ]
 
             for response in responses:
-                if not hasattr(response, 'headers'):
+                if not hasattr(response, "headers"):
                     response.headers = {"Content-Length": "100"}
 
             with patch("aiohttp.ClientSession.request") as mock_request:

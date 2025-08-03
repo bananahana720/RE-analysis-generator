@@ -181,7 +181,7 @@ class TestMaricopaAPIClientRequests:
         with pytest.raises(ValidationError, match="Search query cannot be empty"):
             await client.search_property("")
 
-        # Test whitespace-only query  
+        # Test whitespace-only query
         with pytest.raises(ValidationError, match="Search query cannot be empty"):
             await client.search_property("   ")
 
@@ -285,10 +285,12 @@ class TestMaricopaAPIClientRequests:
         # Mock successful response with real API structure
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={
-            "Real Property": [{"apn": "123-45-678", "property_type": "Residential"}],
-            "totals": {"Real Property": 1}
-        })
+        mock_response.json = AsyncMock(
+            return_value={
+                "Real Property": [{"apn": "123-45-678", "property_type": "Residential"}],
+                "totals": {"Real Property": 1},
+            }
+        )
         mock_response.headers = {"Content-Length": "200"}
 
         mock_request.return_value.__aenter__.return_value = mock_response
@@ -308,20 +310,19 @@ class TestMaricopaAPIClientRequests:
         # Mock successful response with parcel data
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={
-            "apn": "123-45-678",
-            "address": {
-                "house_number": "123",
-                "street_name": "Main",
-                "street_type": "St",
-                "city": "Phoenix",
-                "zipcode": "85001"
-            },
-            "assessment": {
-                "assessed_value": 300000,
-                "market_value": 350000
+        mock_response.json = AsyncMock(
+            return_value={
+                "apn": "123-45-678",
+                "address": {
+                    "house_number": "123",
+                    "street_name": "Main",
+                    "street_type": "St",
+                    "city": "Phoenix",
+                    "zipcode": "85001",
+                },
+                "assessment": {"assessed_value": 300000, "market_value": 350000},
             }
-        })
+        )
         mock_response.headers = {"Content-Length": "500"}
 
         mock_request.return_value.__aenter__.return_value = mock_response

@@ -110,19 +110,22 @@ class MaricopaAPIClient(RateLimitObserver):
         """Load and validate Epic 1 configuration."""
         try:
             # Epic 1 configuration keys - BaseConfig stores env vars as attributes
-            self.api_key = getattr(self.config, 'maricopa_api_key', os.getenv('MARICOPA_API_KEY', ''))
-            self.base_url = getattr(
-                self.config, 'maricopa_base_url', 
-                os.getenv('MARICOPA_BASE_URL', 'https://mcassessor.maricopa.gov')
+            self.api_key = getattr(
+                self.config, "maricopa_api_key", os.getenv("MARICOPA_API_KEY", "")
             )
-            self.rate_limit = int(getattr(
-                self.config, 'maricopa_rate_limit', 
-                os.getenv('MARICOPA_RATE_LIMIT', '1000')
-            ))
-            self.timeout_seconds = int(getattr(
-                self.config, 'maricopa_timeout', 
-                os.getenv('MARICOPA_TIMEOUT', '30')
-            ))
+            self.base_url = getattr(
+                self.config,
+                "maricopa_base_url",
+                os.getenv("MARICOPA_BASE_URL", "https://mcassessor.maricopa.gov"),
+            )
+            self.rate_limit = int(
+                getattr(
+                    self.config, "maricopa_rate_limit", os.getenv("MARICOPA_RATE_LIMIT", "1000")
+                )
+            )
+            self.timeout_seconds = int(
+                getattr(self.config, "maricopa_timeout", os.getenv("MARICOPA_TIMEOUT", "30"))
+            )
 
             CommonValidators.validate_required_config(self.api_key, "MARICOPA_API_KEY")
 
@@ -164,11 +167,10 @@ class MaricopaAPIClient(RateLimitObserver):
             raise ValidationError("Search query cannot be empty")
 
         try:
-            params = {
-                "query": query.strip(),
-                "page": page
-            }
-            response_data = await self._make_request("GET", self.ENDPOINTS["search_property"], params=params)
+            params = {"query": query.strip(), "page": page}
+            response_data = await self._make_request(
+                "GET", self.ENDPOINTS["search_property"], params=params
+            )
 
             # Log search results
             result_count = len(response_data.get("results", []))
@@ -350,7 +352,7 @@ class MaricopaAPIClient(RateLimitObserver):
         try:
             # Use the new search_property method with zipcode as query
             response_data = await self.search_property(f"zipcode:{zipcode}")
-            
+
             # Extract properties from response for backward compatibility
             properties = response_data.get("results", [])
             if isinstance(properties, dict):

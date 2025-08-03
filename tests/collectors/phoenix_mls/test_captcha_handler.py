@@ -147,6 +147,7 @@ class TestCaptchaHandler:
     @pytest.mark.asyncio
     async def test_identify_captcha_type_recaptcha_v2(self, captcha_handler, mock_page):
         """Test identification of reCAPTCHA v2."""
+
         # Mock finding reCAPTCHA v2 elements - return element for first selector
         async def query_selector_side_effect(selector):
             if "iframe" in selector and "recaptcha" in selector:
@@ -187,6 +188,7 @@ class TestCaptchaHandler:
     @pytest.mark.asyncio
     async def test_identify_captcha_type_image(self, captcha_handler, mock_page):
         """Test identification of image captcha."""
+
         # No reCAPTCHA elements found in initial checks
         async def query_selector_side_effect(selector):
             # Return None for reCAPTCHA selectors
@@ -210,6 +212,7 @@ class TestCaptchaHandler:
     @pytest.mark.asyncio
     async def test_solve_recaptcha_v2_success(self, captcha_handler, mock_page):
         """Test successful reCAPTCHA v2 solving."""
+
         # Mock the entire _solve_2captcha method instead of trying to mock aiohttp
         async def mock_solve_2captcha(captcha_type, metadata):
             return CaptchaSolution(
@@ -218,7 +221,7 @@ class TestCaptchaHandler:
                 metadata={"task_id": "task-id-123"},
                 solved_at=datetime.now(UTC),
             )
-        
+
         # Replace the method with our mock
         captcha_handler._solve_2captcha = mock_solve_2captcha
 
@@ -237,14 +240,15 @@ class TestCaptchaHandler:
     @pytest.mark.asyncio
     async def test_solve_captcha_timeout(self, captcha_handler, mock_page):
         """Test captcha solving timeout."""
+
         # Mock the _solve_2captcha method to simulate timeout
         async def mock_solve_2captcha_timeout(captcha_type, metadata):
             raise CaptchaSolvingError(
                 "Captcha solving timeout after 1s",
                 service="2captcha",
-                context={"task_id": "task-id-123", "timeout": 1}
+                context={"task_id": "task-id-123", "timeout": 1},
             )
-        
+
         # Replace the method with our mock
         captcha_handler._solve_2captcha = mock_solve_2captcha_timeout
 
@@ -351,17 +355,19 @@ class TestCaptchaHandler:
     def test_get_statistics(self, captcha_handler):
         """Test getting captcha handler statistics."""
         # Set some stats directly on handler
-        captcha_handler.stats.update({
-            "captchas_detected": 10,
-            "captchas_solved": 8,
-            "captcha_failures": 2,
-            "total_solve_time": 240.5,
-            "recaptcha_v2_count": 5,
-            "recaptcha_v3_count": 2,
-            "image_captcha_count": 1,
-            "hcaptcha_count": 0,
-            "unknown_count": 0,
-        })
+        captcha_handler.stats.update(
+            {
+                "captchas_detected": 10,
+                "captchas_solved": 8,
+                "captcha_failures": 2,
+                "total_solve_time": 240.5,
+                "recaptcha_v2_count": 5,
+                "recaptcha_v3_count": 2,
+                "image_captcha_count": 1,
+                "hcaptcha_count": 0,
+                "unknown_count": 0,
+            }
+        )
 
         stats = captcha_handler.get_statistics()
 

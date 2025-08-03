@@ -209,7 +209,7 @@ class TestPhoenixMLSParser:
 
         # Test normalize_address method instead
         address_data = parser.normalize_address(address)
-        
+
         assert address == "789 Desert View Rd, Scottsdale, AZ 85251"
         assert address_data["street"] == "789 Desert View Rd"
         assert address_data["city"] == "Scottsdale"
@@ -326,9 +326,7 @@ class TestPhoenixMLSParser:
     def test_validate_required_fields(self, parser):
         """Test validation of required property fields."""
         # Valid data
-        valid_data = PropertyData(
-            address="123 Main St, Phoenix, AZ 85001", price=450000
-        )
+        valid_data = PropertyData(address="123 Main St, Phoenix, AZ 85001", price=450000)
         # validate_data returns a list of errors, empty list means valid
         assert parser.validate_data(valid_data) == []
 
@@ -684,7 +682,7 @@ class TestParserIntegration:
         """Test that parse_from_url is not implemented yet."""
         # The parser doesn't have parse_from_url method
         # This would be implemented in the future
-        assert not hasattr(parser, 'parse_from_url')
+        assert not hasattr(parser, "parse_from_url")
 
     @pytest.mark.integration
     def test_parser_with_database_storage(self, parser, sample_property_html):
@@ -692,7 +690,7 @@ class TestParserIntegration:
 
         # Parse property
         property_data = parser.parse_property(sample_property_html)
-        
+
         # Extract address components
         address_components = parser.normalize_address(property_data.address)
 

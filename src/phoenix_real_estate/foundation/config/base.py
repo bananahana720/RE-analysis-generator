@@ -225,7 +225,7 @@ class EnvironmentConfigProvider(ConfigProvider):
         # Initialize configuration storage
         self.config: Dict[str, Any] = {}
         self._cache: Dict[str, Any] = {}
-        
+
         # Sentinel for distinguishing None values from not-found
         self._NOT_FOUND = object()
 
@@ -431,7 +431,9 @@ class EnvironmentConfigProvider(ConfigProvider):
 
         current[parts[-1]] = value
 
-    def _get_nested_value(self, data: Dict[str, Any], key: str, not_found_sentinel: Any = None) -> Any:
+    def _get_nested_value(
+        self, data: Dict[str, Any], key: str, not_found_sentinel: Any = None
+    ) -> Any:
         """Get a value from nested dictionary using dot notation.
 
         Args:
@@ -725,7 +727,7 @@ class EnvironmentConfigProvider(ConfigProvider):
             else:
                 raise ConfigurationError(
                     f"Configuration key '{key}' has None value and no default provided",
-                    context={"key": key, "value": None, "expected_type": expected_type.__name__}
+                    context={"key": key, "value": None, "expected_type": expected_type.__name__},
                 )
 
         # Normal case: convert the value

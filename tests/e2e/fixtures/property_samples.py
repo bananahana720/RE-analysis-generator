@@ -9,7 +9,7 @@ from typing import Dict, Any, List
 
 class PropertySamples:
     """Collection of sample property data for testing."""
-    
+
     @staticmethod
     def get_phoenix_mls_samples() -> List[Dict[str, Any]]:
         """Get sample Phoenix MLS HTML properties."""
@@ -59,8 +59,8 @@ class PropertySamples:
                     "year_built": 2016,
                     "property_type": "Single Family",
                     "mls_number": "6789012",
-                    "listing_status": "Active"
-                }
+                    "listing_status": "Active",
+                },
             },
             {
                 "id": "MLS-002",
@@ -106,8 +106,8 @@ class PropertySamples:
                     "year_built": 2019,
                     "property_type": "Condo",
                     "mls_number": "6789013",
-                    "listing_status": "For Sale"
-                }
+                    "listing_status": "For Sale",
+                },
             },
             {
                 "id": "MLS-003",
@@ -152,11 +152,11 @@ class PropertySamples:
                     "year_built": 2021,
                     "property_type": "Single Family",
                     "mls_number": "6789014",
-                    "listing_status": "Pending"
-                }
-            }
+                    "listing_status": "Pending",
+                },
+            },
         ]
-    
+
     @staticmethod
     def get_maricopa_samples() -> List[Dict[str, Any]]:
         """Get sample Maricopa County JSON properties."""
@@ -169,11 +169,11 @@ class PropertySamples:
                         "address": "1234 N Central Ave",
                         "city": "Phoenix",
                         "state": "AZ",
-                        "zip": "85031"
+                        "zip": "85031",
                     },
                     "owner_info": {
                         "name": "SMITH JOHN & JANE",
-                        "mailing_address": "1234 N Central Ave, Phoenix, AZ 85031"
+                        "mailing_address": "1234 N Central Ave, Phoenix, AZ 85031",
                     },
                     "property_details": {
                         "land_use": "SINGLE FAMILY RESIDENTIAL",
@@ -184,7 +184,7 @@ class PropertySamples:
                         "bathrooms": 2.5,
                         "stories": 1,
                         "construction_type": "FRAME/STUCCO",
-                        "roof_type": "TILE"
+                        "roof_type": "TILE",
                     },
                     "valuation": {
                         "market_value": 389900,
@@ -192,14 +192,14 @@ class PropertySamples:
                         "tax_year": 2024,
                         "limited_value": 325000,
                         "land_value": 125000,
-                        "improvement_value": 264900
+                        "improvement_value": 264900,
                     },
                     "legal_description": "LOT 123 PHOENIX SUBDIVISION PHASE 2",
                     "tax_info": {
                         "tax_rate": 0.0125,
                         "annual_tax": 4875.50,
-                        "exemptions": ["PRIMARY_RESIDENCE"]
-                    }
+                        "exemptions": ["PRIMARY_RESIDENCE"],
+                    },
                 },
                 "expected": {
                     "parcel_number": "123-45-678A",
@@ -214,8 +214,8 @@ class PropertySamples:
                     "square_feet": 1875,
                     "lot_size": 6200,
                     "year_built": 2016,
-                    "property_type": "Single Family"
-                }
+                    "property_type": "Single Family",
+                },
             },
             {
                 "id": "MC-002",
@@ -225,11 +225,11 @@ class PropertySamples:
                         "address": "5678 W Camelback Rd Unit 203",
                         "city": "Phoenix",
                         "state": "AZ",
-                        "zip": "85033"
+                        "zip": "85033",
                     },
                     "owner_info": {
                         "name": "JOHNSON ROBERT M",
-                        "mailing_address": "PO Box 12345, Phoenix, AZ 85001"
+                        "mailing_address": "PO Box 12345, Phoenix, AZ 85001",
                     },
                     "property_details": {
                         "land_use": "CONDOMINIUM",
@@ -240,7 +240,7 @@ class PropertySamples:
                         "stories": 1,
                         "construction_type": "CONCRETE/STEEL",
                         "unit_number": "203",
-                        "building_name": "CAMELBACK CONDOS"
+                        "building_name": "CAMELBACK CONDOS",
                     },
                     "valuation": {
                         "market_value": 275500,
@@ -248,13 +248,13 @@ class PropertySamples:
                         "tax_year": 2024,
                         "limited_value": 240000,
                         "land_value": 0,
-                        "improvement_value": 275500
+                        "improvement_value": 275500,
                     },
                     "hoa_info": {
                         "fee": 250,
                         "frequency": "MONTHLY",
-                        "includes": ["POOL", "FITNESS", "COMMON_AREA_MAINT"]
-                    }
+                        "includes": ["POOL", "FITNESS", "COMMON_AREA_MAINT"],
+                    },
                 },
                 "expected": {
                     "parcel_number": "234-56-789B",
@@ -268,8 +268,8 @@ class PropertySamples:
                     "bathrooms": 2.0,
                     "square_feet": 1125,
                     "year_built": 2019,
-                    "property_type": "Condo"
-                }
+                    "property_type": "Condo",
+                },
             },
             {
                 "id": "MC-003",
@@ -279,12 +279,12 @@ class PropertySamples:
                         "address": "9101 S 7th St",
                         "city": "Phoenix",
                         "state": "AZ",
-                        "zip": "85035"
+                        "zip": "85035",
                     },
                     "owner_info": {
                         "name": "WILLIAMS FAMILY TRUST",
                         "mailing_address": "9101 S 7th St, Phoenix, AZ 85035",
-                        "ownership_type": "TRUST"
+                        "ownership_type": "TRUST",
                     },
                     "property_details": {
                         "land_use": "SINGLE FAMILY RESIDENTIAL",
@@ -298,7 +298,7 @@ class PropertySamples:
                         "roof_type": "TILE",
                         "garage_spaces": 3,
                         "pool": True,
-                        "solar_panels": True
+                        "solar_panels": True,
                     },
                     "valuation": {
                         "market_value": 525000,
@@ -306,20 +306,12 @@ class PropertySamples:
                         "tax_year": 2024,
                         "limited_value": 450000,
                         "land_value": 175000,
-                        "improvement_value": 350000
+                        "improvement_value": 350000,
                     },
                     "improvements": [
-                        {
-                            "type": "POOL",
-                            "year": 2021,
-                            "value": 35000
-                        },
-                        {
-                            "type": "SOLAR_SYSTEM",
-                            "year": 2021,
-                            "value": 25000
-                        }
-                    ]
+                        {"type": "POOL", "year": 2021, "value": 35000},
+                        {"type": "SOLAR_SYSTEM", "year": 2021, "value": 25000},
+                    ],
                 },
                 "expected": {
                     "parcel_number": "345-67-890C",
@@ -334,11 +326,11 @@ class PropertySamples:
                     "square_feet": 2450,
                     "lot_size": 8500,
                     "year_built": 2021,
-                    "property_type": "Single Family"
-                }
-            }
+                    "property_type": "Single Family",
+                },
+            },
         ]
-    
+
     @staticmethod
     def get_edge_case_samples() -> List[Dict[str, Any]]:
         """Get edge case samples for robust testing."""
@@ -358,7 +350,7 @@ class PropertySamples:
                     <p>Price: Call for pricing</p>
                 </div>
                 """,
-                "expected_behavior": "Should extract without price or set price to null/0"
+                "expected_behavior": "Should extract without price or set price to null/0",
             },
             {
                 "id": "EDGE-002",
@@ -374,7 +366,7 @@ class PropertySamples:
                     </ul>
                 </div>
                 """,
-                "expected_behavior": "Should interpret as 2.5 bathrooms"
+                "expected_behavior": "Should interpret as 2.5 bathrooms",
             },
             {
                 "id": "EDGE-003",
@@ -384,20 +376,16 @@ class PropertySamples:
                     "property_address": {
                         "address": "789 Range St",
                         "city": "Phoenix",
-                        "zip": "85035"
+                        "zip": "85035",
                     },
                     "valuation": {
                         "market_value_min": 400000,
                         "market_value_max": 450000,
-                        "estimated_value": 425000
+                        "estimated_value": 425000,
                     },
-                    "property_details": {
-                        "bedrooms": 3,
-                        "bathrooms": 2,
-                        "living_area": 1800
-                    }
+                    "property_details": {"bedrooms": 3, "bathrooms": 2, "living_area": 1800},
                 },
-                "expected_behavior": "Should use estimated_value or average of range"
+                "expected_behavior": "Should use estimated_value or average of range",
             },
             {
                 "id": "EDGE-004",
@@ -412,7 +400,7 @@ class PropertySamples:
                     <p>MLS: 9999004</p>
                 </div>
                 """,
-                "expected_behavior": "Should map to 'manufactured' property type"
+                "expected_behavior": "Should map to 'manufactured' property type",
             },
             {
                 "id": "EDGE-005",
@@ -426,10 +414,10 @@ class PropertySamples:
                     <p>Owner&apos;s notes: &quot;Must see!&quot;</p>
                 </div>
                 """,
-                "expected_behavior": "Should handle special characters and HTML entities correctly"
-            }
+                "expected_behavior": "Should handle special characters and HTML entities correctly",
+            },
         ]
-    
+
     @staticmethod
     def get_invalid_samples() -> List[Dict[str, Any]]:
         """Get invalid samples that should fail validation."""
@@ -438,7 +426,7 @@ class PropertySamples:
                 "id": "INVALID-001",
                 "description": "Completely empty HTML",
                 "html": "<div></div>",
-                "expected_error": "No property data found"
+                "expected_error": "No property data found",
             },
             {
                 "id": "INVALID-002",
@@ -450,13 +438,13 @@ class PropertySamples:
                     <a href="/contact">Contact Us</a>
                 </div>
                 """,
-                "expected_error": "No property information extracted"
+                "expected_error": "No property information extracted",
             },
             {
                 "id": "INVALID-003",
                 "description": "Malformed JSON",
                 "json": '{"property": "incomplete json',
-                "expected_error": "Invalid JSON format"
+                "expected_error": "Invalid JSON format",
             },
             {
                 "id": "INVALID-004",
@@ -464,9 +452,9 @@ class PropertySamples:
                 "json": {
                     "users": [
                         {"name": "John", "email": "john@example.com"},
-                        {"name": "Jane", "email": "jane@example.com"}
+                        {"name": "Jane", "email": "jane@example.com"},
                     ]
                 },
-                "expected_error": "Not a property data structure"
-            }
+                "expected_error": "Not a property data structure",
+            },
         ]

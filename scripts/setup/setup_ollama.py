@@ -14,7 +14,7 @@ def check_ollama_service():
             return True
     except requests.exceptions.RequestException:
         pass
-    
+
     print("[ERROR] Ollama service is not running")
     print("   Please run 'ollama serve' in a separate terminal")
     return False
@@ -32,7 +32,7 @@ def check_model_available(model_name="llama3.2:latest"):
                     return True
     except requests.exceptions.RequestException:
         pass
-    
+
     print(f"[INFO] Model {model_name} not found")
     return False
 
@@ -41,14 +41,14 @@ def pull_model(model_name="llama3.2:latest"):
     """Pull model if not available."""
     if check_model_available(model_name):
         return True
-    
+
     print(f"[DOWNLOAD] Pulling {model_name}... This may take several minutes.")
     try:
         # Use subprocess to show progress
         result = subprocess.run(
             ["ollama", "pull", model_name],
             capture_output=False,  # Show output to user
-            text=True
+            text=True,
         )
         if result.returncode == 0:
             print(f"[OK] Successfully pulled {model_name}")
@@ -64,15 +64,15 @@ def pull_model(model_name="llama3.2:latest"):
 def main():
     """Main setup function."""
     print("Setting up Ollama for LLM processing\n")
-    
+
     # Check service
     if not check_ollama_service():
         sys.exit(1)
-    
+
     # Check/pull model
     if not pull_model("llama3.2:latest"):
         sys.exit(1)
-    
+
     print("\n[SUCCESS] Ollama setup complete!")
     print("   - Service is running")
     print("   - llama3.2:latest model is available")

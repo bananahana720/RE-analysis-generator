@@ -10,18 +10,18 @@ from typing import Dict, Any
 
 class MockWorkflowRunner:
     """Mock workflow runner for testing - implementation will be created after tests."""
-    
+
     def __init__(self, config_provider=None):
         self.config = config_provider
         self.environment_vars = {}
         self.secrets = {}
         self.mock_services = {}
         self.execution_results = []
-        
+
     async def setup_github_environment(self, workflow_file: str) -> Dict[str, Any]:
         """Setup GitHub Actions environment simulation."""
         raise NotImplementedError("Implementation needed")
-        
+
     async def setup_mock_services(self, services: list[str]) -> Dict[str, Any]:
         """Setup mock services for testing."""
         raise NotImplementedError("Implementation needed")
@@ -45,7 +45,7 @@ def workflow_runner(mock_config):
 @pytest.mark.unit
 class TestWorkflowRunnerInitialization:
     """Test workflow runner initialization and basic setup."""
-    
+
     def test_workflow_runner_creation(self, mock_config):
         """Test creating workflow runner with config."""
         runner = MockWorkflowRunner(mock_config)
@@ -59,7 +59,7 @@ class TestWorkflowRunnerInitialization:
 @pytest.mark.unit
 class TestMockServiceSetup:
     """Test mock service infrastructure setup."""
-    
+
     @pytest.mark.async_test
     async def test_setup_basic_services(self, workflow_runner):
         """Test setting up basic mock services."""

@@ -28,7 +28,7 @@ class ConfigProviderImpl:
                           Currently used to determine config directory if provided.
         """
         self.config_sources = config_sources or []
-        
+
         # Extract config directory from sources if provided
         config_dir = None
         if self.config_sources:
@@ -42,7 +42,7 @@ class ConfigProviderImpl:
                     elif source_path.parent.exists():
                         config_dir = source_path.parent
                         break
-        
+
         # Initialize the underlying EnvironmentConfigProvider
         self._provider = EnvironmentConfigProvider(config_dir=config_dir)
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # This should now work without NotImplementedError
     provider: ConfigProviderProtocol = ConfigProviderImpl()
     print("ConfigProviderImpl conforms to ConfigProvider protocol")
-    
+
     # Test basic functionality
     test_value = provider.get("test_key", "default_value")
     print(f"Test get: {test_value}")

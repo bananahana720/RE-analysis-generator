@@ -747,7 +747,13 @@ class PhoenixMLSParser:
 
     def _extract_lot_size(self, soup: BeautifulSoup) -> tuple[Optional[float], Optional[str]]:
         """Extract lot size and unit."""
-        selectors = [".lot-size", '[data-testid="lot-size"]', ".lot-area", 'span:contains("lot")', 'span:contains("Lot")']
+        selectors = [
+            ".lot-size",
+            '[data-testid="lot-size"]',
+            ".lot-area",
+            'span:contains("lot")',
+            'span:contains("Lot")',
+        ]
 
         for selector in selectors:
             elem = soup.select_one(selector)
@@ -764,7 +770,7 @@ class PhoenixMLSParser:
                 if sqft_match:
                     sqft_str = sqft_match.group(1).replace(",", "")
                     return float(sqft_str), "sqft"
-                
+
                 # Check for "Lot Sq Ft" format like in test HTML
                 lot_sqft_match = re.search(r"([\d,]+)\s*lot\s*(sq|square)\s*(ft|feet)", text)
                 if lot_sqft_match:
@@ -777,7 +783,9 @@ class PhoenixMLSParser:
             text = span.get_text()
             if "lot" in text.lower() and any(char.isdigit() for char in text):
                 # Look for patterns like "7,200 Lot Sq Ft"
-                lot_match = re.search(r"([\d,]+)\s*(?:lot\s*)?(?:sq\s*ft|square\s*feet|sqft)", text, re.IGNORECASE)
+                lot_match = re.search(
+                    r"([\d,]+)\s*(?:lot\s*)?(?:sq\s*ft|square\s*feet|sqft)", text, re.IGNORECASE
+                )
                 if lot_match:
                     size_str = lot_match.group(1).replace(",", "")
                     try:
@@ -794,7 +802,7 @@ class PhoenixMLSParser:
             '[data-testid="year-built"]',
             ".built-year",
             'span:contains("built")',
-            ".detail-value"  # For the test HTML structure
+            ".detail-value",  # For the test HTML structure
         ]
 
         for selector in selectors:
@@ -828,7 +836,7 @@ class PhoenixMLSParser:
             '[data-testid="property-type"]',
             ".type",
             'span:contains("type")',
-            ".detail-value"  # For the test HTML structure
+            ".detail-value",  # For the test HTML structure
         ]
 
         for selector in selectors:
@@ -847,7 +855,10 @@ class PhoenixMLSParser:
         all_elements = soup.find_all(["span", "div"])
         for elem in all_elements:
             text = elem.get_text()
-            if any(ptype in text.lower() for ptype in ["single family", "condo", "townhouse", "manufactured"]):
+            if any(
+                ptype in text.lower()
+                for ptype in ["single family", "condo", "townhouse", "manufactured"]
+            ):
                 prop_type = self._clean_text(text).lower()
                 for key, value in self.PROPERTY_TYPE_MAPPINGS.items():
                     if key in prop_type:

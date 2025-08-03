@@ -1,6 +1,7 @@
 """
 Integration tests for error handling with the LLM processing pipeline.
 """
+
 import pytest
 from unittest.mock import AsyncMock
 from datetime import datetime
@@ -9,9 +10,11 @@ from phoenix_real_estate.collectors.processing.error_handling import (
     ErrorRecoveryStrategy,
     CircuitBreaker,
     ProcessingError,
-    ErrorType
+    ErrorType,
 )
-from phoenix_real_estate.foundation.utils.exceptions import ProcessingError as FoundationProcessingError
+from phoenix_real_estate.foundation.utils.exceptions import (
+    ProcessingError as FoundationProcessingError,
+)
 from phoenix_real_estate.collectors.processing.llm_client import OllamaClient
 from phoenix_real_estate.collectors.processing.extractor import PropertyDataExtractor
 from dataclasses import dataclass
@@ -21,6 +24,7 @@ from typing import Any, Dict
 @dataclass
 class ProcessingConfig:
     """Configuration for LLM processing."""
+
     model_name: str = "llama3.2:latest"
     temperature: float = 0.7
     max_tokens: int = 1000
@@ -30,6 +34,7 @@ class ProcessingConfig:
 @dataclass
 class PipelineConfig:
     """Configuration for processing pipeline."""
+
     batch_size: int = 10
     max_concurrent: int = 3
     retry_attempts: int = 3
@@ -38,116 +43,105 @@ class PipelineConfig:
 
 class LLMProcessor:
     """Wrapper around PropertyDataExtractor for test compatibility."""
-    
+
     def __init__(self, llm_client: OllamaClient, config: ProcessingConfig):
         self.llm_client = llm_client
         self.config = config
         self.extractor = None
-    
+
     async def process_property(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Process property data."""
         if not self.extractor:
             # Create a minimal config provider
-            config_provider = type('Config', (), {
-                'settings': type('Settings', (), {
-                    'OLLAMA_MODEL': self.config.model_name,
-                    'OLLAMA_TEMPERATURE': self.config.temperature,
-                    'OLLAMA_MAX_TOKENS': self.config.max_tokens,
-                    'OLLAMA_TIMEOUT': self.config.timeout
-                })()
-            })()
+            config_provider = type(
+                "Config",
+                (),
+                {
+                    "settings": type(
+                        "Settings",
+                        (),
+                        {
+                            "OLLAMA_MODEL": self.config.model_name,
+                            "OLLAMA_TEMPERATURE": self.config.temperature,
+                            "OLLAMA_MAX_TOKENS": self.config.max_tokens,
+                            "OLLAMA_TIMEOUT": self.config.timeout,
+                        },
+                    )()
+                },
+            )()
             self.extractor = PropertyDataExtractor(config_provider)
             self.extractor._llm_client = self.llm_client
             self.extractor._initialized = True
-        
+
         # Extract based on content type
-        if 'raw_html' in data:
-            return await self.extractor.extract_from_html(
-                data['raw_html'], 'phoenix_mls'
-            )
+        if "raw_html" in data:
+            return await self.extractor.extract_from_html(data["raw_html"], "phoenix_mls")
         else:
-            return await self.extractor.extract_from_json(
-                data, 'maricopa_county'
-            )
+            return await self.extractor.extract_from_json(data, "maricopa_county")
 
 
 class TestErrorHandlingIntegration:
     """Test error handling integration with the LLM processing pipeline."""
-    
+
     @pytest.fixture
     def mock_llm_client(self):
         """Create a mock LLM client."""
         client = AsyncMock()
         return client
-    
+
     @pytest.fixture
     def processing_config(self):
         """Create a processing configuration."""
-        return ProcessingConfig(
-            model_name="gpt-4",
-            temperature=0.7,
-            max_tokens=1000,
-            timeout=30
-        )
-    
+        return ProcessingConfig(model_name="gpt-4", temperature=0.7, max_tokens=1000, timeout=30)
+
     @pytest.fixture
     def pipeline_config(self):
         """Create a pipeline configuration."""
-        return PipelineConfig(
-            batch_size=10,
-            max_concurrent=3,
-            retry_attempts=3,
-            retry_delay=1.0
-        )
-    
+        return PipelineConfig(batch_size=10, max_concurrent=3, retry_attempts=3, retry_delay=1.0)
+
     @pytest.mark.asyncio
     async def test_circuit_breaker_with_llm_failures(self, mock_llm_client, processing_config):
         """Test circuit breaker integration with LLM processor failures."""
         # Configure mock to fail
         mock_llm_client.extract_structured_data.side_effect = Exception("LLM service unavailable")
-        
+
         # Create processor with circuit breaker
         processor = LLMProcessor(mock_llm_client, processing_config)
         circuit_breaker = CircuitBreaker(failure_threshold=2, recovery_timeout=1)
-        
+
         # Create error recovery strategy
         error_strategy = ErrorRecoveryStrategy()
         error_strategy.register_circuit_breaker("llm_processor", circuit_breaker)
-        
+
         # Test data
-        test_data = {
-            "parcel_number": "123-45-678",
-            "raw_html": "<div>Test property</div>"
-        }
-        
+        test_data = {"parcel_number": "123-45-678", "raw_html": "<div>Test property</div>"}
+
         # First two failures should open the circuit
         for i in range(2):
             with pytest.raises(Exception):
                 await error_strategy.handle_error_with_circuit_breaker(
                     "llm_processor",
                     lambda: processor.process_property(test_data),
-                    {"item": test_data}
+                    {"item": test_data},
                 )
-        
+
         # Next call should be blocked by circuit breaker
         with pytest.raises(ProcessingError) as exc_info:
             await error_strategy.handle_error_with_circuit_breaker(
-                "llm_processor",
-                lambda: processor.process_property(test_data),
-                {"item": test_data}
+                "llm_processor", lambda: processor.process_property(test_data), {"item": test_data}
             )
         assert "Circuit breaker is open" in str(exc_info.value)
-    
+
     @pytest.mark.asyncio
     async def test_fallback_extraction_on_llm_parse_error(self, mock_llm_client, processing_config):
         """Test fallback extraction when LLM returns unparseable data."""
         # Configure mock to return invalid response that will cause an error
         mock_llm_client.extract_structured_data.side_effect = ValueError("Invalid JSON response")
-        
+
         # Create processor and error strategy
         processor = LLMProcessor(mock_llm_client, processing_config)
         error_strategy = ErrorRecoveryStrategy()
-        
+
         # Test data with fallback information
         test_data = {
             "parcel_number": "123-45-678",
@@ -159,20 +153,20 @@ class TestErrorHandlingIntegration:
                     <p>1,850 sq ft</p>
                     <p>Built in 2010</p>
                 </div>
-            """
+            """,
         }
-        
+
         # Process with fallback enabled
         async def process_with_error():
             # This will raise ValueError due to invalid JSON
             return await processor.process_property(test_data)
-        
+
         result = await error_strategy.handle_error(
             process_with_error,
             {"raw_data": {"description": test_data["raw_html"]}},
-            use_fallback=True
+            use_fallback=True,
         )
-        
+
         # Should have extracted data using fallback
         assert result is not None
         assert result["address"]["street"] == "789 Oak Street"
@@ -183,13 +177,15 @@ class TestErrorHandlingIntegration:
         assert result["bathrooms"] == 2.0
         assert result["square_feet"] == 1850
         assert result["year_built"] == 2010
-    
+
     @pytest.mark.asyncio
-    async def test_rate_limit_handling_with_pipeline(self, mock_llm_client, processing_config, pipeline_config):
+    async def test_rate_limit_handling_with_pipeline(
+        self, mock_llm_client, processing_config, pipeline_config
+    ):
         """Test rate limit error handling in the processing pipeline."""
         # Configure mock to return rate limit error
         call_count = 0
-        
+
         async def mock_create(*args, **kwargs):
             nonlocal call_count
             call_count += 1
@@ -197,80 +193,82 @@ class TestErrorHandlingIntegration:
                 raise ProcessingError("Rate limit exceeded", status_code=429)
             # Return valid response after rate limit clears
             return {"price": 300000}
-        
+
         mock_llm_client.extract_structured_data.side_effect = mock_create
-        
+
         # Create processor and error strategy
         processor = LLMProcessor(mock_llm_client, processing_config)
         error_strategy = ErrorRecoveryStrategy()
-        
+
         # Override rate limit delay for testing
         error_strategy.retry_delays[ErrorType.RATE_LIMIT] = [0.1, 0.2]
-        
+
         # Test batch
         batch = [
             {"parcel_number": f"123-45-{i:03d}", "raw_html": f"<div>Property {i}</div>"}
             for i in range(3)
         ]
-        
+
         # Process with error handling
         start_time = datetime.now()
         results = []
-        
+
         for item in batch:
             result = await error_strategy.handle_error(
-                lambda: processor.process_property(item),
-                {"item": item},
-                max_retries=3
+                lambda: processor.process_property(item), {"item": item}, max_retries=3
             )
             results.append(result)
-        
+
         # Should have retried with delays
         elapsed = (datetime.now() - start_time).total_seconds()
         assert elapsed >= 0.1  # At least one retry delay
-        
+
         # Should eventually succeed
         assert all(r is not None for r in results)
-    
+
     @pytest.mark.asyncio
-    async def test_dead_letter_queue_with_permanent_failures(self, mock_llm_client, processing_config):
+    async def test_dead_letter_queue_with_permanent_failures(
+        self, mock_llm_client, processing_config
+    ):
         """Test that permanently failed items are added to dead letter queue."""
         # Configure mock to return 404 error
         mock_llm_client.extract_structured_data.side_effect = ProcessingError(
             "Property not found", status_code=404
         )
-        
+
         # Create processor and error strategy
         processor = LLMProcessor(mock_llm_client, processing_config)
         error_strategy = ErrorRecoveryStrategy()
-        
+
         # Test data
         test_items = [
             {"parcel_number": f"999-99-{i:03d}", "raw_html": f"<div>Missing {i}</div>"}
             for i in range(5)
         ]
-        
+
         # Process items - all should fail permanently
         for item in test_items:
             with pytest.raises((ProcessingError, FoundationProcessingError)):
                 await error_strategy.handle_error(
-                    lambda: processor.process_property(item),
-                    {"item": item},
-                    add_to_dlq=True
+                    lambda: processor.process_property(item), {"item": item}, add_to_dlq=True
                 )
-        
+
         # Check dead letter queue
         dlq_items = await error_strategy.dead_letter_queue.get_failed_items()
         assert len(dlq_items) == 5
         assert all("Property not found" in item["error_message"] for item in dlq_items)
-        assert all(item["attempt_count"] == 1 for item in dlq_items)  # No retries for permanent errors
-    
+        assert all(
+            item["attempt_count"] == 1 for item in dlq_items
+        )  # No retries for permanent errors
+
     @pytest.mark.asyncio
-    async def test_error_recovery_with_full_pipeline(self, mock_llm_client, processing_config, pipeline_config):
+    async def test_error_recovery_with_full_pipeline(
+        self, mock_llm_client, processing_config, pipeline_config
+    ):
         """Test comprehensive error recovery with the full processing pipeline."""
         # Configure mock with various failure scenarios
         call_counts = {}
-        
+
         async def mock_create(*args, **kwargs):
             # Extract property ID from the prompt
             prompt = kwargs.get("messages", [{}])[0].get("content", "")
@@ -281,11 +279,11 @@ class TestErrorHandlingIntegration:
                 parcel_num = "123-45-002"
             elif "123-45-003" in prompt:
                 parcel_num = "123-45-003"
-            
+
             # Track calls per property
             call_counts[parcel_num] = call_counts.get(parcel_num, 0) + 1
             count = call_counts[parcel_num]
-            
+
             # Different failure patterns
             if parcel_num == "123-45-001" and count <= 2:
                 # Network error that recovers
@@ -296,44 +294,38 @@ class TestErrorHandlingIntegration:
             elif parcel_num == "123-45-003":
                 # Always returns invalid data
                 return "Not JSON"  # Invalid data to trigger fallback
-            
+
             # Success response
             try:
                 multiplier = int(parcel_num[-1])
             except ValueError:
                 multiplier = 1
             return {"price": 100000 * multiplier}
-        
+
         mock_llm_client.extract_structured_data.side_effect = mock_create
-        
+
         # Create processor and error strategy
         processor = LLMProcessor(mock_llm_client, processing_config)
         error_strategy = ErrorRecoveryStrategy()
-        
+
         # Configure circuit breaker
         circuit_breaker = CircuitBreaker(failure_threshold=5)
         error_strategy.register_circuit_breaker("llm_processor", circuit_breaker)
-        
+
         # Test batch with mixed scenarios
         batch = [
-            {
-                "parcel_number": "123-45-001",
-                "raw_html": "<div>Property with network issues</div>"
-            },
-            {
-                "parcel_number": "123-45-002", 
-                "raw_html": "<div>Property with rate limit</div>"
-            },
+            {"parcel_number": "123-45-001", "raw_html": "<div>Property with network issues</div>"},
+            {"parcel_number": "123-45-002", "raw_html": "<div>Property with rate limit</div>"},
             {
                 "parcel_number": "123-45-003",
-                "raw_html": "<div>Property at 456 Main St, Phoenix, AZ 85001. Price: $350,000</div>"
-            }
+                "raw_html": "<div>Property at 456 Main St, Phoenix, AZ 85001. Price: $350,000</div>",
+            },
         ]
-        
+
         # Process batch with error handling
         results = []
         errors = []
-        
+
         for item in batch:
             try:
                 result = await error_strategy.handle_error_with_circuit_breaker(
@@ -342,44 +334,46 @@ class TestErrorHandlingIntegration:
                     {"item": item, "raw_data": {"description": item["raw_html"]}},
                     max_retries=3,
                     use_fallback=True,
-                    add_to_dlq=True
+                    add_to_dlq=True,
                 )
                 results.append(result)
             except Exception as e:
                 errors.append((item["parcel_number"], str(e)))
-        
+
         # Verify results
         assert len(results) == 3  # All should have some result
-        
+
         # First property should succeed after retries
         assert results[0] is not None
         assert "price" in results[0] or "error" not in results[0]
-        
+
         # Second property should succeed after rate limit
         assert results[1] is not None
         assert "price" in results[1] or "error" not in results[1]
-        
+
         # Third property should use fallback
         assert results[2] is not None
         if "extraction_method" in results[2]:
             assert results[2]["extraction_method"] == "fallback"
             assert results[2]["price"] == 350000.0
-    
+
     @pytest.mark.asyncio
-    async def test_batch_processing_with_mixed_errors(self, mock_llm_client, processing_config, pipeline_config):
+    async def test_batch_processing_with_mixed_errors(
+        self, mock_llm_client, processing_config, pipeline_config
+    ):
         """Test batch processing with various error types."""
         # Track which properties have been called
         processed = set()
-        
+
         async def mock_create(*args, **kwargs):
             prompt = kwargs.get("messages", [{}])[0].get("content", "")
-            
+
             # Extract parcel number
             for i in range(10):
                 if f"123-45-{i:03d}" in prompt:
                     parcel_num = f"123-45-{i:03d}"
                     processed.add(parcel_num)
-                    
+
                     # Different responses based on parcel
                     if i % 4 == 0:
                         # Network error
@@ -393,28 +387,28 @@ class TestErrorHandlingIntegration:
                     else:
                         # Success
                         return {"price": 100000 + i * 10000}
-            
+
             return {"price": 100000}
-        
+
         mock_llm_client.extract_structured_data.side_effect = mock_create
-        
+
         # Create components
         processor = LLMProcessor(mock_llm_client, processing_config)
         error_strategy = ErrorRecoveryStrategy()
-        
+
         # Reduce delays for testing
         error_strategy.retry_delays[ErrorType.NETWORK] = [0.01, 0.02]
         error_strategy.retry_delays[ErrorType.RATE_LIMIT] = [0.01]
-        
+
         # Create batch
         batch = [
             {
                 "parcel_number": f"123-45-{i:03d}",
-                "raw_html": f"<div>Property {i} at {100+i} Main St, Phoenix, AZ 85001. ${100000 + i * 10000}</div>"
+                "raw_html": f"<div>Property {i} at {100 + i} Main St, Phoenix, AZ 85001. ${100000 + i * 10000}</div>",
             }
             for i in range(10)
         ]
-        
+
         # Process batch with error handling
         results = []
         for item in batch:
@@ -424,21 +418,27 @@ class TestErrorHandlingIntegration:
                     {"item": item, "raw_data": {"description": item["raw_html"]}},
                     max_retries=1,
                     use_fallback=True,
-                    add_to_dlq=True
+                    add_to_dlq=True,
                 )
                 results.append(result)
             except Exception as e:
                 # Store error result
                 results.append({"error": str(e), "item": item})
-        
+
         # All items should have been attempted
         assert len(results) == 10
-        
+
         # Check that appropriate error handling occurred
         success_count = sum(1 for r in results if r and "error" not in r)
         assert success_count >= 3  # At least the successful ones
-        
+
         # Verify fallback was used for invalid responses
-        fallback_count = sum(1 for r in results if r and isinstance(r, dict) and r.get("extraction_method") == "fallback")
+        fallback_count = sum(
+            1
+            for r in results
+            if r and isinstance(r, dict) and r.get("extraction_method") == "fallback"
+        )
         # At least one should have used fallback (index 2, 6 return invalid data)
-        assert fallback_count >= 1 or success_count >= 3  # Either fallback worked or we got successful results
+        assert (
+            fallback_count >= 1 or success_count >= 3
+        )  # Either fallback worked or we got successful results

@@ -25,8 +25,9 @@ async def test_llama3_model_available():
             async with session.get("http://localhost:11434/api/tags") as resp:
                 data = await resp.json()
                 models = [m.get("name", "") for m in data.get("models", [])]
-                assert any("llama3.2:latest" in model for model in models), \
+                assert any("llama3.2:latest" in model for model in models), (
                     "llama3.2:latest not found. Run: ollama pull llama3.2:latest"
+                )
         except aiohttp.ClientError:
             pytest.fail("Cannot connect to Ollama service")
 
@@ -37,15 +38,11 @@ async def test_ollama_generate_endpoint():
     async with aiohttp.ClientSession() as session:
         try:
             # Test with a simple prompt
-            payload = {
-                "model": "llama3.2:latest",
-                "prompt": "Hello",
-                "stream": False
-            }
+            payload = {"model": "llama3.2:latest", "prompt": "Hello", "stream": False}
             async with session.post(
                 "http://localhost:11434/api/generate",
                 json=payload,
-                timeout=aiohttp.ClientTimeout(total=30)
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as resp:
                 assert resp.status == 200
                 data = await resp.json()

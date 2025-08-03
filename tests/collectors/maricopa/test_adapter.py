@@ -37,13 +37,13 @@ class TestMaricopaDataAdapter:
             "subdivision": "Main Estates",
             "address": {
                 "house_number": "123",
-                "street_name": "Main", 
+                "street_name": "Main",
                 "street_type": "St",
                 "unit": "A",
                 "city": "Phoenix",
                 "state": "AZ",
                 "zipcode": "85001",
-                "full_address": "123 Main St Unit A, Phoenix, AZ 85001"
+                "full_address": "123 Main St Unit A, Phoenix, AZ 85001",
             },
             "residential_details": {
                 "bedrooms": 3,
@@ -57,7 +57,7 @@ class TestMaricopaDataAdapter:
                 "pool": "Yes",
                 "fireplace": "True",
                 "ac_type": "Central",
-                "heating_type": "Gas"
+                "heating_type": "Gas",
             },
             "valuation": {
                 "assessed_value": 300000,
@@ -66,19 +66,15 @@ class TestMaricopaDataAdapter:
                 "improvement_value": 250000,
                 "tax_amount": 3500,
                 "tax_year": 2024,
-                "assessment_date": "2024-01-01"
+                "assessment_date": "2024-01-01",
             },
             "ownership": {
                 "owner_name": "John Doe",
-                "mailing_address": "123 Main St, Phoenix, AZ 85001"
+                "mailing_address": "123 Main St, Phoenix, AZ 85001",
             },
             "sales_history": [
-                {
-                    "sale_price": 325000,
-                    "sale_date": "2023-05-15",
-                    "document_type": "Warranty Deed"
-                }
-            ]
+                {"sale_price": 325000, "sale_date": "2023-05-15", "document_type": "Warranty Deed"}
+            ],
         }
 
     @pytest.fixture
@@ -92,7 +88,7 @@ class TestMaricopaDataAdapter:
                 "street_type": "Ave",
                 "zipcode": "85002",
                 "city": "Phoenix",
-                "state": "AZ"
+                "state": "AZ",
             },
             "residential_details": {},
             "valuation": {},
@@ -234,7 +230,7 @@ class TestMaricopaDataAdapter:
         """Test extraction of multiple price types with proper ordering."""
         valuation_data = {
             "assessed_value": "250000",
-            "market_value": "300000", 
+            "market_value": "300000",
             "land_value": "80000",
             "improvement_value": "220000",
         }
@@ -560,7 +556,7 @@ def integration_test_data():
                     "city": "Phoenix",
                     "state": "AZ",
                     "zipcode": "85048-1234",
-                    "full_address": "1234 Desert Willow Ln, Phoenix, AZ 85048-1234"
+                    "full_address": "1234 Desert Willow Ln, Phoenix, AZ 85048-1234",
                 },
                 "residential_details": {
                     "bedrooms": 4,
@@ -583,12 +579,12 @@ def integration_test_data():
                     "improvement_value": 335000,
                     "tax_amount": 4980,
                     "tax_year": 2024,
-                    "assessment_date": "2024-01-01"
+                    "assessment_date": "2024-01-01",
                 },
                 "ownership": {
                     "owner_name": "Jane Smith",
-                    "mailing_address": "1234 Desert Willow Ln, Phoenix, AZ 85048"
-                }
+                    "mailing_address": "1234 Desert Willow Ln, Phoenix, AZ 85048",
+                },
             },
             "expected_quality_score": 0.9,
         },
@@ -602,7 +598,7 @@ def integration_test_data():
                     "street_type": "Way",
                     "zipcode": "85085",
                     "city": "Phoenix",
-                    "state": "AZ"
+                    "state": "AZ",
                 },
                 "residential_details": {"bedrooms": 2},
                 "valuation": {"assessed_value": 185000},
@@ -646,7 +642,7 @@ class TestIntegrationScenarios:
             "apn": "123-45-678",
             # Missing address section
             "residential_details": {"bedrooms": 3},
-            "valuation": {"assessed_value": 300000}
+            "valuation": {"assessed_value": 300000},
         }
 
         with pytest.raises(ValidationError, match="Missing or invalid address section"):
@@ -667,22 +663,15 @@ class TestIntegrationScenarios:
                 "street_type": "St",
                 "city": "Phoenix",
                 "state": "AZ",
-                "zipcode": "85001"
+                "zipcode": "85001",
             },
-            "current_value": {
-                "assessed_value": 300000,
-                "market_value": 350000
-            },
-            "dwelling_info": {
-                "bedrooms": 3,
-                "bathrooms": 2.5,
-                "living_area_sqft": 1850
-            }
+            "current_value": {"assessed_value": 300000, "market_value": 350000},
+            "dwelling_info": {"bedrooms": 3, "bathrooms": 2.5, "living_area_sqft": 1850},
         }
 
-        # The adapter should handle field mapping gracefully  
+        # The adapter should handle field mapping gracefully
         result = await adapter.adapt_property(real_api_response)
-        
+
         assert isinstance(result, Property)
         assert result.property_id
         assert result.address

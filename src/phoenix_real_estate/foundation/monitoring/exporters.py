@@ -121,9 +121,7 @@ class PrometheusExporter:
 
         # Create handler class with metrics collector
         def handler(*args, **kwargs):
-            return MetricsHTTPHandler(
-                    self.metrics_collector, *args, **kwargs
-                )
+            return MetricsHTTPHandler(self.metrics_collector, *args, **kwargs)
 
         # Start HTTP server
         self.server = HTTPServer(("", self.config.port), handler)

@@ -343,7 +343,6 @@ class BenchmarkSuite:
         print("  Testing mixed read/write workload...")
         reset_config_cache()
 
-
         def mixed_worker(read_ratio: float, duration: float) -> Tuple[int, int]:
             reads = writes = 0
             end_time = time.perf_counter() + duration

@@ -11,7 +11,7 @@ from phoenix_real_estate.foundation import ConfigProvider
 @pytest.mark.integration
 class TestOllamaIntegration:
     """Integration tests that require real Ollama service."""
-    
+
     @pytest.fixture
     def real_config(self):
         """Create real configuration."""
@@ -22,57 +22,62 @@ class TestOllamaIntegration:
         config.settings.LLM_TIMEOUT = 30
         config.settings.LLM_MAX_RETRIES = 2
         return config
-    
+
     @pytest.mark.asyncio
     async def test_real_health_check(self, real_config):
         """Test health check with real Ollama service."""
         # Skip if Ollama is not running
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                async with session.get(
+                    "http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
         except Exception:
             pytest.skip("Ollama service not running")
-        
+
         async with OllamaClient(real_config) as client:
             result = await client.health_check()
             assert result is True
-    
+
     @pytest.mark.asyncio
     async def test_real_completion(self, real_config):
         """Test completion generation with real Ollama."""
         # Skip if Ollama is not running
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                async with session.get(
+                    "http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
         except Exception:
             pytest.skip("Ollama service not running")
-        
+
         async with OllamaClient(real_config) as client:
             # Simple test prompt
             result = await client.generate_completion(
-                "What is 2+2? Answer with just the number.",
-                max_tokens=10
+                "What is 2+2? Answer with just the number.", max_tokens=10
             )
-            
+
             assert result is not None
             assert "4" in result
-    
+
     @pytest.mark.asyncio
     async def test_real_extraction(self, real_config):
         """Test data extraction with real Ollama."""
         # Skip if Ollama is not running
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get("http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                async with session.get(
+                    "http://localhost:11434/api/version", timeout=aiohttp.ClientTimeout(total=5)
+                ) as resp:
                     if resp.status != 200:
                         pytest.skip("Ollama service not running")
         except Exception:
             pytest.skip("Ollama service not running")
-        
+
         async with OllamaClient(real_config) as client:
             # Test property data extraction
             html_content = """
@@ -84,20 +89,16 @@ class TestOllamaIntegration:
                 <p>Bathrooms: 2</p>
             </div>
             """
-            
+
             schema = {
                 "address": {"type": "string", "description": "Full property address"},
                 "price": {"type": "number", "description": "Property price in dollars"},
                 "bedrooms": {"type": "integer", "description": "Number of bedrooms"},
-                "bathrooms": {"type": "integer", "description": "Number of bathrooms"}
+                "bathrooms": {"type": "integer", "description": "Number of bathrooms"},
             }
-            
-            result = await client.extract_structured_data(
-                html_content,
-                schema,
-                content_type="html"
-            )
-            
+
+            result = await client.extract_structured_data(html_content, schema, content_type="html")
+
             assert result is not None
             assert "address" in result
             assert "price" in result

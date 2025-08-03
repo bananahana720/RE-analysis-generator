@@ -25,10 +25,10 @@ from pathlib import Path
 
 def run_command(cmd: list, env: dict = None) -> int:
     """Run a command and return exit code."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Running: {' '.join(cmd)}")
-    print(f"{'='*60}\n")
-    
+    print(f"{'=' * 60}\n")
+
     result = subprocess.run(cmd, env=env)
     return result.returncode
 
@@ -36,13 +36,11 @@ def run_command(cmd: list, env: dict = None) -> int:
 def check_prerequisites(mode: str) -> bool:
     """Check if prerequisites are met for the test mode."""
     print("Checking prerequisites...")
-    
+
     # Check MongoDB
     try:
         result = subprocess.run(
-            ["mongosh", "--eval", "db.version()", "--quiet"],
-            capture_output=True,
-            text=True
+            ["mongosh", "--eval", "db.version()", "--quiet"], capture_output=True, text=True
         )
         if result.returncode != 0:
             print("❌ MongoDB is not running")
@@ -52,11 +50,12 @@ def check_prerequisites(mode: str) -> bool:
     except FileNotFoundError:
         print("❌ MongoDB client (mongosh) not found")
         return False
-    
+
     # Check Ollama for real mode
     if mode in ["real", "both"]:
         try:
             import requests
+
             response = requests.get("http://localhost:11434/api/tags", timeout=5)
             if response.status_code == 200:
                 models = response.json().get("models", [])
@@ -74,7 +73,7 @@ def check_prerequisites(mode: str) -> bool:
             print(f"❌ Ollama is not running: {e}")
             print("   Run: ollama serve")
             return False
-    
+
     print("✅ All prerequisites met")
     return True
 
@@ -84,96 +83,91 @@ def run_e2e_tests(args):
     # Get project root
     project_root = Path(__file__).parent.parent.parent
     os.chdir(project_root)
-    
+
     # Check prerequisites
     if not check_prerequisites(args.mode):
         return 1
-    
+
     # Base pytest command
-    base_cmd = [
-        sys.executable, "-m", "pytest",
-        "tests/e2e/test_processing_pipeline_e2e.py"
-    ]
-    
+    base_cmd = [sys.executable, "-m", "pytest", "tests/e2e/test_processing_pipeline_e2e.py"]
+
     # Add common options
     if args.verbose:
         base_cmd.append("-vv")
     else:
         base_cmd.append("-v")
-    
+
     if args.failfast:
         base_cmd.append("-x")
-    
+
     # Add markers
     markers = ["e2e"]
     if not args.performance:
         markers.append("not slow")
-    
+
     if markers:
         base_cmd.extend(["-m", " and ".join(markers)])
-    
+
     # Coverage options
     if args.coverage:
-        base_cmd.extend([
-            "--cov=phoenix_real_estate.collectors.processing",
-            "--cov=phoenix_real_estate.orchestration",
-            "--cov-report=html",
-            "--cov-report=term-missing"
-        ])
-    
+        base_cmd.extend(
+            [
+                "--cov=phoenix_real_estate.collectors.processing",
+                "--cov=phoenix_real_estate.orchestration",
+                "--cov-report=html",
+                "--cov-report=term-missing",
+            ]
+        )
+
     # Additional options
-    base_cmd.extend([
-        "--tb=short",
-        "--color=yes",
-        "-p", "no:warnings"
-    ])
-    
+    base_cmd.extend(["--tb=short", "--color=yes", "-p", "no:warnings"])
+
     # Run tests based on mode
     exit_code = 0
-    
+
     if args.mode in ["mock", "both"]:
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("RUNNING E2E TESTS IN MOCK MODE")
-        print("="*60)
-        
+        print("=" * 60)
+
         env = os.environ.copy()
         env["E2E_MODE"] = "mock"
-        
+
         start_time = time.time()
         code = run_command(base_cmd, env)
         duration = time.time() - start_time
-        
+
         print(f"\nMock mode completed in {duration:.1f}s")
         exit_code = max(exit_code, code)
-    
+
     if args.mode in ["real", "both"]:
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("RUNNING E2E TESTS IN REAL MODE")
-        print("="*60)
-        
+        print("=" * 60)
+
         env = os.environ.copy()
         env["E2E_MODE"] = "real"
-        
+
         start_time = time.time()
         code = run_command(base_cmd, env)
         duration = time.time() - start_time
-        
+
         print(f"\nReal mode completed in {duration:.1f}s")
         exit_code = max(exit_code, code)
-    
+
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("E2E TEST SUMMARY")
-    print("="*60)
-    
+    print("=" * 60)
+
     if exit_code == 0:
         print("✅ All tests passed!")
     else:
         print(f"❌ Tests failed with exit code: {exit_code}")
-    
+
     if args.coverage:
         print(f"\nCoverage report: {project_root}/htmlcov/index.html")
-    
+
     return exit_code
 
 
@@ -195,38 +189,19 @@ Examples:
   
   # Run with coverage report
   python scripts/testing/run_llm_e2e_tests.py --coverage
-        """
+        """,
     )
-    
+
     parser.add_argument(
-        "--mode",
-        choices=["mock", "real", "both"],
-        default="mock",
-        help="Test mode (default: mock)"
+        "--mode", choices=["mock", "real", "both"], default="mock", help="Test mode (default: mock)"
     )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Verbose output"
-    )
-    parser.add_argument(
-        "--performance",
-        action="store_true",
-        help="Include performance benchmarks"
-    )
-    parser.add_argument(
-        "--failfast",
-        action="store_true",
-        help="Stop on first failure"
-    )
-    parser.add_argument(
-        "--coverage",
-        action="store_true",
-        help="Generate coverage report"
-    )
-    
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("--performance", action="store_true", help="Include performance benchmarks")
+    parser.add_argument("--failfast", action="store_true", help="Stop on first failure")
+    parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
+
     args = parser.parse_args()
-    
+
     try:
         exit_code = run_e2e_tests(args)
         sys.exit(exit_code)

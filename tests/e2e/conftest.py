@@ -15,7 +15,7 @@ import pytest_asyncio
 from dotenv import load_dotenv
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from phoenix_real_estate.foundation import ConfigProvider, get_logger
 from phoenix_real_estate.foundation.database.connection import DatabaseConnection
@@ -33,7 +33,7 @@ logger = get_logger("e2e.conftest")
 @pytest.fixture(scope="session")
 def e2e_mode() -> str:
     """Determine E2E test mode from environment.
-    
+
     Returns:
         "mock" for mocked Ollama or "real" for actual Ollama integration
     """
@@ -56,7 +56,7 @@ def test_config() -> ConfigProvider:
     os.environ["ENABLE_METRICS"] = "true"
     os.environ["STRICT_VALIDATION"] = "true"
     os.environ["SAVE_INVALID_PROPERTIES"] = "false"
-    
+
     config = ConfigProvider()
     logger.info("Test configuration created", extra={"database": config.mongodb_database})
     return config
@@ -68,21 +68,21 @@ async def test_db_connection(test_config: ConfigProvider) -> DatabaseConnection:
     # Get MongoDB configuration
     mongodb_uri = test_config.mongodb_uri
     mongodb_database = test_config.mongodb_database
-    
+
     # Create connection
     db_conn = DatabaseConnection.get_instance(mongodb_uri, mongodb_database)
     await db_conn.connect()
-    
+
     # Clean test database
     db = db_conn.get_database()
     collections = await db.list_collection_names()
     for collection in collections:
         await db.drop_collection(collection)
-    
+
     logger.info("Test database connection established and cleaned")
-    
+
     yield db_conn
-    
+
     # Cleanup
     await db.drop_collection("properties")
     await db.drop_collection("collection_history")
@@ -141,11 +141,11 @@ def sample_maricopa_json() -> Dict[str, Any]:
             "address": "456 Demo Avenue",
             "city": "Phoenix",
             "state": "AZ",
-            "zip": "85033"
+            "zip": "85033",
         },
         "owner_info": {
             "name": "TEST OWNER LLC",
-            "mailing_address": "PO Box 1234, Phoenix, AZ 85001"
+            "mailing_address": "PO Box 1234, Phoenix, AZ 85001",
         },
         "property_details": {
             "land_use": "SINGLE FAMILY RESIDENTIAL",
@@ -153,13 +153,9 @@ def sample_maricopa_json() -> Dict[str, Any]:
             "living_area": 1850,
             "lot_size": 7200,
             "bedrooms": 3,
-            "bathrooms": 2.5
+            "bathrooms": 2.5,
         },
-        "valuation": {
-            "market_value": 385000,
-            "assessed_value": 350000,
-            "tax_year": 2024
-        }
+        "valuation": {"market_value": 385000, "assessed_value": 350000, "tax_year": 2024},
     }
 
 
@@ -175,28 +171,22 @@ def sample_batch_data() -> List[Dict[str, Any]]:
                 <p>MLS: 6754322</p>
             </div>""",
             "source": "phoenix_mls",
-            "content_type": "html"
+            "content_type": "html",
         },
         {
             "content": {
                 "parcel_number": "234-56-789B",
-                "property_address": {
-                    "address": "321 Batch Ave",
-                    "city": "Phoenix",
-                    "zip": "85035"
-                },
+                "property_address": {"address": "321 Batch Ave", "city": "Phoenix", "zip": "85035"},
                 "property_details": {
                     "bedrooms": 4,
                     "bathrooms": 2,
                     "living_area": 2000,
-                    "year_built": 2020
+                    "year_built": 2020,
                 },
-                "valuation": {
-                    "market_value": 410000
-                }
+                "valuation": {"market_value": 410000},
             },
             "source": "maricopa_county",
-            "content_type": "json"
+            "content_type": "json",
         },
         {
             "content": """<div class="listing">
@@ -206,22 +196,22 @@ def sample_batch_data() -> List[Dict[str, Any]]:
                 <div>MLS#: 6754323 | Built: 2019</div>
             </div>""",
             "source": "phoenix_mls",
-            "content_type": "html"
-        }
+            "content_type": "html",
+        },
     ]
 
 
 @pytest_asyncio.fixture
 async def mock_ollama_client(e2e_mode: str) -> Optional[AsyncMock]:
     """Create mock Ollama client for testing.
-    
+
     Returns None if in real mode, mock client if in mock mode.
     """
     if e2e_mode == "real":
         return None
-    
+
     mock_client = AsyncMock(spec=OllamaClient)
-    
+
     # Mock successful extraction responses
     mock_client.extract.return_value = {
         "address": "123 Test Street",
@@ -238,31 +228,33 @@ async def mock_ollama_client(e2e_mode: str) -> Optional[AsyncMock]:
         "mls_number": "6754321",
         "listing_status": "Active",
         "description": "This stunning 4-bedroom home features modern amenities",
-        "extraction_confidence": 0.95
+        "extraction_confidence": 0.95,
     }
-    
+
     # Mock health check
     mock_client.health_check.return_value = True
-    
+
     # Mock context manager
     mock_client.__aenter__.return_value = mock_client
     mock_client.__aexit__.return_value = None
-    
+
     return mock_client
 
 
 @pytest_asyncio.fixture
-async def processing_pipeline(test_config: ConfigProvider, mock_ollama_client: Optional[AsyncMock], e2e_mode: str) -> DataProcessingPipeline:
+async def processing_pipeline(
+    test_config: ConfigProvider, mock_ollama_client: Optional[AsyncMock], e2e_mode: str
+) -> DataProcessingPipeline:
     """Create processing pipeline for testing."""
     pipeline = DataProcessingPipeline(test_config)
-    
+
     # If in mock mode, inject the mock client
     if e2e_mode == "mock" and mock_ollama_client:
         # Access the extractor through the pipeline
         await pipeline.initialize()
-        if hasattr(pipeline._extractor, '_llm_client'):
+        if hasattr(pipeline._extractor, "_llm_client"):
             pipeline._extractor._llm_client = mock_ollama_client
-    
+
     return pipeline
 
 
@@ -270,13 +262,11 @@ async def processing_pipeline(test_config: ConfigProvider, mock_ollama_client: O
 async def processing_integrator(
     test_config: ConfigProvider,
     test_repository: PropertyRepository,
-    processing_pipeline: DataProcessingPipeline
+    processing_pipeline: DataProcessingPipeline,
 ) -> ProcessingIntegrator:
     """Create processing integrator for testing."""
     integrator = ProcessingIntegrator(
-        config=test_config,
-        repository=test_repository,
-        pipeline=processing_pipeline
+        config=test_config, repository=test_repository, pipeline=processing_pipeline
     )
     return integrator
 
@@ -300,7 +290,7 @@ def expected_property_fields() -> List[str]:
         "source",
         "extraction_confidence",
         "extracted_at",
-        "last_updated"
+        "last_updated",
     ]
 
 
@@ -318,14 +308,14 @@ def validation_thresholds() -> Dict[str, Any]:
         "min_bathrooms": 0,
         "max_bathrooms": 20,
         "min_year_built": 1800,
-        "max_year_built": datetime.now().year + 1
+        "max_year_built": datetime.now().year + 1,
     }
 
 
 # Test data factories
 class E2ETestDataFactory:
     """Factory for generating E2E test data."""
-    
+
     @staticmethod
     def create_phoenix_mls_html(
         address: str = "123 Test St",
@@ -335,7 +325,7 @@ class E2ETestDataFactory:
         beds: int = 3,
         baths: float = 2.0,
         sqft: int = 1800,
-        mls_number: str = "6754321"
+        mls_number: str = "6754321",
     ) -> str:
         """Create Phoenix MLS HTML with custom values."""
         return f"""
@@ -350,7 +340,7 @@ class E2ETestDataFactory:
             <div class="mls">MLS#: {mls_number}</div>
         </div>
         """
-    
+
     @staticmethod
     def create_maricopa_json(
         parcel: str = "123-45-678",
@@ -361,25 +351,19 @@ class E2ETestDataFactory:
         baths: float = 2.0,
         sqft: int = 1600,
         year_built: int = 2015,
-        value: int = 325000
+        value: int = 325000,
     ) -> Dict[str, Any]:
         """Create Maricopa County JSON with custom values."""
         return {
             "parcel_number": parcel,
-            "property_address": {
-                "address": address,
-                "city": city,
-                "zip": zip_code
-            },
+            "property_address": {"address": address, "city": city, "zip": zip_code},
             "property_details": {
                 "bedrooms": beds,
                 "bathrooms": baths,
                 "living_area": sqft,
-                "year_built": year_built
+                "year_built": year_built,
             },
-            "valuation": {
-                "market_value": value
-            }
+            "valuation": {"market_value": value},
         }
 
 
@@ -393,25 +377,28 @@ def test_data_factory() -> E2ETestDataFactory:
 @pytest.fixture
 def performance_tracker():
     """Track performance metrics during tests."""
+
     class PerformanceTracker:
         def __init__(self):
             self.metrics = []
-        
+
         def record(self, operation: str, duration: float, success: bool = True):
-            self.metrics.append({
-                "operation": operation,
-                "duration": duration,
-                "success": success,
-                "timestamp": datetime.now(timezone.utc)
-            })
-        
+            self.metrics.append(
+                {
+                    "operation": operation,
+                    "duration": duration,
+                    "success": success,
+                    "timestamp": datetime.now(timezone.utc),
+                }
+            )
+
         def get_summary(self) -> Dict[str, Any]:
             if not self.metrics:
                 return {}
-            
+
             durations = [m["duration"] for m in self.metrics]
             success_count = sum(1 for m in self.metrics if m["success"])
-            
+
             return {
                 "total_operations": len(self.metrics),
                 "successful": success_count,
@@ -419,7 +406,7 @@ def performance_tracker():
                 "avg_duration": sum(durations) / len(durations),
                 "min_duration": min(durations),
                 "max_duration": max(durations),
-                "total_duration": sum(durations)
+                "total_duration": sum(durations),
             }
-    
+
     return PerformanceTracker()

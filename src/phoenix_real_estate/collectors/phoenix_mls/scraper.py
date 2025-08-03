@@ -763,7 +763,7 @@ class PhoenixMLSScraper:
 
         # Calculate success rate
         if stats["total_requests"] > 0:
-            stats["success_rate"] = (stats["successful_requests"] / stats["total_requests"])
+            stats["success_rate"] = stats["successful_requests"] / stats["total_requests"]
         else:
             stats["success_rate"] = 0
 
@@ -797,7 +797,7 @@ class PhoenixMLSScraper:
 
     def _record_request(self, operation: str, success: bool, duration: float) -> None:
         """Record request statistics for monitoring.
-        
+
         Args:
             operation: The operation type (e.g., "search", "details")
             success: Whether the operation succeeded
@@ -809,25 +809,25 @@ class PhoenixMLSScraper:
             self.stats["successful_requests"] += 1
         else:
             self.stats["failed_requests"] += 1
-        
+
         # Track per-operation stats
         if operation not in self.stats["operations"]:
             self.stats["operations"][operation] = {
                 "count": 0,
                 "successful": 0,
                 "failed": 0,
-                "total_duration": 0.0
+                "total_duration": 0.0,
             }
-        
+
         op_stats = self.stats["operations"][operation]
         op_stats["count"] += 1
         op_stats["total_duration"] += duration
-        
+
         if success:
             op_stats["successful"] += 1
         else:
             op_stats["failed"] += 1
-        
+
         # Track durations for overall statistics
         self.stats["durations"].append(duration)
 
@@ -938,24 +938,24 @@ class PhoenixMLSScraper:
 
     def validate_and_clean_property_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and clean scraped property data.
-        
+
         Args:
             raw_data: Raw scraped data dictionary
-            
+
         Returns:
             Cleaned and validated data dictionary
         """
         from datetime import datetime
         import re
-        
+
         cleaned_data = {}
-        
+
         # Clean address - trim whitespace
         if "address" in raw_data and raw_data["address"]:
             cleaned_data["address"] = raw_data["address"].strip()
         else:
             cleaned_data["address"] = ""
-            
+
         # Parse price from string format like "$450,000"
         if "price" in raw_data and raw_data["price"]:
             price_str = str(raw_data["price"]).replace("$", "").replace(",", "")
@@ -965,7 +965,7 @@ class PhoenixMLSScraper:
                 cleaned_data["price"] = 0
         else:
             cleaned_data["price"] = 0
-            
+
         # Parse bedrooms from text like "3 beds"
         if "bedrooms" in raw_data and raw_data["bedrooms"]:
             bedrooms_str = str(raw_data["bedrooms"])
@@ -976,7 +976,7 @@ class PhoenixMLSScraper:
                 cleaned_data["bedrooms"] = 0
         else:
             cleaned_data["bedrooms"] = 0
-            
+
         # Parse bathrooms from string
         if "bathrooms" in raw_data and raw_data["bathrooms"]:
             try:
@@ -985,7 +985,7 @@ class PhoenixMLSScraper:
                 cleaned_data["bathrooms"] = 0.0
         else:
             cleaned_data["bathrooms"] = 0.0
-            
+
         # Parse square feet from formatted text like "1,850 sqft"
         if "square_feet" in raw_data and raw_data["square_feet"]:
             sqft_str = str(raw_data["square_feet"]).replace(",", "").replace(" sqft", "")
@@ -995,25 +995,24 @@ class PhoenixMLSScraper:
                 cleaned_data["square_feet"] = 0
         else:
             cleaned_data["square_feet"] = 0
-            
+
         # Handle description - convert None to empty string
         if "description" in raw_data and raw_data["description"]:
             cleaned_data["description"] = str(raw_data["description"])
         else:
             cleaned_data["description"] = ""
-            
+
         # Add validation timestamp
         cleaned_data["validated_at"] = datetime.now().isoformat()
-        
-        return cleaned_data
 
+        return cleaned_data
 
     async def get_property_details(self, property_id: str) -> Dict[str, Any]:
         """Get detailed information for a property by ID.
-        
+
         Args:
             property_id: The property ID
-            
+
         Returns:
             Dictionary with detailed property information
         """
@@ -1023,35 +1022,35 @@ class PhoenixMLSScraper:
         property_url = f"{self.base_url}/property/{property_id}"
         return await self.scrape_property_details(property_url)
 
-
     async def search_by_zipcode(self, zipcode: str) -> List[Dict[str, Any]]:
         """Alias for search_properties_by_zipcode for compatibility.
-        
+
         Args:
             zipcode: The zipcode to search
-            
+
         Returns:
             List of property data dictionaries
         """
         return await self.search_properties_by_zipcode(zipcode)
 
-
-    async def scrape_zipcode(self, zipcode: str, include_details: bool = False) -> List[Dict[str, Any]]:
+    async def scrape_zipcode(
+        self, zipcode: str, include_details: bool = False
+    ) -> List[Dict[str, Any]]:
         """Search for properties in a zipcode, optionally including detailed information.
-        
+
         Args:
             zipcode: The zipcode to search
             include_details: Whether to fetch detailed information for each property
-            
+
         Returns:
             List of property data dictionaries
         """
         # First get the basic search results
         properties = await self.search_by_zipcode(zipcode)
-        
+
         if not include_details:
             return properties
-            
+
         # Get detailed information for each property
         detailed_properties = []
         for prop in properties:
@@ -1068,9 +1067,8 @@ class PhoenixMLSScraper:
                     detailed_properties.append(prop)
             else:
                 detailed_properties.append(prop)
-                
-        return detailed_properties
 
+        return detailed_properties
 
     def __repr__(self) -> str:
         """String representation of PhoenixMLSScraper."""

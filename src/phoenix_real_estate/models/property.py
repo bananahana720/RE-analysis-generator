@@ -9,29 +9,29 @@ from typing import Any, Dict, List, Optional
 @dataclass
 class PropertyDetails:
     """Structured property details extracted by LLM.
-    
+
     This model represents property data after LLM extraction and processing,
     designed to work with the ProcessingValidator.
     """
-    
+
     # Required fields
     property_id: str
     address: str
-    
+
     # Core identifiers
     mls_number: Optional[str] = None
     parcel_number: Optional[str] = None
-    
+
     # Location details
     street: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
     zip_code: Optional[str] = None
-    
+
     # Pricing
     price: Optional[Decimal] = None
     assessed_value: Optional[Decimal] = None
-    
+
     # Physical attributes
     bedrooms: Optional[int] = None
     bathrooms: Optional[float] = None
@@ -39,52 +39,52 @@ class PropertyDetails:
     lot_size: Optional[int] = None
     lot_units: Optional[str] = None  # 'sqft', 'acres'
     year_built: Optional[int] = None
-    
+
     # Property characteristics
     property_type: Optional[str] = None
     listing_status: Optional[str] = None
-    
+
     # Description and features
     description: Optional[str] = None
     features: List[str] = field(default_factory=list)
-    
+
     # Owner information
     owner_name: Optional[str] = None
-    
+
     # Dates
     listing_date: Optional[datetime] = None
     last_updated: Optional[datetime] = None
     extracted_at: Optional[datetime] = None
-    
+
     # Data quality
     extraction_confidence: Optional[float] = None  # 0.0 to 1.0
     source: Optional[str] = None  # 'phoenix_mls', 'maricopa_county'
     validation_errors: List[str] = field(default_factory=list)
-    
+
     # Raw data
     raw_data: Dict[str, Any] = field(default_factory=dict)
-    
+
     def __post_init__(self):
         """Perform post-initialization processing."""
         # Convert price to Decimal if needed
         if self.price is not None and not isinstance(self.price, Decimal):
             self.price = Decimal(str(self.price))
-            
+
         # Convert assessed_value to Decimal if needed
         if self.assessed_value is not None and not isinstance(self.assessed_value, Decimal):
             self.assessed_value = Decimal(str(self.assessed_value))
-            
+
         # Ensure bathrooms is float
         if self.bathrooms is not None and isinstance(self.bathrooms, int):
             self.bathrooms = float(self.bathrooms)
-    
+
     @classmethod
     def from_extraction_result(cls, extraction_data: Dict[str, Any]) -> "PropertyDetails":
         """Create PropertyDetails from extraction result.
-        
+
         Args:
             extraction_data: Dictionary from PropertyDataExtractor
-            
+
         Returns:
             PropertyDetails instance
         """
@@ -99,10 +99,12 @@ class PropertyDetails:
         else:
             street = city = state = zip_code = None
             full_address = str(address_data) if address_data else ""
-        
+
         # Create instance
         return cls(
-            property_id=extraction_data.get("property_id", extraction_data.get("parcel_number", "")),
+            property_id=extraction_data.get(
+                "property_id", extraction_data.get("parcel_number", "")
+            ),
             mls_number=extraction_data.get("mls_number"),
             parcel_number=extraction_data.get("parcel_number"),
             address=full_address or extraction_data.get("property_address", ""),
@@ -129,5 +131,5 @@ class PropertyDetails:
             extraction_confidence=extraction_data.get("extraction_confidence"),
             source=extraction_data.get("source"),
             validation_errors=extraction_data.get("validation_errors", []),
-            raw_data=extraction_data.get("raw_data", {})
+            raw_data=extraction_data.get("raw_data", {}),
         )

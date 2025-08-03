@@ -17,81 +17,85 @@ from datetime import datetime
 
 class MaricopaClientMigrator:
     """Migration utility for updating Maricopa client to real API."""
-    
+
     def __init__(self, dry_run: bool = False, backup: bool = True):
         self.dry_run = dry_run
         self.backup = backup
         self.client_file = Path("src/phoenix_real_estate/collectors/maricopa/client.py")
         self.config_file = Path("config/base.yaml")
-        
+
     def create_backup(self):
         """Create backup of current files before migration."""
         if not self.backup:
             return
-            
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_dir = Path(f"backups/migration_{timestamp}")
         backup_dir.mkdir(parents=True, exist_ok=True)
-        
+
         files_to_backup = [self.client_file, self.config_file]
-        
+
         for file_path in files_to_backup:
             if file_path.exists():
                 backup_path = backup_dir / file_path.name
                 shutil.copy2(file_path, backup_path)
                 print(f"[BACKUP] Created backup: {backup_path}")
-                
+
     def show_required_changes(self):
         """Display all required changes for migration."""
         print("=" * 80)
         print("MARICOPA CLIENT MIGRATION ANALYSIS")
         print("=" * 80)
-        
+
         print("\n1. BASE URL CHANGE")
         print("   CURRENT: https://api.assessor.maricopa.gov/v1")
         print("   REQUIRED: https://mcassessor.maricopa.gov")
-        
+
         print("\n2. AUTHENTICATION HEADER CHANGE")
         print("   CURRENT: Authorization: Bearer {token}")
         print("   REQUIRED: AUTHORIZATION: {token}")
-        
+
         print("\n3. ENDPOINT MAPPING CHANGES")
         changes = [
-            ("search_by_zipcode", "/properties/search/zipcode/{zipcode}", "/search/property/?q={query}"),
+            (
+                "search_by_zipcode",
+                "/properties/search/zipcode/{zipcode}",
+                "/search/property/?q={query}",
+            ),
             ("property_details", "/properties/{property_id}", "/parcel/{apn}"),
             ("recent_sales", "/sales/recent", "NOT AVAILABLE - Remove"),
             ("property_history", "/properties/{property_id}/history", "/parcel/{apn}/valuations"),
         ]
-        
+
         for method, old_endpoint, new_endpoint in changes:
             print(f"   {method}:")
             print(f"     OLD: {old_endpoint}")
             print(f"     NEW: {new_endpoint}")
-            
+
         print("\n4. NEW ENDPOINTS TO ADD")
         new_endpoints = [
             ("property_info", "/parcel/{apn}/propertyinfo"),
-            ("property_address", "/parcel/{apn}/address"),  
+            ("property_address", "/parcel/{apn}/address"),
             ("property_valuations", "/parcel/{apn}/valuations"),
             ("residential_details", "/parcel/{apn}/residential-details"),
             ("owner_details", "/parcel/{apn}/owner-details"),
             ("search_subdivisions", "/search/sub/?q={query}"),
             ("search_rentals", "/search/rental/?q={query}"),
         ]
-        
+
         for method, endpoint in new_endpoints:
             print(f"   {method}: {endpoint}")
-            
+
         print("\n5. PAGINATION SUPPORT")
         print("   - Search results limited to 25 per page")
         print("   - Add page parameter: /search/property/?q={query}&page={page}")
         print("   - Parse pagination info from responses")
-        
+
         print("\n6. ERROR HANDLING UPDATES")
-        print("   - 500 errors now mean authentication failure")  
+        print("   - 500 errors now mean authentication failure")
         print("   - Add handling for API-specific error messages")
         print("   - Update retry logic for new error patterns")
-        
+
     def generate_updated_client_code(self) -> str:
         """Generate updated client code with correct endpoints."""
         return '''"""Maricopa County API client with rate limiting and authentication.
@@ -453,7 +457,7 @@ class MaricopaAPIClient(RateLimitObserver):
 
     def generate_updated_config(self) -> str:
         """Generate updated configuration with correct settings."""
-        return '''# Updated configuration for real Maricopa County API
+        return """# Updated configuration for real Maricopa County API
 
 sources:
   maricopa_county:
@@ -477,134 +481,138 @@ sources:
       property_address: "/parcel/{apn}/address"
       property_valuations: "/parcel/{apn}/valuations"
       owner_details: "/parcel/{apn}/owner-details"
-'''
+"""
 
     def generate_migration_script(self) -> str:
         """Generate complete migration script."""
-        script_content = '#!/usr/bin/env python3\n'
+        script_content = "#!/usr/bin/env python3\n"
         script_content += '"""\n'
-        script_content += 'Complete migration script for Maricopa County API client.\n'
-        script_content += '\n'
-        script_content += 'This script performs all necessary updates to migrate from the incorrect\n'
-        script_content += 'API implementation to the real Maricopa County API endpoints.\n'
+        script_content += "Complete migration script for Maricopa County API client.\n"
+        script_content += "\n"
+        script_content += (
+            "This script performs all necessary updates to migrate from the incorrect\n"
+        )
+        script_content += "API implementation to the real Maricopa County API endpoints.\n"
         script_content += '"""\n'
-        script_content += '\n'
-        script_content += 'import re\n'
-        script_content += 'from pathlib import Path\n'
-        script_content += '\n'
-        script_content += 'def migrate_client_file():\n'
+        script_content += "\n"
+        script_content += "import re\n"
+        script_content += "from pathlib import Path\n"
+        script_content += "\n"
+        script_content += "def migrate_client_file():\n"
         script_content += '    """Update client.py with correct implementation."""\n'
-        script_content += '    client_file = Path("src/phoenix_real_estate/collectors/maricopa/client.py")\n'
-        script_content += '    \n'
-        script_content += '    if not client_file.exists():\n'
+        script_content += (
+            '    client_file = Path("src/phoenix_real_estate/collectors/maricopa/client.py")\n'
+        )
+        script_content += "    \n"
+        script_content += "    if not client_file.exists():\n"
         script_content += '        print(f"Error: {client_file} not found")\n'
-        script_content += '        return False\n'
-        script_content += '        \n'
+        script_content += "        return False\n"
+        script_content += "        \n"
         script_content += '    with open(client_file, "r") as f:\n'
-        script_content += '        content = f.read()\n'
-        script_content += '    \n'
-        script_content += '    # Simple string replacements for key changes\n'
-        script_content += '    content = content.replace(\n'
+        script_content += "        content = f.read()\n"
+        script_content += "    \n"
+        script_content += "    # Simple string replacements for key changes\n"
+        script_content += "    content = content.replace(\n"
         script_content += '        "https://api.assessor.maricopa.gov/v1",\n'
         script_content += '        "https://mcassessor.maricopa.gov"\n'
-        script_content += '    )\n'
-        script_content += '    \n'
-        script_content += '    content = content.replace(\n'
+        script_content += "    )\n"
+        script_content += "    \n"
+        script_content += "    content = content.replace(\n"
         script_content += '        "\\"Authorization\\": f\\"Bearer {self.api_key}\\"",\n'
         script_content += '        "\\"AUTHORIZATION\\": self.api_key"\n'
-        script_content += '    )\n'
-        script_content += '    \n'
+        script_content += "    )\n"
+        script_content += "    \n"
         script_content += '    with open(client_file, "w") as f:\n'
-        script_content += '        f.write(content)\n'
-        script_content += '        \n'
+        script_content += "        f.write(content)\n"
+        script_content += "        \n"
         script_content += '    print(f"Updated {client_file}")\n'
-        script_content += '    return True\n'
-        script_content += '\n'
-        script_content += 'def migrate_config_file():\n'
+        script_content += "    return True\n"
+        script_content += "\n"
+        script_content += "def migrate_config_file():\n"
         script_content += '    """Update configuration files."""\n'
         script_content += '    config_file = Path("config/base.yaml")\n'
-        script_content += '    \n'
-        script_content += '    if not config_file.exists():\n'
+        script_content += "    \n"
+        script_content += "    if not config_file.exists():\n"
         script_content += '        print(f"Error: {config_file} not found")\n'
-        script_content += '        return False\n'
-        script_content += '        \n'
+        script_content += "        return False\n"
+        script_content += "        \n"
         script_content += '    with open(config_file, "r") as f:\n'
-        script_content += '        content = f.read()\n'
-        script_content += '    \n'
-        script_content += '    content = content.replace(\n'
+        script_content += "        content = f.read()\n"
+        script_content += "    \n"
+        script_content += "    content = content.replace(\n"
         script_content += '        "https://api.mcassessor.maricopa.gov/api/v1",\n'
         script_content += '        "https://mcassessor.maricopa.gov"\n'
-        script_content += '    )\n'
-        script_content += '    \n'
+        script_content += "    )\n"
+        script_content += "    \n"
         script_content += '    with open(config_file, "w") as f:\n'
-        script_content += '        f.write(content)\n'
-        script_content += '        \n'
+        script_content += "        f.write(content)\n"
+        script_content += "        \n"
         script_content += '    print(f"Updated {config_file}")\n'
-        script_content += '    return True\n'
-        script_content += '\n'
+        script_content += "    return True\n"
+        script_content += "\n"
         script_content += 'if __name__ == "__main__":\n'
         script_content += '    print("Starting Maricopa API migration...")\n'
-        script_content += '    \n'
-        script_content += '    success = True\n'
-        script_content += '    success &= migrate_client_file()\n'
-        script_content += '    success &= migrate_config_file()\n'
-        script_content += '    \n'
-        script_content += '    if success:\n'
+        script_content += "    \n"
+        script_content += "    success = True\n"
+        script_content += "    success &= migrate_client_file()\n"
+        script_content += "    success &= migrate_config_file()\n"
+        script_content += "    \n"
+        script_content += "    if success:\n"
         script_content += '        print("\\n[SUCCESS] Migration completed successfully!")\n'
         script_content += '        print("\\nNext steps:")\n'
         script_content += '        print("1. Obtain API key from Maricopa County")\n'
         script_content += '        print("2. Set MARICOPA_API_KEY environment variable")\n'
         script_content += '        print("3. Test with: python scripts/test_maricopa_api.py --api-key YOUR_KEY")\n'
-        script_content += '    else:\n'
+        script_content += "    else:\n"
         script_content += '        print("\\n[ERROR] Migration failed - check errors above")\n'
-        
+
         return script_content
 
     def run_migration(self):
         """Execute the migration process."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("MARICOPA COUNTY API CLIENT MIGRATION")
-        print("="*60)
-        
+        print("=" * 60)
+
         if self.backup:
             print("\n[STEP 1] Creating backups...")
             self.create_backup()
-            
+
         print("\n[STEP 2] Analyzing required changes...")
         self.show_required_changes()
-        
+
         if self.dry_run:
             print("\n[DRY RUN] Migration analysis complete - no files modified")
             print("\nTo apply changes, run without --dry-run flag")
             return
-            
+
         print("\n[STEP 3] Generating updated implementation...")
-        
+
         # Create updated files in a migration directory
         migration_dir = Path("migration_output")
         migration_dir.mkdir(exist_ok=True)
-        
+
         # Generate updated client code
         updated_client = self.generate_updated_client_code()
         client_output = migration_dir / "updated_client.py"
-        with open(client_output, 'w') as f:
+        with open(client_output, "w") as f:
             f.write(updated_client)
         print(f"Generated: {client_output}")
-        
+
         # Generate updated config
         updated_config = self.generate_updated_config()
         config_output = migration_dir / "updated_config.yaml"
-        with open(config_output, 'w') as f:
+        with open(config_output, "w") as f:
             f.write(updated_config)
         print(f"Generated: {config_output}")
-        
+
         # Generate migration script
         migration_script = self.generate_migration_script()
         script_output = migration_dir / "apply_migration.py"
-        with open(script_output, 'w') as f:
+        with open(script_output, "w") as f:
             f.write(migration_script)
         print(f"Generated: {script_output}")
-        
+
         print(f"\n[COMPLETE] Migration files generated in: {migration_dir.absolute()}")
         print("\nTo apply the migration:")
         print(f"1. Review generated files in {migration_dir}")
@@ -615,18 +623,15 @@ sources:
 def main():
     """Main migration function."""
     parser = argparse.ArgumentParser(description="Migrate Maricopa client to real API")
-    parser.add_argument("--dry-run", action="store_true", 
-                       help="Show changes without modifying files")
-    parser.add_argument("--no-backup", action="store_true",
-                       help="Skip creating backups")
-    
-    args = parser.parse_args()
-    
-    migrator = MaricopaClientMigrator(
-        dry_run=args.dry_run,
-        backup=not args.no_backup
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show changes without modifying files"
     )
-    
+    parser.add_argument("--no-backup", action="store_true", help="Skip creating backups")
+
+    args = parser.parse_args()
+
+    migrator = MaricopaClientMigrator(dry_run=args.dry_run, backup=not args.no_backup)
+
     migrator.run_migration()
 
 

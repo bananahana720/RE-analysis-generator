@@ -30,18 +30,15 @@ async def verify_mongodb():
     try:
         get_config()
         mongodb_uri = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
-        db_conn = DatabaseConnection.get_instance(
-            mongodb_uri,
-            "phoenix_real_estate_e2e_test"
-        )
+        db_conn = DatabaseConnection.get_instance(mongodb_uri, "phoenix_real_estate_e2e_test")
         await db_conn.connect()
-        
+
         # Test basic operations
         db = db_conn.get_database()
         # Get collection names directly from database object
         collections = await db.list_collection_names()
         print(f"   [OK] Connected to MongoDB (found {len(collections)} collections)")
-        
+
         await db_conn.close()
         return True
     except Exception as e:
@@ -54,6 +51,7 @@ async def verify_ollama():
     print("\n2. Checking Ollama service (optional)...")
     try:
         import httpx
+
         async with httpx.AsyncClient() as client:
             response = await client.get("http://localhost:11434/api/tags", timeout=5)
             if response.status_code == 200:
@@ -80,20 +78,20 @@ async def verify_pipeline():
     try:
         config = get_config()
         pipeline = DataProcessingPipeline(config)
-        
+
         # Test initialization
         await pipeline.initialize()
         print("   [OK] Pipeline initialized successfully")
-        
+
         # Test with simple HTML
-        
+
         # This will use mock mode if Ollama is not available
         print("   [TEST] Testing pipeline with sample HTML...")
-        
+
         await pipeline.close()
         print("   [OK] Pipeline test completed")
         return True
-        
+
     except Exception as e:
         print(f"   [FAIL] Pipeline verification failed: {e}")
         return False
@@ -104,17 +102,17 @@ async def verify_e2e_fixtures():
     print("\n4. Checking E2E test fixtures...")
     try:
         from tests.e2e.fixtures import PropertySamples
-        
+
         # Check sample data
         phoenix_samples = PropertySamples.get_phoenix_mls_samples()
         maricopa_samples = PropertySamples.get_maricopa_samples()
         edge_cases = PropertySamples.get_edge_case_samples()
-        
+
         print(f"   [OK] Found {len(phoenix_samples)} Phoenix MLS samples")
         print(f"   [OK] Found {len(maricopa_samples)} Maricopa County samples")
         print(f"   [OK] Found {len(edge_cases)} edge case samples")
         return True
-        
+
     except ImportError as e:
         print(f"   [FAIL] Failed to import test fixtures: {e}")
         return False
@@ -127,9 +125,9 @@ def check_dependencies():
         ("pytest", "Testing framework"),
         ("pytest-asyncio", "Async test support"),
         ("httpx", "HTTP client for Ollama"),
-        ("motor", "MongoDB async driver")
+        ("motor", "MongoDB async driver"),
     ]
-    
+
     all_present = True
     for package, description in required:
         try:
@@ -138,41 +136,41 @@ def check_dependencies():
         except ImportError:
             print(f"   [FAIL] {package} - {description} (run: uv sync)")
             all_present = False
-    
+
     return all_present
 
 
 async def main():
     """Run all verification checks."""
     print("E2E Test Setup Verification")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Run checks
     mongodb_ok = await verify_mongodb()
     ollama_ok = await verify_ollama()
     pipeline_ok = await verify_pipeline()
     fixtures_ok = await verify_e2e_fixtures()
     deps_ok = check_dependencies()
-    
+
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("VERIFICATION SUMMARY")
-    print("="*60)
-    
+    print("=" * 60)
+
     checks = [
         ("MongoDB", mongodb_ok),
         ("Ollama (optional)", ollama_ok),
         ("Processing Pipeline", pipeline_ok),
         ("Test Fixtures", fixtures_ok),
-        ("Python Dependencies", deps_ok)
+        ("Python Dependencies", deps_ok),
     ]
-    
+
     required_checks = [mongodb_ok, pipeline_ok, fixtures_ok, deps_ok]
-    
+
     for name, status in checks:
         icon = "[OK]" if status else "[FAIL]"
         print(f"{icon} {name}")
-    
+
     if all(required_checks):
         print("\n[SUCCESS] E2E test setup is ready!")
         print("\nYou can now run:")

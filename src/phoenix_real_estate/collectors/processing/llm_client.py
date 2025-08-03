@@ -14,124 +14,116 @@ from phoenix_real_estate.foundation.utils.helpers import retry_async
 
 class OllamaClient:
     """Client for local Ollama LLM processing."""
-    
+
     def __init__(self, config: ConfigProvider) -> None:
         """Initialize Ollama client."""
         self.config = config
         self.logger = get_logger("llm.ollama_client")
-        
+
         # Load configuration - CORRECT pattern using config.get()
         self.base_url = config.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model_name = config.get("LLM_MODEL", "llama3.2:latest") 
+        self.model_name = config.get("LLM_MODEL", "llama3.2:latest")
         self.timeout_seconds = config.get_typed("LLM_TIMEOUT", int, default=30)
         self.max_retries = config.get_typed("LLM_MAX_RETRIES", int, default=2)
-        
+
         # HTTP client setup
         self.timeout = ClientTimeout(total=self.timeout_seconds)
         self.session: Optional[ClientSession] = None
-        
+
         # Cache manager (will be set by pipeline if caching is enabled)
         self._cache_manager: Optional[Any] = None
-        
+
         self.logger.info(
             "Ollama client initialized",
             extra={
                 "base_url": self.base_url,
                 "model": self.model_name,
-                "timeout_seconds": self.timeout_seconds
-            }
+                "timeout_seconds": self.timeout_seconds,
+            },
         )
-    
+
     async def __aenter__(self) -> "OllamaClient":
         """Async context manager entry."""
         await self._ensure_session()
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         """Async context manager exit."""
         await self.close()
-    
+
     async def _ensure_session(self) -> None:
         """Ensure HTTP session is available."""
         if self.session is None or self.session.closed:
             self.session = ClientSession(
-                timeout=self.timeout,
-                connector=aiohttp.TCPConnector(limit=5, limit_per_host=2)
+                timeout=self.timeout, connector=aiohttp.TCPConnector(limit=5, limit_per_host=2)
             )
-    
+
     async def close(self) -> None:
         """Close HTTP session."""
         if self.session and not self.session.closed:
             await self.session.close()
             self.session = None
-    
+
     async def health_check(self) -> bool:
         """Check if Ollama service is available."""
         try:
             await self._ensure_session()
-            
+
             # Check service health
             async with self.session.get(f"{self.base_url}/api/version") as response:
                 if response.status != 200:
                     return False
-            
+
             # Check if model is available
             async with self.session.get(f"{self.base_url}/api/tags") as response:
                 if response.status != 200:
                     return False
-                
+
                 data = await response.json()
                 models = [model.get("name", "") for model in data.get("models", [])]
                 model_available = any(self.model_name in model for model in models)
-                
+
                 if not model_available:
                     self.logger.warning(
                         "LLM model not found",
-                        extra={
-                            "requested_model": self.model_name,
-                            "available_models": models
-                        }
+                        extra={"requested_model": self.model_name, "available_models": models},
                     )
                     return False
-            
+
             self.logger.debug("Ollama health check passed")
             return True
-            
+
         except Exception as e:
-            self.logger.warning(
-                "Ollama health check failed",
-                extra={"error": str(e)}
-            )
+            self.logger.warning("Ollama health check failed", extra={"error": str(e)})
             return False
-    
+
     async def generate_completion(
-        self, 
-        prompt: str, 
+        self,
+        prompt: str,
         system_prompt: Optional[str] = None,
         max_tokens: int = 1000,
-        cache_key: Optional[str] = None
+        cache_key: Optional[str] = None,
     ) -> Optional[str]:
         """Generate completion using Ollama with optional caching.
-        
+
         Args:
             prompt: The prompt to send to the model
             system_prompt: Optional system prompt
             max_tokens: Maximum tokens to generate
             cache_key: Optional cache key for response caching
-            
+
         Returns:
             Generated text or None if failed
         """
         # Check cache first if enabled
         if self._cache_manager and cache_key:
             cached_response = await self._cache_manager.get(
-                {"prompt": prompt, "cache_key": cache_key}, 
-                "completion"
+                {"prompt": prompt, "cache_key": cache_key}, "completion"
             )
             if cached_response:
                 self.logger.debug(f"Cache hit for completion: {cache_key}")
                 return cached_response.get("response")
-        
+
         # Generate new completion
         response = await retry_async(
             self._generate_completion_impl,
@@ -140,29 +132,26 @@ class OllamaClient:
             max_tokens,
             max_retries=self.max_retries,
             delay=1.0,
-            backoff_factor=2.0
+            backoff_factor=2.0,
         )
-        
+
         # Cache the response if enabled
         if self._cache_manager and cache_key and response:
             await self._cache_manager.set(
                 {"prompt": prompt, "cache_key": cache_key},
                 "completion",
-                {"response": response, "tokens": max_tokens}
+                {"response": response, "tokens": max_tokens},
             )
-        
+
         return response
-    
+
     async def _generate_completion_impl(
-        self, 
-        prompt: str, 
-        system_prompt: Optional[str] = None,
-        max_tokens: int = 1000
+        self, prompt: str, system_prompt: Optional[str] = None, max_tokens: int = 1000
     ) -> Optional[str]:
         """Internal implementation of generate_completion."""
         try:
             await self._ensure_session()
-            
+
             # Prepare request payload
             payload = {
                 "model": self.model_name,
@@ -171,71 +160,56 @@ class OllamaClient:
                     "num_predict": max_tokens,
                     "temperature": 0.1,  # Low for consistency
                     "top_p": 0.9,
-                    "seed": 42  # For reproducibility
+                    "seed": 42,  # For reproducibility
                 },
-                "stream": False
+                "stream": False,
             }
-            
+
             if system_prompt:
                 payload["system"] = system_prompt
-            
+
             # Make request
-            async with self.session.post(
-                f"{self.base_url}/api/generate",
-                json=payload
-            ) as response:
+            async with self.session.post(f"{self.base_url}/api/generate", json=payload) as response:
                 if response.status != 200:
                     self.logger.error(
                         "Ollama API error",
-                        extra={
-                            "status": response.status,
-                            "response": await response.text()
-                        }
+                        extra={"status": response.status, "response": await response.text()},
                     )
                     return None
-                
+
                 data = await response.json()
-                
+
                 # Extract response text
                 response_text = data.get("response", "")
-                
+
                 self.logger.debug(
                     "Completion generated",
                     extra={
                         "prompt_length": len(prompt),
                         "response_length": len(response_text),
-                        "eval_count": data.get("eval_count", 0)
-                    }
+                        "eval_count": data.get("eval_count", 0),
+                    },
                 )
-                
+
                 return response_text
-                
+
         except asyncio.TimeoutError:
             self.logger.error("Ollama request timed out")
             return None
         except ClientError as e:
-            self.logger.error(
-                "HTTP client error",
-                extra={"error": str(e)}
-            )
+            self.logger.error("HTTP client error", extra={"error": str(e)})
             raise  # Let retry_async handle it
         except Exception as e:
-            self.logger.error(
-                "Unexpected error generating completion",
-                extra={"error": str(e)}
-            )
+            self.logger.error("Unexpected error generating completion", extra={"error": str(e)})
             return None
-    
+
     async def extract_structured_data(
-        self,
-        content: str,
-        extraction_schema: Dict[str, Any],
-        content_type: str = "text"
+        self, content: str, extraction_schema: Dict[str, Any], content_type: str = "text"
     ) -> Optional[Dict[str, Any]]:
         """Extract structured data using LLM."""
         # Build prompt for extraction
         schema_description = self._build_schema_description(extraction_schema)
-        
+
         prompt = f"""Extract the following information from the {content_type} content:
 
 {schema_description}
@@ -246,22 +220,20 @@ Content:
 Important: Respond with ONLY the JSON data wrapped in <output> tags.
 Example: <output>{{"field": "value"}}</output>
 """
-        
+
         system_prompt = "You are a data extraction specialist. Extract information accurately and return only JSON data."
-        
+
         # Generate completion
         response = await self.generate_completion(
-            prompt,
-            system_prompt=system_prompt,
-            max_tokens=2000
+            prompt, system_prompt=system_prompt, max_tokens=2000
         )
-        
+
         if not response:
             return None
-        
+
         # Extract JSON from response
         return self._extract_json_from_response(response)
-    
+
     def _build_schema_description(self, schema: Dict[str, Any]) -> str:
         """Build human-readable schema description."""
         lines = []
@@ -270,30 +242,29 @@ Example: <output>{{"field": "value"}}</output>
             description = spec.get("description", f"The {field}")
             lines.append(f"- {field} ({field_type}): {description}")
         return "\n".join(lines)
-    
+
     def _extract_json_from_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Extract JSON data from LLM response."""
         try:
             # Look for content between <output> tags
-            match = re.search(r'<output>\s*(\{.*?\})\s*</output>', response, re.DOTALL)
+            match = re.search(r"<output>\s*(\{.*?\})\s*</output>", response, re.DOTALL)
             if match:
                 json_str = match.group(1)
                 return json.loads(json_str)
-            
+
             # Fallback: try to find any JSON-like structure
-            match = re.search(r'\{[^{}]*\}', response)
+            match = re.search(r"\{[^{}]*\}", response)
             if match:
                 return json.loads(match.group(0))
-            
+
             self.logger.warning(
-                "No JSON found in response",
-                extra={"response_preview": response[:200]}
+                "No JSON found in response", extra={"response_preview": response[:200]}
             )
             return None
-            
+
         except json.JSONDecodeError as e:
             self.logger.error(
                 "Failed to parse JSON from response",
-                extra={"error": str(e), "response_preview": response[:200]}
+                extra={"error": str(e), "response_preview": response[:200]},
             )
             return None

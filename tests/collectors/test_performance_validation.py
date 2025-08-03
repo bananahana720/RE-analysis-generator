@@ -142,9 +142,7 @@ class TestPerformanceValidation:
         collector.adapter = mock_adapter
 
         # Perform collection
-        collector.collect(
-            search_params={"zip_codes": ["85001"]}, save_to_repository=False
-        )
+        collector.collect(search_params={"zip_codes": ["85001"]}, save_to_repository=False)
 
         # Check memory usage
         current_memory = tracemalloc.get_traced_memory()[0]

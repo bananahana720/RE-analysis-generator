@@ -22,51 +22,53 @@ async def test_connection():
     """Test basic MongoDB connection."""
     print("Testing MongoDB Atlas Connection...")
     print("-" * 40)
-    
+
     try:
         # Load configuration
         config = get_config()
-        
+
         # Check if we have MongoDB configuration
-        if not hasattr(config, 'mongodb_uri') or not config.mongodb_uri:
+        if not hasattr(config, "mongodb_uri") or not config.mongodb_uri:
             print("ERROR: MONGODB_URI not found in configuration")
             print("TIP: Run: python scripts/setup_mongodb_atlas.py")
             return False
-            
+
         # Get database name
-        database_name = getattr(config, 'database_name', None) or getattr(config, 'mongodb_database', None)
+        database_name = getattr(config, "database_name", None) or getattr(
+            config, "mongodb_database", None
+        )
         if not database_name:
             print("ERROR: DATABASE_NAME not found in configuration")
             return False
-            
+
         print(f"Database: Database: {database_name}")
         print(f"Environment: Environment: {config.environment.value}")
-        
+
         # Test connection
         print("Connecting Connecting to MongoDB Atlas...")
         db_connection = await get_database_connection(config.mongodb_uri, database_name)
-        
+
         print("SUCCESS: Connection established!")
-        
+
         # Test ping
         print("Testing Testing database ping...")
         health = await db_connection.health_check()
-        
-        if health.get('connected', False):
-            ping_time = health.get('ping_time_ms', 0)
+
+        if health.get("connected", False):
+            ping_time = health.get("ping_time_ms", 0)
             print(f"SUCCESS: Ping successful: {ping_time}ms")
-            
+
             # Show database stats if available
-            if health.get('database_stats'):
-                stats = health['database_stats']
+            if health.get("database_stats"):
+                stats = health["database_stats"]
                 print(f"Collections: Collections: {stats.get('collections', 0)}")
                 print(f"Data size: Data size: {stats.get('data_size', 0)} bytes")
-            
+
             return True
         else:
             print("ERROR: Ping failed")
             return False
-            
+
     except Exception as e:
         print(f"ERROR: Connection failed: {str(e)}")
         print()
@@ -86,9 +88,9 @@ async def main():
         print("ERROR: No .env file found!")
         print("TIP: Run setup first: python scripts/setup_mongodb_atlas.py")
         return 1
-    
+
     success = await test_connection()
-    
+
     if success:
         print()
         print("SUCCESS: MongoDB Atlas connection is working!")
