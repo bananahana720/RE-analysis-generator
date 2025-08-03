@@ -21,13 +21,13 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from phoenix_real_estate.foundation.config import (
+    from phoenix_real_estate.foundation.config import (  # noqa: F401
         get_config,
         reset_config_cache,
         ConfigurationError,
         EnvironmentConfigProvider,
     )
-    from phoenix_real_estate.foundation.config.secrets import (
+    from phoenix_real_estate.foundation.config.secrets import (  # noqa: F401
         get_secret_manager,
         SecretNotFoundError,
         SecretValidationError,
