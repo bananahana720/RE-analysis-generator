@@ -34,7 +34,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Run workflow infrastructure tests
       run: |

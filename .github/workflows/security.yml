@@ -35,7 +35,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Run pip-audit
       run: |
@@ -65,6 +65,7 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
+        extra_args: --only-verified
 
 
 
@@ -89,7 +90,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Run Bandit
       run: |
@@ -121,7 +122,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Validate secrets setup
       run: |

@@ -106,7 +106,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Calculate GitHub Actions usage
       id: github-usage
@@ -292,7 +292,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup health check environment
       run: |
@@ -510,7 +510,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup Ollama for performance tests
       run: |

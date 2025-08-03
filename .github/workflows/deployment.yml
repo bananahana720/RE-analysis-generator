@@ -93,7 +93,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Determine deployment environment
       id: determine-env
@@ -169,7 +169,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Wait for MongoDB
       run: |
@@ -224,7 +224,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup Ollama for LLM processing
       if: matrix.component == 'processors'
@@ -311,7 +311,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup Ollama
       run: |
@@ -424,7 +424,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Execute rollback procedure
       env:

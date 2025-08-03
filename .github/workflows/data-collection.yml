@@ -100,7 +100,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Configure collection parameters
       id: config
@@ -159,7 +159,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup collection environment
       env:
@@ -216,7 +216,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Install Playwright browsers
       run: |
@@ -278,7 +278,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup Ollama LLM service
       run: |
@@ -354,7 +354,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Download processing results
       uses: actions/download-artifact@v4

@@ -100,7 +100,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Determine maintenance configuration
       id: config
@@ -164,7 +164,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup maintenance environment
       env:
@@ -352,7 +352,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies  
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup log rotation environment
       run: |
@@ -486,7 +486,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup system cleanup environment
       run: |
@@ -636,7 +636,7 @@ jobs:
         version: "latest"
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --extra dev
     
     - name: Setup backup management environment
       run: |
