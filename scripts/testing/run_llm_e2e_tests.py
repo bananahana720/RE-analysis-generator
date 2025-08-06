@@ -37,19 +37,23 @@ def check_prerequisites(mode: str) -> bool:
     """Check if prerequisites are met for the test mode."""
     print("Checking prerequisites...")
 
-    # Check MongoDB
-    try:
-        result = subprocess.run(
-            ["mongosh", "--eval", "db.version()", "--quiet"], capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            print("❌ MongoDB is not running")
-            print("   Run: net start MongoDB (as administrator)")
+    # Check MongoDB - skip if MONGODB_URL is set (cloud/CI environment)
+    mongodb_url = os.environ.get("MONGODB_URL")
+    if mongodb_url:
+        print("✅ MongoDB URL configured (cloud environment)")
+    else:
+        try:
+            result = subprocess.run(
+                ["mongosh", "--eval", "db.version()", "--quiet"], capture_output=True, text=True
+            )
+            if result.returncode != 0:
+                print("❌ MongoDB is not running")
+                print("   Run: net start MongoDB (as administrator)")
+                return False
+            print("✅ MongoDB is running")
+        except FileNotFoundError:
+            print("❌ MongoDB client (mongosh) not found")
             return False
-        print("✅ MongoDB is running")
-    except FileNotFoundError:
-        print("❌ MongoDB client (mongosh) not found")
-        return False
 
     # Check Ollama for real mode
     if mode in ["real", "both"]:
