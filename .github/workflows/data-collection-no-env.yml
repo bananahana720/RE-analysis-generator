@@ -1,0 +1,559 @@
+name: Data Collection Test - No Environment
+true:
+  schedule:
+  - cron: 0 10 * * *
+  workflow_dispatch:
+    inputs:
+      zip_codes:
+        description: Override ZIP codes (comma-separated)
+        required: false
+        type: string
+        default: 85031,85033,85035
+      collection_mode:
+        description: Collection mode
+        required: false
+        type: choice
+        options:
+        - full
+        - incremental
+        - test
+        default: incremental
+      force_llm_processing:
+        description: Force LLM processing for all properties
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  issues: write
+env:
+  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
+  PYTHON_VERSION: '3.13'
+  OLLAMA_VERSION: latest
+  COLLECTION_TIMEOUT_MINUTES: 75
+concurrency:
+  group: data-collection-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate-secrets:
+    name: Validate Production Secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      validation-status: ${{ steps.validation.outputs.status }}
+    steps:
+    - name: Validate Required Secrets
+      id: validation
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: "missing_secrets=()\n\n# Check production secrets\n[[ -z \"$MONGODB_URL\"\
+        \ ]] && missing_secrets+=(\"MONGODB_URL\")\n[[ -z \"$MARICOPA_API_KEY\" ]]\
+        \ && missing_secrets+=(\"MARICOPA_API_KEY\")\n[[ -z \"$WEBSHARE_API_KEY\"\
+        \ ]] && missing_secrets+=(\"WEBSHARE_API_KEY\")\n[[ -z \"$CAPTCHA_API_KEY\"\
+        \ ]] && missing_secrets+=(\"CAPTCHA_API_KEY\")\n\nif [ ${#missing_secrets[@]}\
+        \ -eq 0 ]; then\n  echo \"[OK] All required production secrets are configured\"\
+        \n  echo \"status=success\" >> $GITHUB_OUTPUT\nelse\n  echo \"[FAIL] Missing\
+        \ required production secrets:\"\n  printf '%s\\n' \"${missing_secrets[@]}\"\
+        \n  echo \"\"\n  echo \"Please configure these secrets in:\"\n  echo \"Repository\
+        \ Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?]\
+        \ production\"\n  echo \"\"\n  echo \"status=failed\" >> $GITHUB_OUTPUT\n\
+        \  exit 1\nfi\n"
+  pre-collection-setup:
+    name: Pre-Collection Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: validate-secrets
+    secrets: inherit
+    outputs:
+      collection-mode: ${{ steps.config.outputs.collection-mode }}
+      zip-codes: ${{ steps.config.outputs.zip-codes }}
+      estimated-runtime: ${{ steps.config.outputs.estimated-runtime }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Configure collection parameters
+      id: config
+      run: "if [[ \"${{ github.event_name }}\" == \"workflow_dispatch\" ]]; then\n\
+        \  echo \"collection-mode=${{ github.event.inputs.collection_mode }}\" >>\
+        \ $GITHUB_OUTPUT\n  # Simplified zip code handling - no complex JSON processing\n\
+        \  echo \"zip-codes=${{ github.event.inputs.zip_codes }}\" >> $GITHUB_OUTPUT\n\
+        else\n  echo \"collection-mode=incremental\" >> $GITHUB_OUTPUT\n  echo 'zip-codes=85031,85033,85035'\
+        \ >> $GITHUB_OUTPUT\nfi\necho \"estimated-runtime=60\" >> $GITHUB_OUTPUT\n"
+    - name: Validate environment configuration
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      run: 'uv run python scripts/workflow_validator.py validate data-collection
+
+        echo "[OK] Environment validation passed"
+
+        '
+    - name: Check service health
+      run: 'uv run python scripts/testing/verify_e2e_setup.py --quick-check
+
+        echo "[OK] Service health check completed"
+
+        '
+  maricopa-collection:
+    name: Maricopa County Data Collection
+    runs-on: ubuntu-latest
+    needs:
+    - validate-secrets
+    - pre-collection-setup
+    timeout-minutes: 5
+    secrets: inherit
+    strategy:
+      matrix:
+        zip_code:
+        - '85031'
+        - '85033'
+        - '85035'
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Setup collection environment
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        ZIP_CODE: ${{ matrix.zip_code }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'mkdir -p data/processed data/raw logs
+
+        echo "[OK] Collection environment setup for ZIP code $ZIP_CODE"
+
+        '
+    - name: Execute Maricopa API collection
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        ZIP_CODE: ${{ matrix.zip_code }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'uv run python scripts/testing/test_maricopa_collector.py --zip-code "$ZIP_CODE"
+        --mode "$COLLECTION_MODE"
+
+        '
+      timeout-minutes: 25
+    - name: Upload Maricopa collection artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: maricopa-collection-${{ matrix.zip_code }}-${{ github.run_number }}
+        path: 'data/raw/maricopa_*.json
+
+          logs/maricopa_*.log
+
+          '
+        retention-days: 7
+  phoenix-mls-collection:
+    name: Phoenix MLS Data Collection
+    runs-on: ubuntu-latest
+    needs:
+    - validate-secrets
+    - pre-collection-setup
+    timeout-minutes: 5
+    secrets: inherit
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Install Playwright browsers
+      run: 'uv run playwright install chromium
+
+        uv run playwright install-deps
+
+        '
+    - name: Setup Phoenix MLS environment
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'mkdir -p data/{processed,raw,cookies} logs
+
+        echo "[OK] Phoenix MLS environment setup"
+
+        '
+    - name: Execute Phoenix MLS scraping
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'uv run python scripts/testing/test_phoenix_mls_with_services.py --zip-codes
+        "$ZIP_CODES" --mode "$COLLECTION_MODE"
+
+        '
+      timeout-minutes: 40
+    - name: Upload Phoenix MLS artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phoenix-mls-collection-${{ github.run_number }}
+        path: 'data/raw/phoenix_mls_*.json
+
+          data/raw/phoenix_mls_*.html
+
+          data/cookies/phoenix_mls_session.pkl
+
+          logs/phoenix_mls_*.log
+
+          '
+        retention-days: 7
+  llm-data-processing:
+    name: LLM Data Processing
+    runs-on: ubuntu-latest
+    needs:
+    - validate-secrets
+    - pre-collection-setup
+    - maricopa-collection
+    - phoenix-mls-collection
+    if: always() && (needs.maricopa-collection.result == 'success' || needs.phoenix-mls-collection.result
+      == 'success')
+    timeout-minutes: 5
+    secrets: inherit
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Setup Ollama LLM service
+      run: 'curl -fsSL https://ollama.ai/install.sh | sh
+
+        ollama serve &
+
+        sleep 10
+
+        ollama pull llama3.2:latest
+
+        echo "[OK] Ollama LLM service ready"
+
+        '
+    - name: Download collection artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: collection-artifacts/
+    - name: Setup LLM processing environment
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: http://localhost:11434
+        FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false'
+          }}
+      run: 'mkdir -p data/processed logs
+
+        # Copy artifacts to working directories
+
+        find collection-artifacts/ -name "*.json" -exec cp {} data/raw/ \;
+
+        find collection-artifacts/ -name "*.html" -exec cp {} data/raw/ \;
+
+        echo "[OK] LLM processing environment ready"
+
+        '
+    - name: Execute LLM data processing
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: http://localhost:11434
+        FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false'
+          }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"
+
+        '
+      timeout-minutes: 25
+    - name: Validate processing results
+      run: 'uv run python scripts/testing/test_performance_optimizations.py --validate-results
+
+        echo "[OK] LLM processing validation completed"
+
+        '
+    - name: Upload LLM processing artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: llm-processing-results-${{ github.run_number }}
+        path: 'data/processed/*.json
+
+          logs/llm_processing_*.log
+
+          logs/ollama_*.log
+
+          '
+        retention-days: 14
+  data-quality-validation:
+    name: Data Quality Validation
+    runs-on: ubuntu-latest
+    needs:
+    - validate-secrets
+    - pre-collection-setup
+    - llm-data-processing
+    if: always() && needs.llm-data-processing.result == 'success'
+    timeout-minutes: 5
+    secrets: inherit
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Download processing results
+      uses: actions/download-artifact@v4
+      with:
+        name: llm-processing-results-${{ github.run_number }}
+        path: processing-results/
+    - name: Setup validation environment
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      run: 'cp -r processing-results/data/processed/* data/processed/ 2>/dev/null
+        || true
+
+        echo "[OK] Validation environment setup"
+
+        '
+    - name: Run data quality checks
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+      run: 'uv run python scripts/validation/validate_system.py --check-data-quality
+
+        echo "[OK] Data quality validation completed"
+
+        '
+    - name: Generate collection summary report
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+        ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+      run: 'uv run python scripts/testing/test_maricopa_summary.py --generate-report
+
+        echo "[OK] Collection summary report generated"
+
+        '
+    - name: Upload validation artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: data-quality-report-${{ github.run_number }}
+        path: 'reports/collection_summary_*.json
+
+          reports/data_quality_*.json
+
+          logs/validation_*.log
+
+          '
+        retention-days: 30
+  collection-notification:
+    name: Collection Status Notification
+    runs-on: ubuntu-latest
+    needs:
+    - validate-secrets
+    - pre-collection-setup
+    - maricopa-collection
+    - phoenix-mls-collection
+    - llm-data-processing
+    - data-quality-validation
+    if: always()
+    secrets: inherit
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: latest
+    - name: Install dependencies
+      run: uv sync --extra dev
+    - name: Determine collection status
+      id: status
+      run: "maricopa_status=\"${{ needs.maricopa-collection.result }}\"\nphoenix_mls_status=\"\
+        ${{ needs.phoenix-mls-collection.result }}\"\nllm_status=\"${{ needs.llm-data-processing.result\
+        \ }}\"\nvalidation_status=\"${{ needs.data-quality-validation.result }}\"\n\
+        \nif [[ \"$validation_status\" == \"success\" ]]; then\n  echo \"status=success\"\
+        \ >> $GITHUB_OUTPUT\n  echo \"message=[OK] Daily data collection completed\
+        \ successfully\" >> $GITHUB_OUTPUT\n  echo \"email_type=success\" >> $GITHUB_OUTPUT\n\
+        elif [[ \"$llm_status\" == \"success\" ]]; then\n  echo \"status=partial\"\
+        \ >> $GITHUB_OUTPUT\n  echo \"message=[WARN] Data collection completed with\
+        \ validation issues\" >> $GITHUB_OUTPUT\n  echo \"email_type=warning\" >>\
+        \ $GITHUB_OUTPUT\nelif [[ \"$maricopa_status\" == \"success\" || \"$phoenix_mls_status\"\
+        \ == \"success\" ]]; then\n  echo \"status=partial\" >> $GITHUB_OUTPUT\n \
+        \ echo \"message=[WARN] Data collection completed but LLM processing failed\"\
+        \ >> $GITHUB_OUTPUT\n  echo \"email_type=warning\" >> $GITHUB_OUTPUT\nelse\n\
+        \  echo \"status=failure\" >> $GITHUB_OUTPUT\n  echo \"message=[FAIL] Data\
+        \ collection failed completely\" >> $GITHUB_OUTPUT\n  echo \"email_type=error\"\
+        \ >> $GITHUB_OUTPUT\nfi\n"
+    - name: Download collection artifacts for email report
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        path: email-artifacts/
+    - name: Create collection summary
+      run: 'cat << EOF >> $GITHUB_STEP_SUMMARY
+
+        # Daily Data Collection Summary
+
+
+        **Collection Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+        **Status**: ${{ steps.status.outputs.status }}
+
+        **Message**: ${{ steps.status.outputs.message }}
+
+        **ZIP Codes**: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+
+        **Collection Mode**: ${{ needs.pre-collection-setup.outputs.collection-mode
+        }}
+
+
+        ## Component Status
+
+        - Maricopa API Collection: ${{ needs.maricopa-collection.result }}
+
+        - Phoenix MLS Scraping: ${{ needs.phoenix-mls-collection.result }}
+
+        - LLM Data Processing: ${{ needs.llm-data-processing.result }}
+
+        - Data Quality Validation: ${{ needs.data-quality-validation.result }}
+
+
+        ## Resource Usage
+
+        - Estimated Runtime: ${{ needs.pre-collection-setup.outputs.estimated-runtime
+        }} minutes
+
+        - GitHub Actions Minutes Used: ~$(( ${{ needs.pre-collection-setup.outputs.estimated-runtime
+        }} + 10 ))
+
+
+        ## Next Collection
+
+        - Scheduled: Tomorrow at 3 AM Phoenix time (10 AM UTC)
+
+        - Mode: Incremental (unless manually triggered)
+
+        EOF
+
+        '
+    - name: Send email notification
+      if: always() && steps.status.outputs.email_type != ''
+      env:
+        EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED || 'false' }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+        COLLECTION_STATUS: ${{ steps.status.outputs.status }}
+        COLLECTION_MESSAGE: ${{ steps.status.outputs.message }}
+        EMAIL_TYPE: ${{ steps.status.outputs.email_type }}
+        ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+        MARICOPA_RESULT: ${{ needs.maricopa-collection.result }}
+        PHOENIX_MLS_RESULT: ${{ needs.phoenix-mls-collection.result }}
+        LLM_RESULT: ${{ needs.llm-data-processing.result }}
+        VALIDATION_RESULT: ${{ needs.data-quality-validation.result }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{
+          github.run_id }}
+      run: "# Only send email if service is configured\nif [[ \"$EMAIL_ENABLED\" ==\
+        \ \"true\" && -n \"$SMTP_HOST\" && -n \"$SENDER_EMAIL\" && -n \"$RECIPIENT_EMAILS\"\
+        \ ]]; then\n  echo \"[INFO] Sending email notification...\"\n  \n  # Copy\
+        \ artifacts for processing\n  mkdir -p data/processed reports\n  find email-artifacts/\
+        \ -name \"*.json\" -type f -exec cp {} data/processed/ \\; 2>/dev/null ||\
+        \ true\n  find email-artifacts/ -name \"*report*.json\" -type f -exec cp {}\
+        \ reports/ \\; 2>/dev/null || true\n  \n  # Run email notification script\n\
+        \  uv run python scripts/deploy/send_collection_email.py \\\n    --status\
+        \ \"$COLLECTION_STATUS\" \\\n    --message \"$COLLECTION_MESSAGE\" \\\n  \
+        \  --email-type \"$EMAIL_TYPE\" \\\n    --zip-codes \"$ZIP_CODES\" \\\n  \
+        \  --collection-mode \"$COLLECTION_MODE\" \\\n    --maricopa-result \"$MARICOPA_RESULT\"\
+        \ \\\n    --phoenix-mls-result \"$PHOENIX_MLS_RESULT\" \\\n    --llm-result\
+        \ \"$LLM_RESULT\" \\\n    --validation-result \"$VALIDATION_RESULT\" \\\n\
+        \    --github-run-url \"$GITHUB_RUN_URL\"\n  \n  echo \"[OK] Email notification\
+        \ sent successfully\"\nelse\n  echo \"[INFO] Email service not configured,\
+        \ skipping email notification\"\nfi\n"
+    - name: Create issue on failure
+      if: steps.status.outputs.status == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: "const issueBody = `\n## Daily Data Collection Failed\n\n**Run ID**:\
+          \ ${{ github.run_id }}\n**Timestamp**: ${new Date().toISOString()}\n**ZIP\
+          \ Codes**: ${{ needs.pre-collection-setup.outputs.zip-codes }}\n**Collection\
+          \ Mode**: ${{ needs.pre-collection-setup.outputs.collection-mode }}\n\n\
+          ### Component Status\n- Maricopa API Collection: ${{ needs.maricopa-collection.result\
+          \ }}\n- Phoenix MLS Scraping: ${{ needs.phoenix-mls-collection.result }}\n\
+          - LLM Data Processing: ${{ needs.llm-data-processing.result }}\n- Data Quality\
+          \ Validation: ${{ needs.data-quality-validation.result }}\n\n### Action\
+          \ Required\n- Review workflow logs for error details\n- Check service health\
+          \ and API credentials\n- Consider manual retry if appropriate\n- Update\
+          \ issue with resolution steps\n`;\n\nawait github.rest.issues.create({\n\
+          \  owner: context.repo.owner,\n  repo: context.repo.repo,\n  title: `Daily\
+          \ Collection Failed - ${new Date().toDateString()}`,\n  body: issueBody,\n\
+          \  labels: ['automation', 'data-collection', 'failure', 'high-priority']\n\
+          });\n"
+    - name: Create success notification
+      if: steps.status.outputs.status == 'success'
+      run: 'echo "[OK] Daily data collection completed successfully"
+
+        echo "Collection completed at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+        echo "ZIP codes processed: ${{ needs.pre-collection-setup.outputs.zip-codes
+        }}"
+
+        echo "Collection mode: ${{ needs.pre-collection-setup.outputs.collection-mode
+        }}"
+
+        '
+    - name: Upload collection notification artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: collection-summary-${{ github.run_number }}
+        path: 'logs/collection_*.log
+
+          '
+        retention-days: 30
