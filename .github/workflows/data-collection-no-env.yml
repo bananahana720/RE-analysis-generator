@@ -293,7 +293,7 @@ jobs:
         FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false'
           }}
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
-      run: 'uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"
+      run: 'uv run python scripts/testing/run_llm_e2e_tests.py --mode "$COLLECTION_MODE"
 
         '
       timeout-minutes: 25
@@ -510,7 +510,7 @@ jobs:
         \  uv run python scripts/deploy/send_collection_email.py \\\n    --status\
         \ \"$COLLECTION_STATUS\" \\\n    --message \"$COLLECTION_MESSAGE\" \\\n  \
         \  --email-type \"$EMAIL_TYPE\" \\\n    --zip-codes \"$ZIP_CODES\" \\\n  \
-        \  --collection-mode \"$COLLECTION_MODE\" \\\n    --maricopa-result \"$MARICOPA_RESULT\"\
+        \  --mode \"$COLLECTION_MODE\" \\\n    --maricopa-result \"$MARICOPA_RESULT\"\
         \ \\\n    --phoenix-mls-result \"$PHOENIX_MLS_RESULT\" \\\n    --llm-result\
         \ \"$LLM_RESULT\" \\\n    --validation-result \"$VALIDATION_RESULT\" \\\n\
         \    --github-run-url \"$GITHUB_RUN_URL\"\n  \n  echo \"[OK] Email notification\

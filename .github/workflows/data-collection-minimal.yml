@@ -96,7 +96,7 @@ jobs:
         COLLECTION_MODE: ${{ github.event.inputs.collection_mode }}
       run: |
         echo "Running LLM data processing..."
-        uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"
+        uv run python scripts/testing/run_llm_e2e_tests.py --mode "$COLLECTION_MODE"
       timeout-minutes: 15
     
     - name: Generate summary

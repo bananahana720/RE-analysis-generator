@@ -1,0 +1,9 @@
+[bandit]
+# Bandit configuration for Phoenix Real Estate Data Collector
+# Security exceptions documented in SECURITY_RISK_ASSESSMENT.md
+
+# Skip tests for documented false positives:
+# B311: Random usage in anti-detection code (legitimate behavioral randomization)
+# B110: Try/except/pass in logging fallback (system reliability pattern)
+# B112: Try/except/continue in selector discovery (defensive programming)
+skips = B311,B110,B112

@@ -3,7 +3,7 @@ Integration tests for error handling with the LLM processing pipeline.
 """
 
 import pytest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 from datetime import datetime
 
 from phoenix_real_estate.collectors.processing.error_handling import (
@@ -52,23 +52,17 @@ class LLMProcessor:
     async def process_property(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Process property data."""
         if not self.extractor:
-            # Create a minimal config provider
-            config_provider = type(
-                "Config",
-                (),
-                {
-                    "settings": type(
-                        "Settings",
-                        (),
-                        {
-                            "OLLAMA_MODEL": self.config.model_name,
-                            "OLLAMA_TEMPERATURE": self.config.temperature,
-                            "OLLAMA_MAX_TOKENS": self.config.max_tokens,
-                            "OLLAMA_TIMEOUT": self.config.timeout,
-                        },
-                    )()
-                },
-            )()
+            # Create a minimal config provider with proper Mock
+            config_provider = Mock()
+            config_provider.get_typed = Mock(return_value=30)  # Default timeout
+
+            # Add settings attribute for compatibility
+            settings = Mock()
+            settings.OLLAMA_MODEL = self.config.model_name
+            settings.OLLAMA_TEMPERATURE = self.config.temperature
+            settings.OLLAMA_MAX_TOKENS = self.config.max_tokens
+            settings.OLLAMA_TIMEOUT = self.config.timeout
+            config_provider.settings = settings
             self.extractor = PropertyDataExtractor(config_provider)
             self.extractor._llm_client = self.llm_client
             self.extractor._initialized = True

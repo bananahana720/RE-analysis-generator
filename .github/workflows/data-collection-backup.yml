@@ -311,7 +311,7 @@ jobs:
         FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false' }}
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
       run: |
-        uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"
+        uv run python scripts/testing/run_llm_e2e_tests.py --mode "$COLLECTION_MODE"
       timeout-minutes: 25
     
     - name: Validate processing results
@@ -522,7 +522,7 @@ jobs:
             --message "$COLLECTION_MESSAGE" \
             --email-type "$EMAIL_TYPE" \
             --zip-codes "$ZIP_CODES" \
-            --collection-mode "$COLLECTION_MODE" \
+            --mode "$COLLECTION_MODE" \
             --maricopa-result "$MARICOPA_RESULT" \
             --phoenix-mls-result "$PHOENIX_MLS_RESULT" \
             --llm-result "$LLM_RESULT" \

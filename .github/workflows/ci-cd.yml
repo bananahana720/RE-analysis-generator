@@ -736,7 +736,7 @@ jobs:
             title: `CI/CD Pipeline Failed - ${new Date().toDateString()}`,
             body: issueBody,
             labels: ['ci-cd', 'failure', 'high-priority']
-          });          });
+          });
     
     - name: Create success notification  
       if: steps.status.outputs.status == 'success'

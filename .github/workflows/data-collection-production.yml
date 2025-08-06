@@ -175,7 +175,7 @@ jobs:
         echo "Starting LLM data processing..."
         
         # Run LLM processing
-        if uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"; then
+        if uv run python scripts/testing/run_llm_e2e_tests.py --mode "$COLLECTION_MODE"; then
           processed_count=$(find data/processed -name "*.json" 2>/dev/null | wc -l || echo "0")
           echo "llm-processed=$processed_count" >> $GITHUB_OUTPUT
           echo "[OK] LLM processing completed: $processed_count properties"

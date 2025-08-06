@@ -76,6 +76,122 @@ class BaseConfig:
             # Set as attribute
             setattr(self, attr_name, value)
 
+    def get_environment(self) -> str:
+        """Get the current environment name.
+
+        Returns:
+            Environment name (e.g., "development", "testing", "production").
+        """
+        return self.environment.value
+
+    def get(self, key: str, default=None):
+        """Get a configuration value using dot notation.
+
+        Args:
+            key: Configuration key using dot notation.
+            default: Default value if key is not found.
+
+        Returns:
+            Configuration value or default if not found.
+        """
+        # Handle direct attributes first
+        if hasattr(self, key):
+            return getattr(self, key)
+
+        # Handle dot notation for nested access
+        parts = key.split(".")
+        obj = self
+
+        for part in parts:
+            if hasattr(obj, part):
+                obj = getattr(obj, part)
+            else:
+                return default
+
+        return obj
+
+    def get_required(self, key: str):
+        """Get a required configuration value.
+
+        Args:
+            key: Configuration key using dot notation.
+
+        Returns:
+            Configuration value.
+
+        Raises:
+            ConfigurationError: If the key is not found.
+        """
+        value = self.get(key)
+        if value is None:
+            raise ConfigurationError(f"Required configuration key not found: {key}")
+        return value
+
+    def get_typed(self, key: str, expected_type: type, default=None):
+        """Get a typed configuration value.
+
+        Args:
+            key: Configuration key using dot notation.
+            expected_type: Expected type for the value.
+            default: Default value if key is not found.
+
+        Returns:
+            Typed configuration value or default.
+
+        Raises:
+            ConfigurationError: If value cannot be converted to expected type.
+        """
+        value = self.get(key, default)
+
+        if value is None:
+            return default
+
+        # Already the correct type
+        if isinstance(value, expected_type):
+            return value
+
+        # Convert string to bool
+        if expected_type is bool and isinstance(value, str):
+            value_lower = value.lower().strip()
+            if value_lower in ("true", "yes", "y", "1", "on", "enabled", "enable", "active"):
+                return True
+            elif value_lower in (
+                "false",
+                "no",
+                "n",
+                "0",
+                "off",
+                "disabled",
+                "disable",
+                "inactive",
+                "",
+            ):
+                return False
+            else:
+                raise ConfigurationError(f"Cannot convert '{value}' to boolean for key '{key}'")
+
+        # Convert string to int
+        if expected_type is int and isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                raise ConfigurationError(f"Cannot convert '{value}' to int for key '{key}'")
+
+        # Convert string to float
+        if expected_type is float and isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                raise ConfigurationError(f"Cannot convert '{value}' to float for key '{key}'")
+
+        # Try direct conversion
+        try:
+            return expected_type(value)
+        except (ValueError, TypeError) as e:
+            raise ConfigurationError(
+                f"Cannot convert '{value}' to {expected_type.__name__} for key '{key}'"
+            ) from e
+
 
 class Environment(Enum):
     """Enumeration of supported environments."""
@@ -125,19 +241,26 @@ class EnvironmentFactory:
         """
         self.root_dir = root_dir or Path.cwd()
 
-    def create_config(self, environment: Optional[Environment] = None) -> BaseConfig:
+    @classmethod
+    def create_config(
+        cls, environment: Optional[Environment] = None, config_dir: Optional[Path] = None
+    ):
         """Create configuration for specified or auto-detected environment.
 
         Args:
             environment: Specific environment to use, or None to auto-detect
+            config_dir: Directory containing configuration files (for backward compatibility)
 
         Returns:
-            Configured BaseConfig instance
+            Configured EnvironmentConfigProvider instance with proper interface
 
         Raises:
             InvalidEnvironmentError: If environment is invalid
             ConfigurationError: If configuration validation fails
         """
+        # Import EnvironmentConfigProvider locally to avoid circular imports
+        from phoenix_real_estate.foundation.config.base import EnvironmentConfigProvider
+
         if environment is None:
             # Auto-detect from ENVIRONMENT variable
             env_str = os.environ.get("ENVIRONMENT", "development")
@@ -147,14 +270,8 @@ class EnvironmentFactory:
 
         logger.info(f"Creating configuration for environment: {environment.value}")
 
-        if environment == Environment.DEVELOPMENT:
-            return self.create_development_config()
-        elif environment == Environment.TESTING:
-            return self.create_testing_config()
-        elif environment == Environment.PRODUCTION:
-            return self.create_production_config()
-        else:
-            raise InvalidEnvironmentError(f"Unknown environment: {environment}")
+        # Create EnvironmentConfigProvider with the specified config directory and environment
+        return EnvironmentConfigProvider(config_dir=config_dir, environment=environment.value)
 
     def create_development_config(self) -> BaseConfig:
         """Create development configuration.

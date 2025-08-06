@@ -2,267 +2,267 @@
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.313522",
+    "start_time": "2025-08-06T09:27:53.451285",
     "test_name": "test_proxy_manager_exists",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.315121",
+    "start_time": "2025-08-06T09:27:53.452926",
     "test_name": "test_proxy_manager_initialization",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.326748",
+    "start_time": "2025-08-06T09:27:53.464005",
     "test_name": "test_get_next_proxy",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.340278",
+    "start_time": "2025-08-06T09:27:53.474271",
     "test_name": "test_mark_proxy_failed",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.351316",
+    "start_time": "2025-08-06T09:27:53.485875",
     "test_name": "test_proxy_health_check",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.364741",
+    "start_time": "2025-08-06T09:27:53.498435",
     "test_name": "test_exclude_unhealthy_proxies",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.376166",
+    "start_time": "2025-08-06T09:27:53.509831",
     "test_name": "test_concurrent_proxy_usage",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.385435",
+    "start_time": "2025-08-06T09:27:53.522305",
     "test_name": "test_proxy_recovery_after_cooldown",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.396397",
+    "start_time": "2025-08-06T09:27:53.532334",
     "test_name": "test_proxy_statistics",
     "tests": []
   },
   {
     "component": "ProxyManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.407215",
+    "start_time": "2025-08-06T09:27:53.541332",
     "test_name": "test_proxy_authentication",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.401805",
+    "start_time": "2025-08-06T09:27:30.605955",
     "test_name": "test_anti_detection_manager_exists",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.403462",
+    "start_time": "2025-08-06T09:27:30.616101",
     "test_name": "test_anti_detection_initialization",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.413674",
+    "start_time": "2025-08-06T09:27:30.623044",
     "test_name": "test_get_random_user_agent",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.423813",
+    "start_time": "2025-08-06T09:27:30.629937",
     "test_name": "test_get_random_viewport",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.433412",
+    "start_time": "2025-08-06T09:27:30.636592",
     "test_name": "test_human_typing_delay",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.595703",
+    "start_time": "2025-08-06T09:27:30.827489",
     "test_name": "test_random_mouse_movements",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.607488",
+    "start_time": "2025-08-06T09:27:30.838836",
     "test_name": "test_configure_browser_context",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:40.618304",
+    "start_time": "2025-08-06T09:27:30.849673",
     "test_name": "test_random_scroll",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:41.451336",
+    "start_time": "2025-08-06T09:27:31.988092",
     "test_name": "test_random_wait",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:41.560023",
+    "start_time": "2025-08-06T09:27:32.187679",
     "test_name": "test_browser_fingerprint",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:41.571409",
+    "start_time": "2025-08-06T09:27:32.197953",
     "test_name": "test_realistic_interaction_sequence",
     "tests": []
   },
   {
     "component": "AntiDetectionManager",
     "phase": "RED",
-    "start_time": "2025-08-03T11:17:44.016549",
+    "start_time": "2025-08-06T09:27:35.168612",
     "test_name": "test_get_random_headers",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "GREEN",
-    "start_time": "2025-08-03T11:18:02.428562",
+    "start_time": "2025-08-06T09:27:53.569327",
     "test_name": "test_phoenix_mls_scraper_exists",
     "tests": [],
-    "green_time": "2025-08-03T11:18:02.437426"
+    "green_time": "2025-08-06T09:27:53.579258"
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.445744",
+    "start_time": "2025-08-06T09:27:53.585735",
     "test_name": "test_scraper_initialization",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.455059",
+    "start_time": "2025-08-06T09:27:53.593078",
     "test_name": "test_browser_initialization",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:02.471340",
+    "start_time": "2025-08-06T09:27:53.610130",
     "test_name": "test_search_by_zipcode",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:07.523860",
+    "start_time": "2025-08-06T09:27:58.046705",
     "test_name": "test_extract_property_details",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.828582",
+    "start_time": "2025-08-06T09:28:00.656883",
     "test_name": "test_rate_limiting",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.839401",
+    "start_time": "2025-08-06T09:28:00.661548",
     "test_name": "test_retry_logic",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.860790",
+    "start_time": "2025-08-06T09:28:00.674180",
     "test_name": "test_session_management",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.879284",
+    "start_time": "2025-08-06T09:28:00.684852",
     "test_name": "test_proxy_rotation_on_failure",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.939541",
+    "start_time": "2025-08-06T09:28:00.695779",
     "test_name": "test_anti_detection_integration",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:09.957977",
+    "start_time": "2025-08-06T09:28:00.710378",
     "test_name": "test_batch_property_scraping",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:10.832425",
+    "start_time": "2025-08-06T09:28:05.645701",
     "test_name": "test_error_recovery_partial_results",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:10.841396",
+    "start_time": "2025-08-06T09:28:05.650263",
     "test_name": "test_data_validation_and_cleaning",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:10.851828",
+    "start_time": "2025-08-06T09:28:05.661037",
     "test_name": "test_scraper_statistics",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:10.860593",
+    "start_time": "2025-08-06T09:28:05.669266",
     "test_name": "test_configuration_validation",
     "tests": []
   },
   {
     "component": "PhoenixMLSScraper",
     "phase": "RED",
-    "start_time": "2025-08-03T11:18:10.878085",
+    "start_time": "2025-08-06T09:28:05.681515",
     "test_name": "test_full_scraping_workflow",
     "tests": []
   }
