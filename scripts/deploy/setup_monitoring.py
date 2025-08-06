@@ -15,7 +15,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 
-
 def setup_logging() -> logging.Logger:
     """Set up logging for the monitoring setup script."""
     logger = logging.getLogger(__name__)

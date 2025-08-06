@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 @dataclass
 class EmailConfiguration:
     """Configuration for email service."""
-    
+
     smtp_host: str
     smtp_port: int = 587
     smtp_username: Optional[str] = None
@@ -44,7 +44,7 @@ class EmailConfiguration:
     max_recipients: int = 10
     timeout: int = 30
     rate_limit_per_hour: int = 100
-    
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         if not self.smtp_host:
@@ -56,13 +56,15 @@ class EmailConfiguration:
         if self.smtp_port not in range(1, 65536):
             raise ValueError("SMTP port must be between 1 and 65535")
         if len(self.recipient_emails) > self.max_recipients:
-            raise ValueError(f"Too many recipients: {len(self.recipient_emails)} > {self.max_recipients}")
+            raise ValueError(
+                f"Too many recipients: {len(self.recipient_emails)} > {self.max_recipients}"
+            )
 
 
 @dataclass
 class EmailMetrics:
     """Email delivery metrics."""
-    
+
     total_sent: int = 0
     total_failed: int = 0
     total_queued: int = 0
@@ -70,7 +72,7 @@ class EmailMetrics:
     last_error: Optional[str] = None
     rate_limit_hits: int = 0
     avg_delivery_time: float = 0.0
-    
+
     @property
     def success_rate(self) -> float:
         """Calculate success rate as percentage."""
@@ -78,28 +80,38 @@ class EmailMetrics:
         return (self.total_sent / total * 100) if total > 0 else 0.0
 
 
-@dataclass 
+@dataclass
 class ReportData:
     """Data structure for email reports."""
-    
+
     title: str
     summary: str
-    collection_results: Optional[Any] = None  # BatchIntegrationResult, using Any to avoid circular import
+    collection_results: Optional[Any] = (
+        None  # BatchIntegrationResult, using Any to avoid circular import
+    )
     properties: List[PropertyDetails] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
     generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     report_type: str = "daily"  # daily, weekly, error, success
-    
+
     @property
     def has_data(self) -> bool:
         """Check if report contains meaningful data."""
-        return bool(self.properties or self.metrics or (self.collection_results and hasattr(self.collection_results, 'total_processed') and self.collection_results.total_processed > 0))
+        return bool(
+            self.properties
+            or self.metrics
+            or (
+                self.collection_results
+                and hasattr(self.collection_results, "total_processed")
+                and self.collection_results.total_processed > 0
+            )
+        )
 
 
 class EmailReportService:
     """Comprehensive email reporting service for Phoenix Real Estate system.
-    
+
     Features:
     - SMTP connectivity with proper authentication and security
     - Professional HTML email templates with responsive design
@@ -108,10 +120,10 @@ class EmailReportService:
     - Comprehensive error handling and monitoring
     - Support for both text and HTML email formats
     """
-    
+
     def __init__(self, config: ConfigProvider):
         """Initialize email service with configuration.
-        
+
         Args:
             config: Configuration provider with email settings
         """
@@ -121,7 +133,7 @@ class EmailReportService:
         self._metrics = EmailMetrics()
         self._rate_limiter = {}  # Simple in-memory rate limiting
         self._templates_cache = {}
-        
+
         self.logger.info(
             "EmailReportService initialized",
             extra={
@@ -130,15 +142,15 @@ class EmailReportService:
                 "sender": self._email_config.sender_email,
                 "recipients": len(self._email_config.recipient_emails),
                 "rate_limit": self._email_config.rate_limit_per_hour,
-            }
+            },
         )
-    
+
     def _load_email_configuration(self) -> EmailConfiguration:
         """Load email configuration from config provider.
-        
+
         Returns:
             EmailConfiguration instance
-            
+
         Raises:
             ProcessingError: If configuration is invalid
         """
@@ -147,33 +159,41 @@ class EmailReportService:
             smtp_host = self.config.get("email.smtp.host") or self.config.get("smtp_host")
             if not smtp_host:
                 raise ValueError("Email SMTP host not configured")
-            
+
             smtp_port = self.config.get_typed("email.smtp.port", int, 587)
-            smtp_username = self.config.get("email.smtp.username") or self.config.get("smtp_username")
-            smtp_password = self.config.get("email.smtp.password") or self.config.get("smtp_password")
-            
+            smtp_username = self.config.get("email.smtp.username") or self.config.get(
+                "smtp_username"
+            )
+            smtp_password = self.config.get("email.smtp.password") or self.config.get(
+                "smtp_password"
+            )
+
             # Security settings
             use_tls = self.config.get_typed("email.smtp.use_tls", bool, True)
             use_ssl = self.config.get_typed("email.smtp.use_ssl", bool, False)
-            
+
             # Sender configuration
             sender_email = self.config.get("email.sender.email") or self.config.get("sender_email")
             sender_name = self.config.get("email.sender.name", "Phoenix Real Estate Collector")
-            
+
             # Recipients
-            recipients_str = self.config.get("email.recipients") or self.config.get("recipient_emails", "")
+            recipients_str = self.config.get("email.recipients") or self.config.get(
+                "recipient_emails", ""
+            )
             if isinstance(recipients_str, str):
-                recipient_emails = [email.strip() for email in recipients_str.split(",") if email.strip()]
+                recipient_emails = [
+                    email.strip() for email in recipients_str.split(",") if email.strip()
+                ]
             elif isinstance(recipients_str, list):
                 recipient_emails = recipients_str
             else:
                 recipient_emails = []
-            
+
             # Rate limiting and timeouts
             rate_limit = self.config.get_typed("email.rate_limit_per_hour", int, 100)
             timeout = self.config.get_typed("email.timeout", int, 30)
             max_recipients = self.config.get_typed("email.max_recipients", int, 10)
-            
+
             return EmailConfiguration(
                 smtp_host=smtp_host,
                 smtp_port=smtp_port,
@@ -188,119 +208,115 @@ class EmailReportService:
                 timeout=timeout,
                 max_recipients=max_recipients,
             )
-            
+
         except Exception as e:
             raise ProcessingError(f"Failed to load email configuration: {str(e)}") from e
-    
+
     async def send_daily_report(
-        self, 
-        report_data: ReportData,
-        include_properties: bool = True,
-        include_charts: bool = False
+        self, report_data: ReportData, include_properties: bool = True, include_charts: bool = False
     ) -> bool:
         """Send daily collection report via email.
-        
+
         Args:
             report_data: Report data to include in email
             include_properties: Whether to include property details
             include_charts: Whether to include charts (future enhancement)
-            
+
         Returns:
             True if email sent successfully
         """
         try:
             self.logger.info("Generating daily report email")
-            
+
             # Generate email content
             subject = f"Phoenix Real Estate Daily Report - {report_data.generated_at.strftime('%Y-%m-%d')}"
             html_content = self._generate_daily_report_html(report_data, include_properties)
             text_content = self._generate_daily_report_text(report_data)
-            
+
             # Send email
             success = await self._send_email(
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content,
-                report_data=report_data
+                report_data=report_data,
             )
-            
+
             if success:
-                self.logger.info(f"Daily report sent successfully to {len(self._email_config.recipient_emails)} recipients")
+                self.logger.info(
+                    f"Daily report sent successfully to {len(self._email_config.recipient_emails)} recipients"
+                )
             else:
                 self.logger.error("Failed to send daily report")
-                
+
             return success
-            
+
         except Exception as e:
             self.logger.error(f"Error sending daily report: {e}")
             self._metrics.total_failed += 1
             self._metrics.last_error = str(e)
             return False
-    
+
     async def send_error_alert(
-        self,
-        error_title: str,
-        error_details: str,
-        context: Optional[Dict[str, Any]] = None
+        self, error_title: str, error_details: str, context: Optional[Dict[str, Any]] = None
     ) -> bool:
         """Send immediate error alert via email.
-        
+
         Args:
             error_title: Brief error description
             error_details: Detailed error information
             context: Additional context information
-            
+
         Returns:
             True if alert sent successfully
         """
         try:
             self.logger.info(f"Sending error alert: {error_title}")
-            
+
             # Create report data for error
             report_data = ReportData(
                 title=f"🚨 ALERT: {error_title}",
                 summary=error_details,
                 errors=[error_details],
                 report_type="error",
-                metrics=context or {}
+                metrics=context or {},
             )
-            
+
             # Generate email content
             subject = f"🚨 Phoenix Real Estate Alert: {error_title}"
             html_content = self._generate_error_alert_html(report_data)
             text_content = self._generate_error_alert_text(report_data)
-            
+
             # Send with high priority
             success = await self._send_email(
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content,
                 report_data=report_data,
-                priority="high"
+                priority="high",
             )
-            
+
             if success:
                 self.logger.info("Error alert sent successfully")
             else:
                 self.logger.error("Failed to send error alert")
-                
+
             return success
-            
+
         except Exception as e:
             self.logger.error(f"Error sending alert: {e}")
             return False
-    
+
     async def send_success_summary(
         self,
         batch_result: Any,  # BatchIntegrationResult
-        processing_time: float
+        processing_time: float,
     ) -> bool:
         """Send successful collection summary.
-        
+
         Args:
             batch_result: Results from batch processing
             processing_time: Total processing time in seconds
-            
+
         Returns:
             True if summary sent successfully
         """
@@ -313,39 +329,45 @@ class EmailReportService:
                 report_type="success",
                 metrics={
                     "processing_time": processing_time,
-                    "success_rate": (batch_result.successful / batch_result.total_processed * 100) if batch_result.total_processed > 0 else 0,
-                    "avg_time_per_property": processing_time / batch_result.total_processed if batch_result.total_processed > 0 else 0
-                }
+                    "success_rate": (batch_result.successful / batch_result.total_processed * 100)
+                    if batch_result.total_processed > 0
+                    else 0,
+                    "avg_time_per_property": processing_time / batch_result.total_processed
+                    if batch_result.total_processed > 0
+                    else 0,
+                },
             )
-            
+
             subject = f"✅ Phoenix Real Estate: {batch_result.successful} Properties Collected"
             html_content = self._generate_success_summary_html(report_data)
             text_content = self._generate_success_summary_text(report_data)
-            
+
             return await self._send_email(
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content,
-                report_data=report_data
+                report_data=report_data,
             )
-            
+
         except Exception as e:
             self.logger.error(f"Error sending success summary: {e}")
             return False
-    
-    def _generate_daily_report_html(self, report_data: ReportData, include_properties: bool = True) -> str:
+
+    def _generate_daily_report_html(
+        self, report_data: ReportData, include_properties: bool = True
+    ) -> str:
         """Generate HTML content for daily report.
-        
+
         Args:
             report_data: Report data to format
             include_properties: Whether to include property listings
-            
+
         Returns:
             HTML string for email body
         """
         # Get or generate template
         template = self._get_template("daily_report")
-        
+
         # Prepare template variables
         template_vars = {
             "title": report_data.title,
@@ -355,38 +377,44 @@ class EmailReportService:
             "collection_results": report_data.collection_results,
             "metrics": report_data.metrics,
             "has_properties": bool(report_data.properties) and include_properties,
-            "properties": report_data.properties[:10] if include_properties else [],  # Limit to first 10
+            "properties": report_data.properties[:10]
+            if include_properties
+            else [],  # Limit to first 10
             "property_count": len(report_data.properties),
             "has_errors": bool(report_data.errors),
             "errors": report_data.errors[:5],  # Limit to first 5 errors
             "error_count": len(report_data.errors),
         }
-        
+
         # Add collection metrics if available
         if report_data.collection_results:
             results = report_data.collection_results
-            template_vars.update({
-                "total_processed": results.total_processed,
-                "successful": results.successful,
-                "failed": results.failed,
-                "success_rate": (results.successful / results.total_processed * 100) if results.total_processed > 0 else 0,
-                "processing_time": f"{results.processing_time:.1f}",
-            })
-        
+            template_vars.update(
+                {
+                    "total_processed": results.total_processed,
+                    "successful": results.successful,
+                    "failed": results.failed,
+                    "success_rate": (results.successful / results.total_processed * 100)
+                    if results.total_processed > 0
+                    else 0,
+                    "processing_time": f"{results.processing_time:.1f}",
+                }
+            )
+
         # Use simple string replacement to avoid template formatting conflicts
         html_content = template
         for key, value in template_vars.items():
             placeholder = "{" + key + "}"
             html_content = html_content.replace(placeholder, str(value))
-        
+
         return html_content
-    
+
     def _generate_daily_report_text(self, report_data: ReportData) -> str:
         """Generate plain text content for daily report.
-        
+
         Args:
             report_data: Report data to format
-            
+
         Returns:
             Plain text string for email body
         """
@@ -399,69 +427,81 @@ class EmailReportService:
             f"{report_data.summary}",
             "",
         ]
-        
+
         # Add collection results if available
         if report_data.collection_results:
             results = report_data.collection_results
-            lines.extend([
-                "COLLECTION RESULTS",
-                "-----------------",
-                f"Total Processed: {results.total_processed}",
-                f"Successful: {results.successful}",
-                f"Failed: {results.failed}",
-                f"Success Rate: {(results.successful / results.total_processed * 100):.1f}%" if results.total_processed > 0 else "Success Rate: N/A",
-                f"Processing Time: {results.processing_time:.1f} seconds",
-                "",
-            ])
-        
+            lines.extend(
+                [
+                    "COLLECTION RESULTS",
+                    "-----------------",
+                    f"Total Processed: {results.total_processed}",
+                    f"Successful: {results.successful}",
+                    f"Failed: {results.failed}",
+                    f"Success Rate: {(results.successful / results.total_processed * 100):.1f}%"
+                    if results.total_processed > 0
+                    else "Success Rate: N/A",
+                    f"Processing Time: {results.processing_time:.1f} seconds",
+                    "",
+                ]
+            )
+
         # Add property count
         if report_data.properties:
-            lines.extend([
-                "PROPERTIES",
-                "----------",
-                f"Total Properties: {len(report_data.properties)}",
-                "",
-            ])
-            
+            lines.extend(
+                [
+                    "PROPERTIES",
+                    "----------",
+                    f"Total Properties: {len(report_data.properties)}",
+                    "",
+                ]
+            )
+
             # Add sample properties (first 3)
             for i, prop in enumerate(report_data.properties[:3], 1):
-                lines.extend([
-                    f"{i}. {prop.address or 'Unknown Address'}",
-                    f"   Price: ${prop.price:,.2f}" if prop.price else "   Price: N/A",
-                    f"   Type: {prop.property_type or 'Unknown'}",
-                    f"   Beds/Baths: {prop.bedrooms or 'N/A'}/{prop.bathrooms or 'N/A'}",
-                    "",
-                ])
-        
+                lines.extend(
+                    [
+                        f"{i}. {prop.address or 'Unknown Address'}",
+                        f"   Price: ${prop.price:,.2f}" if prop.price else "   Price: N/A",
+                        f"   Type: {prop.property_type or 'Unknown'}",
+                        f"   Beds/Baths: {prop.bedrooms or 'N/A'}/{prop.bathrooms or 'N/A'}",
+                        "",
+                    ]
+                )
+
         # Add errors if any
         if report_data.errors:
-            lines.extend([
-                f"ERRORS ({len(report_data.errors)})",
-                "------",
-            ])
+            lines.extend(
+                [
+                    f"ERRORS ({len(report_data.errors)})",
+                    "------",
+                ]
+            )
             for i, error in enumerate(report_data.errors[:5], 1):
                 lines.append(f"{i}. {error}")
-            
+
             if len(report_data.errors) > 5:
                 lines.append(f"... and {len(report_data.errors) - 5} more errors")
-            
+
             lines.append("")
-        
+
         # Add metrics
         if report_data.metrics:
-            lines.extend([
-                "METRICS",
-                "-------",
-            ])
+            lines.extend(
+                [
+                    "METRICS",
+                    "-------",
+                ]
+            )
             for key, value in report_data.metrics.items():
                 lines.append(f"{key.replace('_', ' ').title()}: {value}")
-        
+
         return "\n".join(lines)
-    
+
     def _generate_error_alert_html(self, report_data: ReportData) -> str:
         """Generate HTML content for error alert."""
         template = self._get_template("error_alert")
-        
+
         template_vars = {
             "title": report_data.title,
             "summary": report_data.summary,
@@ -471,15 +511,15 @@ class EmailReportService:
             "metrics": report_data.metrics,
             "has_metrics": bool(report_data.metrics),
         }
-        
+
         # Use simple string replacement to avoid template formatting conflicts
         html_content = template
         for key, value in template_vars.items():
             placeholder = "{" + key + "}"
             html_content = html_content.replace(placeholder, str(value))
-        
+
         return html_content
-    
+
     def _generate_error_alert_text(self, report_data: ReportData) -> str:
         """Generate plain text content for error alert."""
         lines = [
@@ -493,38 +533,44 @@ class EmailReportService:
             f"{report_data.summary}",
             "",
         ]
-        
+
         if report_data.errors:
-            lines.extend([
-                "ADDITIONAL ERRORS",
-                "----------------",
-            ])
+            lines.extend(
+                [
+                    "ADDITIONAL ERRORS",
+                    "----------------",
+                ]
+            )
             for i, error in enumerate(report_data.errors, 1):
                 lines.append(f"{i}. {error}")
             lines.append("")
-        
+
         if report_data.metrics:
-            lines.extend([
-                "CONTEXT",
-                "-------",
-            ])
+            lines.extend(
+                [
+                    "CONTEXT",
+                    "-------",
+                ]
+            )
             for key, value in report_data.metrics.items():
                 lines.append(f"{key.replace('_', ' ').title()}: {value}")
-        
-        lines.extend([
-            "",
-            "Please investigate this issue immediately.",
-            "",
-            "--",
-            "Phoenix Real Estate Data Collector",
-        ])
-        
+
+        lines.extend(
+            [
+                "",
+                "Please investigate this issue immediately.",
+                "",
+                "--",
+                "Phoenix Real Estate Data Collector",
+            ]
+        )
+
         return "\n".join(lines)
-    
+
     def _generate_success_summary_html(self, report_data: ReportData) -> str:
         """Generate HTML content for success summary."""
         template = self._get_template("success_summary")
-        
+
         results = report_data.collection_results
         template_vars = {
             "title": report_data.title,
@@ -537,19 +583,19 @@ class EmailReportService:
             "processing_time": report_data.metrics.get("processing_time", 0),
             "avg_time_per_property": report_data.metrics.get("avg_time_per_property", 0),
         }
-        
+
         # Use simple string replacement to avoid template formatting conflicts
         html_content = template
         for key, value in template_vars.items():
             placeholder = "{" + key + "}"
             html_content = html_content.replace(placeholder, str(value))
-        
+
         return html_content
-    
+
     def _generate_success_summary_text(self, report_data: ReportData) -> str:
         """Generate plain text content for success summary."""
         results = report_data.collection_results
-        
+
         lines = [
             "✅ Phoenix Real Estate Collection Complete",
             f"Generated: {report_data.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
@@ -559,48 +605,50 @@ class EmailReportService:
             f"{report_data.summary}",
             "",
         ]
-        
+
         if results:
-            lines.extend([
-                "RESULTS",
-                "-------",
-                f"Total Processed: {results.total_processed}",
-                f"Successful: {results.successful}",
-                f"Failed: {results.failed}",
-                f"Success Rate: {report_data.metrics.get('success_rate', 0):.1f}%",
-                f"Processing Time: {report_data.metrics.get('processing_time', 0):.1f} seconds",
-                f"Avg Time per Property: {report_data.metrics.get('avg_time_per_property', 0):.2f} seconds",
-                "",
-            ])
-        
+            lines.extend(
+                [
+                    "RESULTS",
+                    "-------",
+                    f"Total Processed: {results.total_processed}",
+                    f"Successful: {results.successful}",
+                    f"Failed: {results.failed}",
+                    f"Success Rate: {report_data.metrics.get('success_rate', 0):.1f}%",
+                    f"Processing Time: {report_data.metrics.get('processing_time', 0):.1f} seconds",
+                    f"Avg Time per Property: {report_data.metrics.get('avg_time_per_property', 0):.2f} seconds",
+                    "",
+                ]
+            )
+
         return "\n".join(lines)
-    
+
     def _get_template(self, template_name: str) -> str:
         """Get HTML email template, using cache if available.
-        
+
         Args:
             template_name: Name of template to retrieve
-            
+
         Returns:
             HTML template string
         """
         if template_name in self._templates_cache:
             return self._templates_cache[template_name]
-        
+
         # Generate template based on name
         if template_name == "daily_report":
             template = self._create_daily_report_template()
-        elif template_name == "error_alert": 
+        elif template_name == "error_alert":
             template = self._create_error_alert_template()
         elif template_name == "success_summary":
             template = self._create_success_summary_template()
         else:
             template = self._create_basic_template()
-        
+
         # Cache template
         self._templates_cache[template_name] = template
         return template
-    
+
     def _create_daily_report_template(self) -> str:
         """Create HTML template for daily reports."""
         return """
@@ -668,7 +716,7 @@ class EmailReportService:
 </body>
 </html>
         """.strip()
-    
+
     def _create_error_alert_template(self) -> str:
         """Create HTML template for error alerts."""
         return """
@@ -718,7 +766,7 @@ class EmailReportService:
 </body>
 </html>
         """.strip()
-    
+
     def _create_success_summary_template(self) -> str:
         """Create HTML template for success summaries."""
         return """
@@ -788,7 +836,7 @@ class EmailReportService:
 </body>
 </html>
         """.strip()
-    
+
     def _create_basic_template(self) -> str:
         """Create basic HTML template for generic emails."""
         return """
@@ -822,29 +870,29 @@ class EmailReportService:
 </body>
 </html>
         """.strip()
-    
+
     async def _send_email(
         self,
         subject: str,
         html_content: str,
         text_content: str,
         report_data: ReportData,
-        priority: str = "normal"
+        priority: str = "normal",
     ) -> bool:
         """Send email using SMTP with proper error handling.
-        
+
         Args:
             subject: Email subject line
             html_content: HTML email body
             text_content: Plain text email body
             report_data: Report data for context
             priority: Email priority (high, normal, low)
-            
+
         Returns:
             True if email sent successfully
         """
         start_time = datetime.now(UTC)
-        
+
         try:
             # Check rate limiting
             if not self._check_rate_limit():
@@ -852,61 +900,62 @@ class EmailReportService:
                 self._metrics.total_queued += 1
                 self._metrics.rate_limit_hits += 1
                 return False
-            
+
             # Create message
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = f"{self._email_config.sender_name} <{self._email_config.sender_email}>"
-            msg['To'] = ", ".join(self._email_config.recipient_emails)
-            
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = f"{self._email_config.sender_name} <{self._email_config.sender_email}>"
+            msg["To"] = ", ".join(self._email_config.recipient_emails)
+
             # Set priority
             if priority == "high":
-                msg['X-Priority'] = '1'
-                msg['X-MSMail-Priority'] = 'High'
-                msg['Importance'] = 'High'
-            
+                msg["X-Priority"] = "1"
+                msg["X-MSMail-Priority"] = "High"
+                msg["Importance"] = "High"
+
             # Attach text and HTML parts
-            text_part = MIMEText(text_content, 'plain')
-            html_part = MIMEText(html_content, 'html')
-            
+            text_part = MIMEText(text_content, "plain")
+            html_part = MIMEText(html_content, "html")
+
             msg.attach(text_part)
             msg.attach(html_part)
-            
+
             # Send email
             await self._smtp_send(msg)
-            
+
             # Update metrics
             delivery_time = (datetime.now(UTC) - start_time).total_seconds()
             self._metrics.total_sent += 1
             self._metrics.last_sent = datetime.now(UTC)
             self._update_avg_delivery_time(delivery_time)
-            
+
             self.logger.info(
                 f"Email sent successfully: {subject}",
                 extra={
                     "recipients": len(self._email_config.recipient_emails),
                     "delivery_time": f"{delivery_time:.2f}s",
                     "priority": priority,
-                }
+                },
             )
-            
+
             return True
-            
+
         except Exception as e:
             self._metrics.total_failed += 1
             self._metrics.last_error = str(e)
             self.logger.error(f"Failed to send email: {e}")
             return False
-    
+
     async def _smtp_send(self, message: MIMEMultipart) -> None:
         """Send email via SMTP with proper connection handling.
-        
+
         Args:
             message: MIME message to send
-            
+
         Raises:
             Exception: If SMTP sending fails
         """
+
         # Use asyncio.to_thread for SMTP operations (blocking)
         def _sync_smtp_send():
             if self._email_config.use_ssl:
@@ -914,59 +963,59 @@ class EmailReportService:
                 server = smtplib.SMTP_SSL(
                     self._email_config.smtp_host,
                     self._email_config.smtp_port,
-                    timeout=self._email_config.timeout
+                    timeout=self._email_config.timeout,
                 )
             else:
                 # Use regular SMTP, possibly with STARTTLS
                 server = smtplib.SMTP(
                     self._email_config.smtp_host,
                     self._email_config.smtp_port,
-                    timeout=self._email_config.timeout
+                    timeout=self._email_config.timeout,
                 )
-                
+
                 if self._email_config.use_tls:
                     server.starttls(context=ssl.create_default_context())
-            
+
             try:
                 # Authenticate if credentials provided
                 if self._email_config.smtp_username and self._email_config.smtp_password:
                     server.login(self._email_config.smtp_username, self._email_config.smtp_password)
-                
+
                 # Send email
                 server.send_message(message)
-                
+
             finally:
                 server.quit()
-        
+
         # Run SMTP operations in thread pool
         await asyncio.to_thread(_sync_smtp_send)
-    
+
     def _check_rate_limit(self) -> bool:
         """Check if email sending is within rate limits.
-        
+
         Returns:
             True if sending is allowed
         """
         now = datetime.now(UTC)
         hour_key = now.strftime("%Y-%m-%d-%H")
-        
+
         # Clean old entries (keep last 2 hours)
         old_keys = [key for key in self._rate_limiter.keys() if key < hour_key]
         for key in old_keys:
             del self._rate_limiter[key]
-        
+
         # Check current hour limit
         current_count = self._rate_limiter.get(hour_key, 0)
         if current_count >= self._email_config.rate_limit_per_hour:
             return False
-        
+
         # Update count
         self._rate_limiter[hour_key] = current_count + 1
         return True
-    
+
     def _update_avg_delivery_time(self, delivery_time: float) -> None:
         """Update average delivery time metric.
-        
+
         Args:
             delivery_time: Time taken to deliver email in seconds
         """
@@ -976,20 +1025,20 @@ class EmailReportService:
             # Simple moving average
             total_sent = self._metrics.total_sent
             self._metrics.avg_delivery_time = (
-                (self._metrics.avg_delivery_time * (total_sent - 1) + delivery_time) / total_sent
-            )
-    
+                self._metrics.avg_delivery_time * (total_sent - 1) + delivery_time
+            ) / total_sent
+
     def get_metrics(self) -> EmailMetrics:
         """Get current email service metrics.
-        
+
         Returns:
             EmailMetrics with current statistics
         """
         return self._metrics
-    
+
     def get_configuration(self) -> EmailConfiguration:
         """Get current email configuration (excluding sensitive data).
-        
+
         Returns:
             EmailConfiguration with sensitive data masked
         """
@@ -1008,10 +1057,10 @@ class EmailReportService:
             max_recipients=self._email_config.max_recipients,
         )
         return config_copy
-    
+
     async def test_connection(self) -> Dict[str, Any]:
         """Test SMTP connection and configuration.
-        
+
         Returns:
             Dictionary with test results
         """
@@ -1022,7 +1071,7 @@ class EmailReportService:
             "errors": [],
             "warnings": [],
         }
-        
+
         try:
             # Test configuration validity
             if not self._email_config.smtp_host:
@@ -1033,51 +1082,49 @@ class EmailReportService:
                 results["errors"].append("No recipient emails configured")
             else:
                 results["configuration_valid"] = True
-            
+
             if not results["configuration_valid"]:
                 return results
-            
+
             # Test SMTP connection
             def _test_smtp():
                 if self._email_config.use_ssl:
                     server = smtplib.SMTP_SSL(
-                        self._email_config.smtp_host,
-                        self._email_config.smtp_port,
-                        timeout=10
+                        self._email_config.smtp_host, self._email_config.smtp_port, timeout=10
                     )
                 else:
                     server = smtplib.SMTP(
-                        self._email_config.smtp_host,
-                        self._email_config.smtp_port,
-                        timeout=10
+                        self._email_config.smtp_host, self._email_config.smtp_port, timeout=10
                     )
                     if self._email_config.use_tls:
                         server.starttls(context=ssl.create_default_context())
-                
+
                 try:
                     # Test authentication if credentials provided
                     if self._email_config.smtp_username and self._email_config.smtp_password:
-                        server.login(self._email_config.smtp_username, self._email_config.smtp_password)
+                        server.login(
+                            self._email_config.smtp_username, self._email_config.smtp_password
+                        )
                         results["authentication"] = True
                     else:
                         results["warnings"].append("No SMTP authentication configured")
-                    
+
                     results["smtp_connection"] = True
-                    
+
                 finally:
                     server.quit()
-            
+
             # Run SMTP test in thread pool
             await asyncio.to_thread(_test_smtp)
-            
+
         except Exception as e:
             results["errors"].append(f"SMTP connection failed: {str(e)}")
-        
+
         return results
 
     async def send_test_email(self) -> bool:
         """Send a test email to verify configuration.
-        
+
         Returns:
             True if test email sent successfully
         """
@@ -1091,23 +1138,23 @@ class EmailReportService:
                     "configuration_valid": True,
                     "smtp_host": self._email_config.smtp_host,
                     "smtp_port": self._email_config.smtp_port,
-                }
+                },
             )
-            
+
             subject = "🧪 Phoenix Real Estate Email Service Test"
             html_content = self._get_template("basic").format(
                 content="<h2>Email Service Test</h2><p>If you receive this email, the Phoenix Real Estate email service is configured correctly!</p>",
-                generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+                generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
             )
             text_content = "Phoenix Real Estate Email Service Test\n\nIf you receive this email, the service is configured correctly!"
-            
+
             return await self._send_email(
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content,
-                report_data=test_report
+                report_data=test_report,
             )
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send test email: {e}")
             return False
