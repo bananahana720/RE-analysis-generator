@@ -15,15 +15,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
-import logging
-import json
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from phoenix_real_estate.orchestration.processing_integrator import BatchIntegrationResult
+    pass
 
 from phoenix_real_estate.foundation import ConfigProvider, get_logger
 from phoenix_real_estate.foundation.utils.exceptions import ProcessingError
@@ -396,36 +391,36 @@ class EmailReportService:
             Plain text string for email body
         """
         lines = [
-            f"Phoenix Real Estate Daily Report",
+            "Phoenix Real Estate Daily Report",
             f"Generated: {report_data.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            f"",
-            f"SUMMARY",
-            f"-------",
+            "",
+            "SUMMARY",
+            "-------",
             f"{report_data.summary}",
-            f"",
+            "",
         ]
         
         # Add collection results if available
         if report_data.collection_results:
             results = report_data.collection_results
             lines.extend([
-                f"COLLECTION RESULTS",
-                f"-----------------",
+                "COLLECTION RESULTS",
+                "-----------------",
                 f"Total Processed: {results.total_processed}",
                 f"Successful: {results.successful}",
                 f"Failed: {results.failed}",
                 f"Success Rate: {(results.successful / results.total_processed * 100):.1f}%" if results.total_processed > 0 else "Success Rate: N/A",
                 f"Processing Time: {results.processing_time:.1f} seconds",
-                f"",
+                "",
             ])
         
         # Add property count
         if report_data.properties:
             lines.extend([
-                f"PROPERTIES",
-                f"----------",
+                "PROPERTIES",
+                "----------",
                 f"Total Properties: {len(report_data.properties)}",
-                f"",
+                "",
             ])
             
             # Add sample properties (first 3)
@@ -435,14 +430,14 @@ class EmailReportService:
                     f"   Price: ${prop.price:,.2f}" if prop.price else "   Price: N/A",
                     f"   Type: {prop.property_type or 'Unknown'}",
                     f"   Beds/Baths: {prop.bedrooms or 'N/A'}/{prop.bathrooms or 'N/A'}",
-                    f"",
+                    "",
                 ])
         
         # Add errors if any
         if report_data.errors:
             lines.extend([
                 f"ERRORS ({len(report_data.errors)})",
-                f"------",
+                "------",
             ])
             for i, error in enumerate(report_data.errors[:5], 1):
                 lines.append(f"{i}. {error}")
@@ -455,8 +450,8 @@ class EmailReportService:
         # Add metrics
         if report_data.metrics:
             lines.extend([
-                f"METRICS",
-                f"-------",
+                "METRICS",
+                "-------",
             ])
             for key, value in report_data.metrics.items():
                 lines.append(f"{key.replace('_', ' ').title()}: {value}")
@@ -488,21 +483,21 @@ class EmailReportService:
     def _generate_error_alert_text(self, report_data: ReportData) -> str:
         """Generate plain text content for error alert."""
         lines = [
-            f"🚨 PHOENIX REAL ESTATE ALERT 🚨",
+            "🚨 PHOENIX REAL ESTATE ALERT 🚨",
             f"Generated: {report_data.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            f"",
+            "",
             f"ERROR: {report_data.title}",
-            f"",
-            f"DETAILS",
-            f"-------",
+            "",
+            "DETAILS",
+            "-------",
             f"{report_data.summary}",
-            f"",
+            "",
         ]
         
         if report_data.errors:
             lines.extend([
-                f"ADDITIONAL ERRORS",
-                f"----------------",
+                "ADDITIONAL ERRORS",
+                "----------------",
             ])
             for i, error in enumerate(report_data.errors, 1):
                 lines.append(f"{i}. {error}")
@@ -510,18 +505,18 @@ class EmailReportService:
         
         if report_data.metrics:
             lines.extend([
-                f"CONTEXT",
-                f"-------",
+                "CONTEXT",
+                "-------",
             ])
             for key, value in report_data.metrics.items():
                 lines.append(f"{key.replace('_', ' ').title()}: {value}")
         
         lines.extend([
-            f"",
-            f"Please investigate this issue immediately.",
-            f"",
-            f"--",
-            f"Phoenix Real Estate Data Collector",
+            "",
+            "Please investigate this issue immediately.",
+            "",
+            "--",
+            "Phoenix Real Estate Data Collector",
         ])
         
         return "\n".join(lines)
@@ -556,26 +551,26 @@ class EmailReportService:
         results = report_data.collection_results
         
         lines = [
-            f"✅ Phoenix Real Estate Collection Complete",
+            "✅ Phoenix Real Estate Collection Complete",
             f"Generated: {report_data.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            f"",
-            f"SUMMARY",
-            f"-------",
+            "",
+            "SUMMARY",
+            "-------",
             f"{report_data.summary}",
-            f"",
+            "",
         ]
         
         if results:
             lines.extend([
-                f"RESULTS",
-                f"-------",
+                "RESULTS",
+                "-------",
                 f"Total Processed: {results.total_processed}",
                 f"Successful: {results.successful}",
                 f"Failed: {results.failed}",
                 f"Success Rate: {report_data.metrics.get('success_rate', 0):.1f}%",
                 f"Processing Time: {report_data.metrics.get('processing_time', 0):.1f} seconds",
                 f"Avg Time per Property: {report_data.metrics.get('avg_time_per_property', 0):.2f} seconds",
-                f"",
+                "",
             ])
         
         return "\n".join(lines)

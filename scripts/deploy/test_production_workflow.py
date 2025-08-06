@@ -11,8 +11,6 @@ import sys
 import logging
 from pathlib import Path
 from datetime import datetime, UTC
-from typing import Dict, Any, List, Optional
-import json
 import argparse
 
 # Add src to path for imports

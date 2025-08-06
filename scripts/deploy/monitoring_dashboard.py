@@ -10,14 +10,12 @@ Real-time monitoring system for Phoenix Real Estate data collection with:
 """
 
 import asyncio
-import json
-import logging
 import psutil
 import time
 from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from pathlib import Path
-from typing import Dict, List, Any, Optional, NamedTuple
+from typing import Dict, List, Any, NamedTuple
 import sys
 
 # Add parent directory to path for imports
@@ -220,7 +218,7 @@ class ProductionMonitor:
                 icon = status_icons.get(alert.level, "❓")
                 report += f"- {icon} **{alert.timestamp.strftime('%H:%M')}** {alert.component}: {alert.message}\n"
 
-        report += f"\n## 💰 Cost Status\n"
+        report += "\n## 💰 Cost Status\n"
         report += f"- **Current Month**: ${status['cost_status']['current_spend']:.2f} / ${status['cost_status']['budget']:.2f}\n"
         report += f"- **Budget Utilization**: {status['cost_status']['utilization']:.1%}\n"
         report += f"- **Trend**: {status['cost_status']['trend']}\n"

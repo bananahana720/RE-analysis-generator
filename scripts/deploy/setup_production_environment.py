@@ -10,8 +10,7 @@ import sys
 import asyncio
 import logging
 from pathlib import Path
-from typing import Dict, Any
-import json
+from typing import Dict
 from datetime import datetime, UTC
 
 # Add src to path for imports

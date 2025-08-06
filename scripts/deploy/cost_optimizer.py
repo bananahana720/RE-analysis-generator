@@ -14,14 +14,12 @@ Features:
 
 import asyncio
 import json
-import logging
-import smtplib
-from datetime import datetime, timedelta, UTC
-from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, UTC
+from decimal import Decimal
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
-from typing import Dict, List, Any, Optional, NamedTuple
+from typing import Dict, List, Any, NamedTuple
 import sys
 
 # Add parent directory to path for imports
@@ -271,7 +269,7 @@ class CostOptimizer:
         """
         monthly_costs = await self.get_monthly_costs()
         alerts = await self.check_budget_compliance()
-        efficiency = await self.analyze_cost_efficiency()
+        await self.analyze_cost_efficiency()
         optimizations = await self.optimize_resources()
 
         report = f"""

@@ -9,13 +9,11 @@ Tests cover:
 - Integration with ProcessingIntegrator
 """
 
-import asyncio
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock, patch
 from datetime import datetime, UTC
 from email.mime.multipart import MIMEMultipart
 import smtplib
-import ssl
 
 from phoenix_real_estate.services.email_service import (
     EmailReportService,

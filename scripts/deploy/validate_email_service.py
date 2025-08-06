@@ -8,7 +8,6 @@ without sending actual emails (unless explicitly requested).
 import asyncio
 import sys
 from pathlib import Path
-from datetime import datetime, UTC
 import argparse
 import logging
 

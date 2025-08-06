@@ -144,12 +144,12 @@ async def main():
             f"Disk Usage: {system_metrics['disk']['percent']:.1f}% ({system_metrics['disk']['used'] / 1024**3:.1f}GB / {system_metrics['disk']['total'] / 1024**3:.1f}GB)"
         )
 
-        print(f"\nService Status:")
+        print("\nService Status:")
         for service, status in service_status.items():
             print(f"  {service}: {status['status']}")
 
         if db_metrics and "error" not in db_metrics:
-            print(f"\nDatabase Metrics:")
+            print("\nDatabase Metrics:")
             print(f"  Collections: {db_metrics['collections_count']}")
             print(f"  Data Size: {db_metrics['data_size'] / 1024**2:.1f}MB")
             print(f"  Objects: {db_metrics['objects']}")

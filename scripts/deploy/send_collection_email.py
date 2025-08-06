@@ -12,7 +12,7 @@ import os
 import sys
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 import json
 import logging
 

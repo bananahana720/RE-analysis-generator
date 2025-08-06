@@ -11,11 +11,10 @@ Comprehensive quality monitoring for Phoenix Real Estate data collection with:
 
 import asyncio
 import json
-import statistics
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, UTC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, NamedTuple
+from typing import Dict, List, Any, NamedTuple
 import sys
 
 # Add parent directory to path for imports
@@ -24,7 +23,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
 from phoenix_real_estate.foundation.database import DatabaseConnection
 from phoenix_real_estate.foundation.logging import get_logger
-from phoenix_real_estate.models.property import PropertyDetails
 
 logger = get_logger(__name__)
 

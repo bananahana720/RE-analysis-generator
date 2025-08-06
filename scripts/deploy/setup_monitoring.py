@@ -8,17 +8,12 @@ including health checks, performance metrics, and alerting systems.
 import asyncio
 import json
 import logging
-import os
 import sys
-from datetime import datetime, UTC
 from pathlib import Path
-from typing import Dict, Any, Optional
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from phoenix_real_estate.foundation.config.base import EnvironmentConfigProvider
-from phoenix_real_estate.foundation.database.connection import DatabaseConnection
 
 
 def setup_logging() -> logging.Logger:
