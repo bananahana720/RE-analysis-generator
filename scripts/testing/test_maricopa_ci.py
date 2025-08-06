@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from phoenix_real_estate.foundation.config.base import EnvironmentConfigProvider
-from phoenix_real_estate.foundation.database.repositories import PropertyRepository
+from phoenix_real_estate.foundation.database.mock import MockPropertyRepository
 from phoenix_real_estate.collectors.maricopa import MaricopaAPICollector
 
 
@@ -30,32 +30,28 @@ async def test_maricopa_collector(zip_code="85031", mode="test"):
 
     print(f"[OK] API Key configured: {api_key[:8]}...")
 
-    # Create repository instance (without database for testing)
-    try:
-        repository = PropertyRepository.get_instance()
-        print("[OK] Repository initialized")
-    except Exception as e:
-        print(f"[WARN] Repository initialization failed: {e}")
-        print("[INFO] Using mock repository for testing")
-        from phoenix_real_estate.foundation.database.mock import MockPropertyRepository
-        repository = MockPropertyRepository()
+    # Use mock repository for CI testing
+    repository = MockPropertyRepository()
+    print("[OK] Mock repository initialized")
 
     # Initialize collector
     collector = MaricopaAPICollector(config, repository)
 
     try:
-        # Test search by ZIP code
-        print(f"[TEST] Searching properties in ZIP: {zip_code}")
+        # Test search by ZIP code using correct method
+        print(f"[TEST] Collecting properties for ZIP: {zip_code}")
         
-        if mode == "test":
-            properties = await collector.collect_properties(zip_code, limit=3)
-        else:
-            properties = await collector.collect_properties(zip_code)
+        # Use the correct method name
+        properties = await collector.collect_zipcode(zip_code)
+        
+        if mode == "test" and len(properties) > 3:
+            properties = properties[:3]  # Limit for test mode
             
         print(f"[OK] Found {len(properties)} properties")
         
         if properties:
-            print(f"[SAMPLE] First property ID: {properties[0].get('id', 'N/A')}")
+            first_property = properties[0]
+            print(f"[SAMPLE] First property keys: {list(first_property.keys())[:5]}")
         
         print("[SUCCESS] Maricopa collector test completed")
         return True
