@@ -77,7 +77,7 @@ jobs:
         COLLECTION_MODE: ${{ github.event.inputs.collection_mode }}
       run: |
         echo "Running Maricopa data collection..."
-        uv run python scripts/testing/test_maricopa_collector.py --zip-code "85031" --mode "$COLLECTION_MODE"
+        uv run python scripts/testing/test_maricopa_ci.py --zip-code "85031" --mode "$COLLECTION_MODE"
       timeout-minutes: 15
     
     - name: Setup Ollama for LLM processing
