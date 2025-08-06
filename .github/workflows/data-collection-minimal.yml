@@ -1,0 +1,152 @@
+name: Minimal Data Collection
+
+on:
+  workflow_dispatch:
+    inputs:
+      collection_mode:
+        description: 'Collection mode'
+        required: false
+        type: choice
+        options: ['test', 'incremental', 'full']
+        default: 'test'
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+
+concurrency:
+  group: data-collection-minimal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  data-collection:
+    name: Data Collection and Processing
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --extra dev
+    
+    - name: Validate secrets
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        echo "Validating production secrets..."
+        
+        missing_secrets=()
+        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
+        [[ -z "$WEBSHARE_API_KEY" ]] && missing_secrets+=("WEBSHARE_API_KEY")
+        [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
+        
+        if [ ${#missing_secrets[@]} -eq 0 ]; then
+          echo "[OK] All required production secrets are configured"
+        else
+          echo "[FAIL] Missing required production secrets: ${missing_secrets[*]}"
+          exit 1
+        fi
+    
+    - name: Setup environment
+      run: |
+        mkdir -p data/{processed,raw,cookies} logs reports
+        echo "Collection mode: ${{ github.event.inputs.collection_mode }}"
+    
+    - name: Run Maricopa collection (single ZIP)
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode }}
+      run: |
+        echo "Running Maricopa data collection..."
+        uv run python scripts/testing/test_maricopa_collector.py --zip-code "85031" --mode "$COLLECTION_MODE"
+      timeout-minutes: 15
+    
+    - name: Setup Ollama for LLM processing
+      run: |
+        echo "Setting up Ollama LLM service..."
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama serve &
+        sleep 10
+        ollama pull llama3.2:latest
+        echo "[OK] Ollama LLM service ready"
+    
+    - name: Run LLM processing
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: "http://localhost:11434"
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode }}
+      run: |
+        echo "Running LLM data processing..."
+        uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"
+      timeout-minutes: 15
+    
+    - name: Generate summary
+      run: |
+        echo "Generating collection summary..."
+        echo "Collection completed at: $(date -u)"
+        echo "Mode: ${{ github.event.inputs.collection_mode }}"
+        
+        # Basic file count summary
+        echo "Files collected:"
+        find data/raw -name "*.json" 2>/dev/null | wc -l || echo "0"
+        echo "Files processed:"
+        find data/processed -name "*.json" 2>/dev/null | wc -l || echo "0"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: minimal-collection-results-${{ github.run_number }}
+        path: |
+          data/raw/*.json
+          data/processed/*.json
+          logs/*.log
+        retention-days: 7
+
+  notification:
+    name: Collection Notification
+    runs-on: ubuntu-latest
+    needs: [data-collection]
+    if: always()
+    timeout-minutes: 5
+    
+    steps:
+    - name: Determine status
+      run: |
+        if [[ "${{ needs.data-collection.result }}" == "success" ]]; then
+          echo "[OK] Data collection completed successfully"
+        else
+          echo "[FAIL] Data collection failed"
+        fi
+    
+    - name: Create issue on failure
+      if: needs.data-collection.result == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Minimal Collection Failed - ${new Date().toDateString()}`,
+            body: `Data collection workflow failed. Check logs for details.\n\nRun ID: ${{ github.run_id }}`,
+            labels: ['automation', 'data-collection', 'failure']
+          });

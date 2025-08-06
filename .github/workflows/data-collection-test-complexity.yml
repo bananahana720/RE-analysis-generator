@@ -1,0 +1,215 @@
+name: Test Workflow Complexity Limits
+
+on:
+  workflow_dispatch:
+    inputs:
+      complexity_level:
+        description: 'Test complexity level'
+        required: false
+        type: choice
+        options: ['level1', 'level2', 'level3', 'level4']
+        default: 'level1'
+
+permissions:
+  contents: read
+
+jobs:
+  # Level 1: Single job, minimal complexity
+  level1-test:
+    if: github.event.inputs.complexity_level == 'level1'
+    name: Level 1 - Single Job Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+    - name: Basic test
+      run: |
+        echo "Level 1 test: Single job, minimal complexity"
+        echo "Status: PASS"
+
+  # Level 2: Two jobs with simple dependency
+  level2-setup:
+    if: github.event.inputs.complexity_level == 'level2'
+    name: Level 2 Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      setup-status: ${{ steps.setup.outputs.status }}
+    
+    steps:
+    - name: Setup step
+      id: setup
+      run: |
+        echo "Level 2 test: Two jobs with dependency"
+        echo "status=ready" >> $GITHUB_OUTPUT
+  
+  level2-execution:
+    if: github.event.inputs.complexity_level == 'level2'
+    name: Level 2 Execution
+    runs-on: ubuntu-latest
+    needs: level2-setup
+    timeout-minutes: 5
+    
+    steps:
+    - name: Execute step
+      run: |
+        echo "Setup status: ${{ needs.level2-setup.outputs.setup-status }}"
+        echo "Level 2 test: PASS"
+
+  # Level 3: Three jobs with matrix strategy
+  level3-setup:
+    if: github.event.inputs.complexity_level == 'level3'
+    name: Level 3 Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      zip-codes: ${{ steps.config.outputs.zip-codes }}
+    
+    steps:
+    - name: Configure matrix
+      id: config
+      run: |
+        echo "zip-codes=85031,85033,85035" >> $GITHUB_OUTPUT
+
+  level3-matrix:
+    if: github.event.inputs.complexity_level == 'level3'
+    name: Level 3 Matrix Job
+    runs-on: ubuntu-latest
+    needs: level3-setup
+    timeout-minutes: 5
+    
+    strategy:
+      matrix:
+        zip_code: ["85031", "85033", "85035"]
+      fail-fast: false
+    
+    steps:
+    - name: Process ZIP code
+      run: |
+        echo "Processing ZIP code: ${{ matrix.zip_code }}"
+        echo "Matrix job completed for ${{ matrix.zip_code }}"
+
+  level3-aggregation:
+    if: github.event.inputs.complexity_level == 'level3'
+    name: Level 3 Aggregation
+    runs-on: ubuntu-latest
+    needs: [level3-setup, level3-matrix]
+    timeout-minutes: 5
+    
+    steps:
+    - name: Aggregate results
+      run: |
+        echo "ZIP codes processed: ${{ needs.level3-setup.outputs.zip-codes }}"
+        echo "Level 3 test: PASS"
+
+  # Level 4: Complex workflow with artifacts and environment
+  level4-validation:
+    if: github.event.inputs.complexity_level == 'level4'
+    name: Level 4 Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    outputs:
+      validation-status: ${{ steps.validate.outputs.status }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Environment validation
+      id: validate
+      run: |
+        echo "Validating complex workflow environment..."
+        mkdir -p test-data logs
+        echo "test data" > test-data/sample.txt
+        echo "status=validated" >> $GITHUB_OUTPUT
+    
+    - name: Upload test artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: level4-validation-${{ github.run_number }}
+        path: |
+          test-data/*.txt
+          logs/*.log
+        retention-days: 1
+
+  level4-collection:
+    if: github.event.inputs.complexity_level == 'level4'
+    name: Level 4 Collection Matrix
+    runs-on: ubuntu-latest
+    needs: level4-validation
+    timeout-minutes: 10
+    
+    strategy:
+      matrix:
+        source: ["maricopa", "phoenix-mls"]
+        zip_code: ["85031", "85033"]
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Simulate collection
+      run: |
+        echo "Collecting from ${{ matrix.source }} for ZIP ${{ matrix.zip_code }}"
+        mkdir -p collection-results
+        echo "Sample data for ${{ matrix.source }}-${{ matrix.zip_code }}" > collection-results/${{ matrix.source }}-${{ matrix.zip_code }}.json
+    
+    - name: Upload collection results
+      uses: actions/upload-artifact@v4
+      with:
+        name: collection-${{ matrix.source }}-${{ matrix.zip_code }}-${{ github.run_number }}
+        path: collection-results/*.json
+        retention-days: 1
+
+  level4-processing:
+    if: github.event.inputs.complexity_level == 'level4'
+    name: Level 4 Processing
+    runs-on: ubuntu-latest
+    needs: [level4-validation, level4-collection]
+    timeout-minutes: 10
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: downloaded-artifacts/
+    
+    - name: Process data
+      run: |
+        echo "Processing collected data..."
+        find downloaded-artifacts/ -name "*.json" -type f | while read file; do
+          echo "Processing: $(basename "$file")"
+        done
+        
+        mkdir -p processed-results
+        echo "Processed data summary" > processed-results/summary.txt
+    
+    - name: Upload processed results
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-results-${{ github.run_number }}
+        path: processed-results/*.txt
+        retention-days: 1
+
+  level4-notification:
+    if: github.event.inputs.complexity_level == 'level4'
+    name: Level 4 Notification
+    runs-on: ubuntu-latest
+    needs: [level4-validation, level4-collection, level4-processing]
+    timeout-minutes: 5
+    
+    steps:
+    - name: Generate report
+      run: |
+        echo "Complex workflow test completed"
+        echo "Validation: ${{ needs.level4-validation.outputs.validation-status }}"
+        echo "Collection jobs: completed matrix strategy"
+        echo "Processing: completed with artifacts"
+        echo "Level 4 test: PASS"
+    
+    - name: Cleanup on success
+      if: success()
+      run: |
+        echo "Level 4 complexity test passed - GitHub Actions can handle this complexity"

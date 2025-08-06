@@ -1,0 +1,329 @@
+name: Production Data Collection
+
+on:
+  schedule:
+    # Daily at 3 AM Phoenix time (10 AM UTC)
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      zip_codes:
+        description: 'ZIP codes (comma-separated)'
+        required: false
+        type: string
+        default: '85031,85033,85035'
+      collection_mode:
+        description: 'Collection mode'
+        required: false
+        type: choice
+        options: ['incremental', 'full', 'test']
+        default: 'incremental'
+      skip_llm:
+        description: 'Skip LLM processing'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+  COLLECTION_TIMEOUT: 60
+
+concurrency:
+  group: production-data-collection
+  cancel-in-progress: false
+
+jobs:
+  collection-and-processing:
+    name: Data Collection and Processing
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: production
+    
+    outputs:
+      collection-status: ${{ steps.status.outputs.collection-status }}
+      processing-status: ${{ steps.status.outputs.processing-status }}
+      properties-collected: ${{ steps.status.outputs.properties-collected }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Environment setup
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        pip install uv
+        uv sync --extra dev
+    
+    - name: Validate production environment
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        echo "Validating production environment..."
+        
+        # Check required secrets
+        missing_secrets=()
+        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
+        [[ -z "$WEBSHARE_API_KEY" ]] && missing_secrets+=("WEBSHARE_API_KEY")
+        [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
+        
+        if [ ${#missing_secrets[@]} -ne 0 ]; then
+          echo "[FAIL] Missing secrets: ${missing_secrets[*]}"
+          exit 1
+        fi
+        
+        echo "[OK] Environment validation passed"
+        
+        # Setup directories
+        mkdir -p data/{processed,raw,cookies} logs reports
+    
+    - name: Maricopa County data collection
+      id: maricopa
+      env:
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        ZIP_CODES: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
+      run: |
+        echo "Starting Maricopa County data collection..."
+        echo "ZIP codes: $ZIP_CODES"
+        echo "Collection mode: $COLLECTION_MODE"
+        
+        # Process each ZIP code
+        IFS=',' read -ra ZIP_ARRAY <<< "$ZIP_CODES"
+        total_collected=0
+        
+        for zip in "${ZIP_ARRAY[@]}"; do
+          zip=$(echo "$zip" | xargs) # trim whitespace
+          echo "Processing ZIP code: $zip"
+          
+          if uv run python scripts/testing/test_maricopa_collector.py --zip-code "$zip" --mode "$COLLECTION_MODE"; then
+            collected=$(find data/raw -name "*${zip}*.json" 2>/dev/null | wc -l || echo "0")
+            total_collected=$((total_collected + collected))
+            echo "[OK] ZIP $zip: collected $collected properties"
+          else
+            echo "[WARN] ZIP $zip: collection failed"
+          fi
+        done
+        
+        echo "maricopa-collected=$total_collected" >> $GITHUB_OUTPUT
+        echo "[OK] Maricopa collection completed: $total_collected properties"
+      timeout-minutes: 30
+    
+    - name: Phoenix MLS data collection
+      id: phoenix-mls
+      if: success() || failure()
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        ZIP_CODES: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
+      run: |
+        echo "Starting Phoenix MLS data collection..."
+        
+        # Install Playwright
+        uv run playwright install chromium --with-deps
+        
+        # Run MLS collection
+        if uv run python scripts/testing/test_phoenix_mls_with_services.py --zip-codes "$ZIP_CODES" --mode "$COLLECTION_MODE"; then
+          mls_collected=$(find data/raw -name "*phoenix_mls*.json" 2>/dev/null | wc -l || echo "0")
+          echo "mls-collected=$mls_collected" >> $GITHUB_OUTPUT
+          echo "[OK] Phoenix MLS collection completed: $mls_collected properties"
+        else
+          echo "mls-collected=0" >> $GITHUB_OUTPUT
+          echo "[WARN] Phoenix MLS collection failed"
+        fi
+      timeout-minutes: 25
+    
+    - name: Setup LLM service
+      id: llm-setup
+      if: (success() || failure()) && github.event.inputs.skip_llm != 'true'
+      run: |
+        echo "Setting up Ollama LLM service..."
+        
+        # Install and start Ollama
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama serve > logs/ollama_server.log 2>&1 &
+        
+        # Wait for service and pull model
+        sleep 15
+        if ollama pull llama3.2:latest; then
+          echo "llm-ready=true" >> $GITHUB_OUTPUT
+          echo "[OK] LLM service ready"
+        else
+          echo "llm-ready=false" >> $GITHUB_OUTPUT
+          echo "[WARN] LLM setup failed"
+        fi
+      timeout-minutes: 10
+    
+    - name: LLM data processing
+      id: llm-processing
+      if: steps.llm-setup.outputs.llm-ready == 'true'
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: "http://localhost:11434"
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
+      run: |
+        echo "Starting LLM data processing..."
+        
+        # Run LLM processing
+        if uv run python scripts/testing/run_llm_e2e_tests.py --collection-mode "$COLLECTION_MODE"; then
+          processed_count=$(find data/processed -name "*.json" 2>/dev/null | wc -l || echo "0")
+          echo "llm-processed=$processed_count" >> $GITHUB_OUTPUT
+          echo "[OK] LLM processing completed: $processed_count properties"
+        else
+          echo "llm-processed=0" >> $GITHUB_OUTPUT
+          echo "[WARN] LLM processing failed"
+        fi
+      timeout-minutes: 20
+    
+    - name: Data validation and reporting
+      id: validation
+      if: always()
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
+      run: |
+        echo "Running data validation..."
+        
+        # Generate collection summary
+        maricopa_count="${{ steps.maricopa.outputs.maricopa-collected || '0' }}"
+        mls_count="${{ steps.phoenix-mls.outputs.mls-collected || '0' }}"
+        processed_count="${{ steps.llm-processing.outputs.llm-processed || '0' }}"
+        
+        total_collected=$((maricopa_count + mls_count))
+        
+        echo "Collection Summary:"
+        echo "- Maricopa properties: $maricopa_count"
+        echo "- Phoenix MLS properties: $mls_count"
+        echo "- Total collected: $total_collected"
+        echo "- LLM processed: $processed_count"
+        
+        # Determine overall status
+        if [[ $total_collected -gt 0 ]]; then
+          if [[ $processed_count -gt 0 ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "[OK] Collection and processing completed successfully"
+          else
+            echo "status=partial" >> $GITHUB_OUTPUT
+            echo "[WARN] Collection succeeded but processing incomplete"
+          fi
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "[FAIL] No data collected"
+        fi
+        
+        echo "properties-collected=$total_collected" >> $GITHUB_OUTPUT
+    
+    - name: Set job outputs
+      id: status
+      run: |
+        echo "collection-status=${{ steps.validation.outputs.status }}" >> $GITHUB_OUTPUT
+        echo "processing-status=${{ steps.llm-processing.outputs.llm-processed != '0' && 'success' || 'failed' }}" >> $GITHUB_OUTPUT
+        echo "properties-collected=${{ steps.validation.outputs.properties-collected }}" >> $GITHUB_OUTPUT
+    
+    - name: Upload collection artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: production-collection-${{ github.run_number }}
+        path: |
+          data/raw/*.json
+          data/processed/*.json
+          data/cookies/*.pkl
+          logs/*.log
+          reports/*.json
+        retention-days: 14
+
+  notification-and-monitoring:
+    name: Notification and Monitoring
+    runs-on: ubuntu-latest
+    needs: [collection-and-processing]
+    if: always()
+    timeout-minutes: 10
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies for notifications
+      run: |
+        pip install uv
+        uv sync --no-dev
+    
+    - name: Generate collection report
+      env:
+        COLLECTION_STATUS: ${{ needs.collection-and-processing.outputs.collection-status }}
+        PROPERTIES_COLLECTED: ${{ needs.collection-and-processing.outputs.properties-collected }}
+        ZIP_CODES: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+        COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
+      run: |
+        cat << EOF >> $GITHUB_STEP_SUMMARY
+        # Daily Data Collection Report
+        
+        **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Status**: $COLLECTION_STATUS
+        **Properties Collected**: $PROPERTIES_COLLECTED
+        **ZIP Codes**: $ZIP_CODES
+        **Collection Mode**: $COLLECTION_MODE
+        
+        **GitHub Actions Run**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        
+        ## Next Steps
+        - Scheduled collection: Tomorrow at 3 AM Phoenix time
+        - Monitor data quality and system health
+        - Review any error logs if status is not success
+        EOF
+    
+    - name: Send email notification
+      if: always()
+      env:
+        EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED || 'false' }}
+        COLLECTION_STATUS: ${{ needs.collection-and-processing.outputs.collection-status }}
+        PROPERTIES_COLLECTED: ${{ needs.collection-and-processing.outputs.properties-collected }}
+      run: |
+        if [[ "$EMAIL_ENABLED" == "true" ]]; then
+          echo "Email notifications configured - sending status update..."
+          # Email script would go here when implemented
+          echo "[INFO] Email notification would be sent: Status $COLLECTION_STATUS, Properties $PROPERTIES_COLLECTED"
+        else
+          echo "[INFO] Email notifications not configured"
+        fi
+    
+    - name: Create failure issue
+      if: needs.collection-and-processing.outputs.collection-status == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = `
+          ## Production Data Collection Failed
+          
+          **Run ID**: ${{ github.run_id }}
+          **Date**: ${new Date().toISOString()}
+          **Properties Collected**: ${{ needs.collection-and-processing.outputs.properties-collected }}
+          **ZIP Codes**: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+          **Collection Mode**: ${{ github.event.inputs.collection_mode || 'incremental' }}
+          
+          ### Action Required
+          - Check workflow logs for error details
+          - Verify API credentials and service health
+          - Consider manual collection if needed
+          - Update this issue when resolved
+          
+          [View Run Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Production Collection Failed - ${new Date().toDateString()}`,
+            body: issueBody,
+            labels: ['automation', 'production', 'data-collection', 'failure', 'urgent']
+          });
