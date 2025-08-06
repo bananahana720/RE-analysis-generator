@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from phoenix_real_estate.foundation.config.base import EnvironmentConfigProvider
+from phoenix_real_estate.foundation.database.repositories import PropertyRepository
 from phoenix_real_estate.collectors.maricopa import MaricopaAPICollector
 
 
@@ -29,8 +30,18 @@ async def test_maricopa_collector(zip_code="85031", mode="test"):
 
     print(f"[OK] API Key configured: {api_key[:8]}...")
 
+    # Create repository instance (without database for testing)
+    try:
+        repository = PropertyRepository.get_instance()
+        print("[OK] Repository initialized")
+    except Exception as e:
+        print(f"[WARN] Repository initialization failed: {e}")
+        print("[INFO] Using mock repository for testing")
+        from phoenix_real_estate.foundation.database.mock import MockPropertyRepository
+        repository = MockPropertyRepository()
+
     # Initialize collector
-    collector = MaricopaAPICollector(config)
+    collector = MaricopaAPICollector(config, repository)
 
     try:
         # Test search by ZIP code
@@ -42,10 +53,17 @@ async def test_maricopa_collector(zip_code="85031", mode="test"):
             properties = await collector.collect_properties(zip_code)
             
         print(f"[OK] Found {len(properties)} properties")
+        
+        if properties:
+            print(f"[SAMPLE] First property ID: {properties[0].get('id', 'N/A')}")
+        
+        print("[SUCCESS] Maricopa collector test completed")
         return True
         
     except Exception as e:
         print(f"[ERROR] Collector test failed: {e}")
+        import traceback
+        traceback.print_exc()
         return False
     finally:
         await collector.close()
