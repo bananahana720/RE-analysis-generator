@@ -1,4 +1,4 @@
-name: Mock Data Collection Pipeline
+name: Daily Real Estate Data Collection
 
 on:
   schedule:
@@ -42,7 +42,7 @@ jobs:
     name: Validate Production Secrets
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+    environment: production
     outputs:
       validation-status: ${{ steps.validation.outputs.status }}
     
@@ -57,7 +57,24 @@ jobs:
       run: |
         missing_secrets=()
         
-# Mock secrets for testing        echo "[OK] Using mock secrets for testing pipeline"        echo "MONGODB_URL: ${MONGODB_URL:-mongodb://localhost:27017}"        echo "MARICOPA_API_KEY: ${MARICOPA_API_KEY:-mock-maricopa-key}"        echo "WEBSHARE_API_KEY: ${WEBSHARE_API_KEY:-mock-webshare-key}"        echo "CAPTCHA_API_KEY: ${CAPTCHA_API_KEY:-mock-captcha-key}"        echo "status=success" >> $GITHUB_OUTPUT
+        # Check production secrets
+        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
+        [[ -z "$WEBSHARE_API_KEY" ]] && missing_secrets+=("WEBSHARE_API_KEY")
+        [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
+        
+        if [ ${#missing_secrets[@]} -eq 0 ]; then
+          echo "[OK] All required production secrets are configured"
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "[FAIL] Missing required production secrets:"
+          printf '%s\n' "${missing_secrets[@]}"
+          echo ""
+          echo "Please configure these secrets in:"
+          echo "Repository Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?] production"
+          echo ""
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
         fi
 
   pre-collection-setup:
@@ -65,8 +82,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: validate-secrets
-    
-    
+    environment: production
+    secrets: inherit
     
     outputs:
       collection-mode: ${{ steps.config.outputs.collection-mode }}
@@ -94,13 +111,11 @@ jobs:
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           echo "collection-mode=${{ github.event.inputs.collection_mode }}" >> $GITHUB_OUTPUT
-          # Convert comma-separated zip codes to JSON array
-          zip_codes="${{ github.event.inputs.zip_codes }}"
-          json_array=$(echo "$zip_codes" | awk -F',' '{printf "["; for(i=1;i<=NF;i++) printf "%s\"%s\"", (i>1?",":""), $i; printf "]"}')
-          echo "zip-codes=$json_array" >> $GITHUB_OUTPUT
+          # Simplified zip code handling - no complex JSON processing
+          echo "zip-codes=${{ github.event.inputs.zip_codes }}" >> $GITHUB_OUTPUT
         else
           echo "collection-mode=incremental" >> $GITHUB_OUTPUT
-          echo 'zip-codes=["85031","85033","85035"]' >> $GITHUB_OUTPUT
+          echo 'zip-codes=85031,85033,85035' >> $GITHUB_OUTPUT
         fi
         echo "estimated-runtime=60" >> $GITHUB_OUTPUT
     
@@ -124,12 +139,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-secrets, pre-collection-setup]
     timeout-minutes: 30
-    
-    
+    environment: production
+    secrets: inherit
     
     strategy:
       matrix:
-        zip_code: ${{ fromJson(needs.pre-collection-setup.outputs.zip-codes) }}
+        zip_code: ["85031", "85033", "85035"]
       fail-fast: false
       
     steps:
@@ -181,8 +196,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-secrets, pre-collection-setup]
     timeout-minutes: 45
-    
-    
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4
@@ -243,8 +258,8 @@ jobs:
     needs: [validate-secrets, pre-collection-setup, maricopa-collection, phoenix-mls-collection]
     if: always() && (needs.maricopa-collection.result == 'success' || needs.phoenix-mls-collection.result == 'success')
     timeout-minutes: 30
-    
-    
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4
@@ -319,8 +334,8 @@ jobs:
     needs: [validate-secrets, pre-collection-setup, llm-data-processing]
     if: always() && needs.llm-data-processing.result == 'success'
     timeout-minutes: 10
-    
-    
+    environment: production
+    secrets: inherit
     
     steps:
     - uses: actions/checkout@v4
@@ -384,10 +399,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-secrets, pre-collection-setup, maricopa-collection, phoenix-mls-collection, llm-data-processing, data-quality-validation]
     if: always()
-    
-    
+    environment: production
+    secrets: inherit
     
     steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --extra dev
+    
     - name: Determine collection status
       id: status
       run: |
@@ -399,17 +429,27 @@ jobs:
         if [[ "$validation_status" == "success" ]]; then
           echo "status=success" >> $GITHUB_OUTPUT
           echo "message=[OK] Daily data collection completed successfully" >> $GITHUB_OUTPUT
+          echo "email_type=success" >> $GITHUB_OUTPUT
         elif [[ "$llm_status" == "success" ]]; then
           echo "status=partial" >> $GITHUB_OUTPUT
           echo "message=[WARN] Data collection completed with validation issues" >> $GITHUB_OUTPUT
+          echo "email_type=warning" >> $GITHUB_OUTPUT
         elif [[ "$maricopa_status" == "success" || "$phoenix_mls_status" == "success" ]]; then
           echo "status=partial" >> $GITHUB_OUTPUT
           echo "message=[WARN] Data collection completed but LLM processing failed" >> $GITHUB_OUTPUT
+          echo "email_type=warning" >> $GITHUB_OUTPUT
         else
           echo "status=failure" >> $GITHUB_OUTPUT
           echo "message=[FAIL] Data collection failed completely" >> $GITHUB_OUTPUT
+          echo "email_type=error" >> $GITHUB_OUTPUT
         fi
     
+    - name: Download collection artifacts for email report
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        path: email-artifacts/
+        
     - name: Create collection summary
       run: |
         cat << EOF >> $GITHUB_STEP_SUMMARY
@@ -435,6 +475,62 @@ jobs:
         - Scheduled: Tomorrow at 3 AM Phoenix time (10 AM UTC)
         - Mode: Incremental (unless manually triggered)
         EOF
+    
+    - name: Send email notification
+      if: always() && steps.status.outputs.email_type != ''
+      env:
+        # Email service configuration
+        EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED || 'false' }}
+        SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+        SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+        
+        # Collection data for email
+        COLLECTION_STATUS: ${{ steps.status.outputs.status }}
+        COLLECTION_MESSAGE: ${{ steps.status.outputs.message }}
+        EMAIL_TYPE: ${{ steps.status.outputs.email_type }}
+        ZIP_CODES: ${{ needs.pre-collection-setup.outputs.zip-codes }}
+        COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
+        
+        # Component results
+        MARICOPA_RESULT: ${{ needs.maricopa-collection.result }}
+        PHOENIX_MLS_RESULT: ${{ needs.phoenix-mls-collection.result }}
+        LLM_RESULT: ${{ needs.llm-data-processing.result }}
+        VALIDATION_RESULT: ${{ needs.data-quality-validation.result }}
+        
+        # GitHub context
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        # Only send email if service is configured
+        if [[ "$EMAIL_ENABLED" == "true" && -n "$SMTP_HOST" && -n "$SENDER_EMAIL" && -n "$RECIPIENT_EMAILS" ]]; then
+          echo "[INFO] Sending email notification..."
+          
+          # Copy artifacts for processing
+          mkdir -p data/processed reports
+          find email-artifacts/ -name "*.json" -type f -exec cp {} data/processed/ \; 2>/dev/null || true
+          find email-artifacts/ -name "*report*.json" -type f -exec cp {} reports/ \; 2>/dev/null || true
+          
+          # Run email notification script
+          uv run python scripts/deploy/send_collection_email.py \
+            --status "$COLLECTION_STATUS" \
+            --message "$COLLECTION_MESSAGE" \
+            --email-type "$EMAIL_TYPE" \
+            --zip-codes "$ZIP_CODES" \
+            --collection-mode "$COLLECTION_MODE" \
+            --maricopa-result "$MARICOPA_RESULT" \
+            --phoenix-mls-result "$PHOENIX_MLS_RESULT" \
+            --llm-result "$LLM_RESULT" \
+            --validation-result "$VALIDATION_RESULT" \
+            --github-run-url "$GITHUB_RUN_URL"
+          
+          echo "[OK] Email notification sent successfully"
+        else
+          echo "[INFO] Email service not configured, skipping email notification"
+        fi
     
     - name: Create issue on failure
       if: steps.status.outputs.status == 'failure'

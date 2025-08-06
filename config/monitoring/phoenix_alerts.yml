@@ -1,0 +1,38 @@
+groups:
+  - name: phoenix_real_estate_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      - alert: HighErrorRate
+        expr: (rate(phoenix_errors_total[5m]) / rate(phoenix_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+      - alert: DatabaseConnectionFailed
+        expr: phoenix_database_connection_errors_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection failures"
+          description: "Database connection has failed {{ $value }} times"
+
+      - alert: LLMProcessingStalled
+        expr: phoenix_llm_processing_duration_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM processing taking too long"
+          description: "LLM processing has been running for {{ $value }} seconds"

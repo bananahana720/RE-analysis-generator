@@ -139,3 +139,50 @@ error_handling:
   max_error_rate: 0.1  # 10%
   error_cooldown_minutes: 15
   alert_on_consecutive_failures: 5
+
+# Email reporting configuration
+email:
+  enabled: false  # Enable only if SMTP configured
+  
+  # SMTP server configuration
+  smtp:
+    host: ""  # SMTP server hostname
+    port: 587  # SMTP port (587 for TLS, 465 for SSL, 25 for plain)
+    use_tls: true  # Enable STARTTLS
+    use_ssl: false  # Use SSL from start (use port 465)
+    username: ""  # SMTP username (often same as sender email)
+    password: ""  # SMTP password (use environment variable)
+  
+  # Sender configuration
+  sender:
+    email: ""  # Sender email address
+    name: "Phoenix Real Estate Collector"  # Display name
+  
+  # Recipients (comma-separated string or list)
+  recipients: ""
+  
+  # Email scheduling and limits
+  schedule:
+    daily_report_enabled: true
+    daily_report_time: "08:00"  # 24-hour format, UTC
+    error_alerts_enabled: true
+    success_notifications_enabled: false
+    
+  # Rate limiting and delivery
+  rate_limit_per_hour: 100  # Maximum emails per hour
+  timeout: 30  # SMTP timeout in seconds
+  max_recipients: 10  # Maximum recipients per email
+  
+  # Report content configuration
+  reports:
+    include_properties: true  # Include property details in reports
+    max_properties_in_email: 10  # Limit properties shown in email
+    include_charts: false  # Future enhancement for charts/graphs
+    include_error_details: true  # Include error information
+    
+  # Template configuration
+  templates:
+    use_html: true  # Send HTML emails (fallback to text)
+    responsive_design: true  # Mobile-friendly templates
+    company_logo: ""  # URL to company logo (optional)
+    footer_text: "Automated report from Phoenix Real Estate Data Collector"

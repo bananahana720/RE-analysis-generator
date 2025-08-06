@@ -1,134 +1,121 @@
 {
   "dashboard": {
-    "title": "Phoenix MLS Scraper Monitoring",
+    "id": null,
+    "title": "Phoenix Real Estate System Monitoring",
     "tags": [
-      "scraper",
-      "monitoring",
-      "phoenix"
+      "phoenix",
+      "real-estate",
+      "monitoring"
     ],
-    "timezone": "browser",
+    "timezone": "America/Phoenix",
     "panels": [
       {
-        "title": "Scraping Success Rate",
-        "type": "graph",
-        "gridPos": {
-          "x": 0,
-          "y": 0,
-          "w": 12,
-          "h": 8
-        },
-        "targets": [
-          {
-            "expr": "rate(scraper_requests_total{status=\"success\"}[5m]) / rate(scraper_requests_total[5m]) * 100",
-            "legendFormat": "Success Rate %"
-          }
-        ]
-      },
-      {
-        "title": "Request Rate",
-        "type": "graph",
-        "gridPos": {
-          "x": 12,
-          "y": 0,
-          "w": 12,
-          "h": 8
-        },
-        "targets": [
-          {
-            "expr": "rate(scraper_requests_total[5m])",
-            "legendFormat": "{{status}}"
-          }
-        ]
-      },
-      {
-        "title": "Response Time (95th percentile)",
-        "type": "graph",
-        "gridPos": {
-          "x": 0,
-          "y": 8,
-          "w": 12,
-          "h": 8
-        },
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(scraper_response_time_seconds_bucket[5m]))",
-            "legendFormat": "{{endpoint}}"
-          }
-        ]
-      },
-      {
-        "title": "Proxy Health",
+        "id": 1,
+        "title": "System Health Status",
         "type": "stat",
-        "gridPos": {
-          "x": 12,
-          "y": 8,
-          "w": 6,
-          "h": 8
-        },
         "targets": [
           {
-            "expr": "proxy_healthy_count",
-            "legendFormat": "Healthy Proxies"
+            "expr": "phoenix_system_health_status",
+            "refId": "A"
           }
-        ]
-      },
-      {
-        "title": "Rate Limit Status",
-        "type": "gauge",
+        ],
         "gridPos": {
-          "x": 18,
-          "y": 8,
-          "w": 6,
-          "h": 8
-        },
-        "targets": [
-          {
-            "expr": "rate_limit_current_rate{endpoint=\"phoenix_mls\"}",
-            "legendFormat": "Requests/min"
-          }
-        ]
-      },
-      {
-        "title": "Properties Scraped",
-        "type": "graph",
-        "gridPos": {
+          "h": 8,
+          "w": 12,
           "x": 0,
-          "y": 16,
-          "w": 12,
-          "h": 8
-        },
-        "targets": [
-          {
-            "expr": "increase(scraper_properties_scraped_total[1h])",
-            "legendFormat": "{{zipcode}}"
-          }
-        ]
+          "y": 0
+        }
       },
       {
-        "title": "System Resources",
+        "id": 2,
+        "title": "CPU Usage",
         "type": "graph",
-        "gridPos": {
-          "x": 12,
-          "y": 16,
-          "w": 12,
-          "h": 8
-        },
         "targets": [
           {
-            "expr": "system_cpu_usage_percent",
-            "legendFormat": "CPU %"
-          },
-          {
-            "expr": "system_memory_usage_percent",
-            "legendFormat": "Memory %"
+            "expr": "phoenix_cpu_usage_percent",
+            "refId": "A"
           }
-        ]
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "phoenix_memory_usage_percent",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "phoenix_database_connections_active",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "LLM Processing Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "phoenix_llm_processing_duration_seconds",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "title": "Collection Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "phoenix_collection_success_rate",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
       }
     ],
     "time": {
       "from": "now-6h",
       "to": "now"
     },
-    "refresh": "10s"
+    "refresh": "30s"
   }
 }

@@ -19,6 +19,7 @@ from phoenix_real_estate.collectors.processing.pipeline import (
 from phoenix_real_estate.foundation import ConfigProvider, PropertyRepository, get_logger
 from phoenix_real_estate.foundation.utils.exceptions import ProcessingError
 from phoenix_real_estate.models.property import PropertyDetails
+from phoenix_real_estate.services.email_service import EmailReportService, ReportData
 
 
 logger = get_logger(__name__)
@@ -78,6 +79,7 @@ class ProcessingIntegrator:
         config: ConfigProvider,
         repository: PropertyRepository,
         pipeline: Optional[DataProcessingPipeline] = None,
+        email_service: Optional[EmailReportService] = None,
     ) -> None:
         """Initialize the processing integrator.
 
@@ -85,6 +87,7 @@ class ProcessingIntegrator:
             config: Configuration provider
             repository: Property repository for database operations
             pipeline: Optional processing pipeline (will create if not provided)
+            email_service: Optional email reporting service (will create if not provided)
         """
         self.config = config
         self.repository = repository
@@ -92,6 +95,14 @@ class ProcessingIntegrator:
 
         # Initialize pipeline if not provided
         self.pipeline = pipeline or DataProcessingPipeline(config)
+        
+        # Initialize email service if email reporting is enabled
+        self.email_service = None
+        if config.get_typed("email.enabled", bool, False):
+            self.email_service = email_service or EmailReportService(config)
+            self.logger.info("Email reporting service initialized")
+        else:
+            self.logger.debug("Email reporting disabled")
 
         # Configuration
         self.batch_size = getattr(config, "getattr", lambda k, d: getattr(config.settings, k, d))(
@@ -617,3 +628,171 @@ class ProcessingIntegrator:
             "errors": [],
         }
         self.logger.info("Integration metrics cleared")
+
+    # Email Reporting Methods
+
+    async def send_processing_report(
+        self, 
+        batch_result: BatchIntegrationResult,
+        properties: Optional[List[PropertyDetails]] = None,
+        report_type: str = "daily"
+    ) -> bool:
+        """Send email report of processing results.
+        
+        Args:
+            batch_result: Results from batch processing
+            properties: Optional list of processed properties
+            report_type: Type of report (daily, weekly, success, error)
+            
+        Returns:
+            True if report sent successfully
+        """
+        if not self.email_service:
+            self.logger.debug("Email service not configured, skipping report")
+            return False
+        
+        try:
+            # Create report data
+            report_data = ReportData(
+                title=f"Phoenix Real Estate {report_type.title()} Report",
+                summary=self._generate_processing_summary(batch_result),
+                collection_results=batch_result,
+                properties=properties or [],
+                metrics=self.get_metrics(),
+                errors=batch_result.errors,
+                report_type=report_type
+            )
+            
+            # Send appropriate report type
+            if report_type == "daily":
+                return await self.email_service.send_daily_report(report_data)
+            elif report_type == "success":
+                return await self.email_service.send_success_summary(
+                    batch_result, batch_result.processing_time
+                )
+            else:
+                # Generic daily report as fallback
+                return await self.email_service.send_daily_report(report_data)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to send processing report: {e}")
+            return False
+
+    async def send_error_alert(
+        self, 
+        error_title: str,
+        error_details: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """Send immediate error alert email.
+        
+        Args:
+            error_title: Brief error description
+            error_details: Detailed error information  
+            context: Additional context information
+            
+        Returns:
+            True if alert sent successfully
+        """
+        if not self.email_service:
+            self.logger.debug("Email service not configured, skipping error alert")
+            return False
+        
+        try:
+            # Add integration metrics to context
+            full_context = context or {}
+            full_context.update({
+                "integration_metrics": self.get_metrics(),
+                "timestamp": datetime.now(UTC).isoformat(),
+            })
+            
+            return await self.email_service.send_error_alert(
+                error_title, error_details, full_context
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send error alert: {e}")
+            return False
+
+    async def send_daily_summary(
+        self,
+        include_properties: bool = True,
+        include_errors: bool = True
+    ) -> bool:
+        """Send daily summary email with current metrics.
+        
+        Args:
+            include_properties: Whether to include property details
+            include_errors: Whether to include error information
+            
+        Returns:
+            True if summary sent successfully
+        """
+        if not self.email_service:
+            self.logger.debug("Email service not configured, skipping daily summary")
+            return False
+        
+        try:
+            metrics = self.get_metrics()
+            
+            # Create synthetic batch result from current metrics
+            batch_result = BatchIntegrationResult(
+                total_processed=metrics["total_processed"],
+                successful=metrics["successful"],
+                failed=metrics["failed"],
+                processing_time=metrics.get("average_processing_time", 0) * metrics["total_processed"],
+                errors=metrics["recent_errors"] if include_errors else []
+            )
+            
+            # Create report data
+            report_data = ReportData(
+                title="Phoenix Real Estate Daily Summary",
+                summary=f"Processed {metrics['total_processed']} properties with {metrics['success_rate']:.1f}% success rate",
+                collection_results=batch_result,
+                properties=[] if not include_properties else [],  # Could be enhanced to fetch recent properties
+                metrics=metrics,
+                errors=metrics["recent_errors"] if include_errors else [],
+                report_type="daily"
+            )
+            
+            return await self.email_service.send_daily_report(report_data, include_properties)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to send daily summary: {e}")
+            return False
+
+    def _generate_processing_summary(self, batch_result: BatchIntegrationResult) -> str:
+        """Generate human-readable summary of processing results.
+        
+        Args:
+            batch_result: Batch processing results
+            
+        Returns:
+            Summary string
+        """
+        if batch_result.total_processed == 0:
+            return "No properties were processed in this batch."
+        
+        success_rate = (batch_result.successful / batch_result.total_processed) * 100
+        
+        summary_parts = [
+            f"Processed {batch_result.total_processed} properties in {batch_result.processing_time:.1f} seconds",
+            f"Success rate: {success_rate:.1f}% ({batch_result.successful} successful, {batch_result.failed} failed)"
+        ]
+        
+        if batch_result.processing_time > 0:
+            avg_per_property = batch_result.processing_time / batch_result.total_processed
+            summary_parts.append(f"Average processing time: {avg_per_property:.2f} seconds per property")
+        
+        if batch_result.errors:
+            summary_parts.append(f"Encountered {len(batch_result.errors)} errors during processing")
+        
+        return ". ".join(summary_parts) + "."
+
+    def get_email_service(self) -> Optional[EmailReportService]:
+        """Get the email service instance.
+        
+        Returns:
+            EmailReportService instance or None if not configured
+        """
+        return self.email_service

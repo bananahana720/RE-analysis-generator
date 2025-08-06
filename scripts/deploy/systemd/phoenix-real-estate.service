@@ -1,0 +1,34 @@
+[Unit]
+Description=Phoenix Real Estate Data Collector
+After=network.target mongod.service
+Wants=mongod.service
+
+[Service]
+Type=simple
+User=phoenix
+Group=phoenix
+WorkingDirectory=/opt/phoenix-real-estate
+Environment=PHOENIX_ENV=production
+EnvironmentFile=/opt/phoenix-real-estate/.env.production
+ExecStart=/opt/phoenix-real-estate/.venv/bin/python -m phoenix_real_estate.orchestration.scheduler
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=phoenix-real-estate
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/phoenix-real-estate/logs /opt/phoenix-real-estate/data
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+{
+  "2025-08": [
+    {
+      "service": "webshare",
+      "category": "proxy_usage",
+      "amount": "2.50",
+      "timestamp": "2025-08-03T17:48:36.503529+00:00",
+      "usage_metric": "1000 API calls",
+      "unit_cost": "0.0025"
+    },
+    {
+      "service": "mongodb",
+      "category": "storage",
+      "amount": "1.75",
+      "timestamp": "2025-08-03T17:48:36.504078+00:00",
+      "usage_metric": "2GB storage",
+      "unit_cost": "0.875"
+    },
+    {
+      "service": "ollama",
+      "category": "compute",
+      "amount": "0.85",
+      "timestamp": "2025-08-03T17:48:36.511266+00:00",
+      "usage_metric": "500 LLM requests",
+      "unit_cost": "0.0017"
+    }
+  ]
+}

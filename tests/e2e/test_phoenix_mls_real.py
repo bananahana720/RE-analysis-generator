@@ -1,4 +1,4 @@
-#\!/usr/bin/env python3
+# \!/usr/bin/env python3
 """
 Real Playwright-based E2E tests for Phoenix MLS data collection.
 
@@ -14,17 +14,16 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
-
 class TestPhoenixMLSE2E:
     """End-to-end tests for Phoenix MLS data collection."""
-    
+
     @pytest.mark.asyncio
     async def test_phoenix_mls_data_collection_flow(self):
         """Test the complete Phoenix MLS data collection workflow."""
         # This is a placeholder test that should be implemented when MLS integration is ready
         pytest.skip("Phoenix MLS integration not yet implemented")
-        
-    @pytest.mark.asyncio  
+
+    @pytest.mark.asyncio
     async def test_scraper_initialization(self):
         """Test that the scraper can be initialized properly."""
         # This is a placeholder test

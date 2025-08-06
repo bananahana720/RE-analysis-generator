@@ -139,7 +139,6 @@ class WorkflowValidator:
 
         return actions
 
-
     def _find_circular_dependencies(self, dependencies: Dict[str, List[str]]) -> List[str]:
         """Find circular dependencies in job graph using DFS."""
         visited = set()
@@ -153,17 +152,17 @@ class WorkflowValidator:
                 cycle_path = path[cycle_start:] + [node]
                 circular_deps.append(" -> ".join(cycle_path))
                 return True
-            
+
             if node in visited:
                 return False
-            
+
             visited.add(node)
             rec_stack.add(node)
-            
+
             for neighbor in dependencies.get(node, []):
                 if dfs(neighbor, path + [node]):
                     return True
-            
+
             rec_stack.remove(node)
             return False
 
@@ -176,38 +175,38 @@ class WorkflowValidator:
     def validate_workflow(self, workflow_path: str) -> Dict[str, Any]:
         """Validate complete workflow file."""
         try:
-            with open(workflow_path, 'r') as f:
+            with open(workflow_path, "r") as f:
                 content = f.read()
-            
+
             # Validate YAML syntax
             syntax_result = self.validate_yaml_syntax(content)
             workflow_data = syntax_result["data"]
-            
+
             # Validate job dependencies
             dep_errors = self.validate_job_dependencies(workflow_data)
-            
+
             # Validate action versions
             action_warnings = self.validate_action_versions(workflow_data)
-            
+
             # Extract required secrets for validation
             secrets_used = self._extract_secrets_from_workflow(workflow_data)
-            
+
             return {
                 "status": "valid" if not dep_errors else "invalid",
                 "syntax": syntax_result["status"],
                 "dependency_errors": dep_errors,
                 "action_warnings": action_warnings,
                 "required_secrets": list(secrets_used),
-                "validation_errors": self.validation_errors
+                "validation_errors": self.validation_errors,
             }
-            
+
         except Exception as e:
             error_msg = f"Workflow validation failed: {e}"
             self.logger.error(error_msg)
             return {
                 "status": "invalid",
                 "error": error_msg,
-                "validation_errors": self.validation_errors + [error_msg]
+                "validation_errors": self.validation_errors + [error_msg],
             }
 
 
@@ -216,64 +215,65 @@ def main():
     import argparse
     import sys
     from pathlib import Path
-    
+
     parser = argparse.ArgumentParser(description="Validate GitHub Actions workflows")
     parser.add_argument("command", choices=["validate"], help="Command to execute")
     parser.add_argument("workflow", help="Workflow name (e.g., 'data-collection')")
-    parser.add_argument("--workflow-dir", default=".github/workflows", 
-                       help="Directory containing workflow files")
-    parser.add_argument("--verbose", "-v", action="store_true", 
-                       help="Enable verbose output")
-    
+    parser.add_argument(
+        "--workflow-dir", default=".github/workflows", help="Directory containing workflow files"
+    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+
     args = parser.parse_args()
-    
+
     # Determine workflow file path
     workflow_file = f"{args.workflow}.yml"
     workflow_path = Path(args.workflow_dir) / workflow_file
-    
+
     if not workflow_path.exists():
         print(f"ERROR: Workflow file not found: {workflow_path}")
         sys.exit(1)
-    
+
     # Initialize validator
     try:
         from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
+
         validator = WorkflowValidator(EnvironmentConfigProvider())
     except ImportError:
         validator = WorkflowValidator()
-    
+
     # Validate workflow
     result = validator.validate_workflow(str(workflow_path))
-    
+
     # Output results
     if args.verbose:
         print(f"Validating workflow: {workflow_path}")
         print(f"Status: {result['status']}")
-        
-        if result.get('dependency_errors'):
+
+        if result.get("dependency_errors"):
             print("Dependency Errors:")
-            for error in result['dependency_errors']:
+            for error in result["dependency_errors"]:
                 print(f"  - {error}")
-        
-        if result.get('action_warnings'):
+
+        if result.get("action_warnings"):
             print("Action Warnings:")
-            for warning in result['action_warnings']:
+            for warning in result["action_warnings"]:
                 print(f"  - {warning}")
-        
-        if result.get('required_secrets'):
-            secrets_count = len(result['required_secrets'])
+
+        if result.get("required_secrets"):
+            secrets_count = len(result["required_secrets"])
             print(f"Required Secrets ({secrets_count}):")
-            for secret in sorted(result['required_secrets']):
+            for secret in sorted(result["required_secrets"]):
                 print(f"  - {secret}")
-    
+
     # Exit with appropriate code
-    if result['status'] == 'valid':
+    if result["status"] == "valid":
         print(f"[OK] Workflow {args.workflow} is valid")
         sys.exit(0)
     else:
         print(f"[FAIL] Workflow {args.workflow} validation failed")
-        if result.get('validation_errors'):
-            for error in result['validation_errors']:
+        if result.get("validation_errors"):
+            for error in result["validation_errors"]:
                 print(f"  ERROR: {error}")
         sys.exit(1)
 
