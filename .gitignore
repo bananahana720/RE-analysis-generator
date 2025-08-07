@@ -242,6 +242,15 @@ Temporary Items
 .env.local
 .env.*.local
 
+# Config environment files
+config/env/.env.production
+config/env/.env.staging
+config/env/.env.development
+config/env/.env.local
+config/env/.env.*
+!config/env/.env.example
+!config/env/.env.template
+
 # API keys and credentials
 *.pem
 *.key
@@ -346,6 +355,11 @@ proxies.txt
 paid_proxies.yaml
 config/proxies.yaml
 !config/proxies.yaml.example
+data/proxies/webshare_proxy_list.txt
+*webshare_proxy_list*
+*_proxy_list.txt
+scripts/testing/*working_proxy*
+scripts/testing/test_webshare_working_proxy.py
 
 ############################
 # Build & Dependencies
@@ -531,3 +545,10 @@ nul
 
 # Machine-specific startup scripts
 start_mongodb.bat
+
+# Temporary validation files
+temp_validation.txt
+workflow_execution_log.txt
+
+# Large log files that shouldn't be committed
+*.execution.log
