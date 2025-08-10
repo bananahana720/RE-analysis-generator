@@ -322,6 +322,10 @@ class EnvironmentConfigProvider(ConfigProvider):
             "LLM_MODEL": "processing.llm_model",
             "LLM_TIMEOUT": "processing.llm_timeout",
             "SECRET_KEY": "security.secret_key",
+            "API_KEY": "api.key",
+            "MARICOPA_API_KEY": "api.key", 
+            "MONITORING_ENABLED": "monitoring.enabled",
+            "MONITORING_ENDPOINT": "monitoring.endpoint",
             "CAPTCHA_API_KEY": "sources.phoenix_mls.captcha.api_key",
             "CAPTCHA_SERVICE": "sources.phoenix_mls.captcha.service",
         }

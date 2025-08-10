@@ -407,11 +407,11 @@ networks:
 """
 
     try:
-        with open("docker-compose.production.yml", "w") as f:
+        with open("docker/docker-compose.production.yml", "w") as f:
             f.write(docker_compose_content)
 
-        logger.info("Created Docker Compose configuration: docker-compose.production.yml")
-        logger.info("To start: docker-compose -f docker-compose.production.yml up -d")
+        logger.info("Created Docker Compose configuration: docker/docker-compose.production.yml")
+        logger.info("To start: docker-compose -f docker/docker-compose.production.yml up -d")
         return True
 
     except Exception as e:

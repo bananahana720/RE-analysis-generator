@@ -1,0 +1,139 @@
+# Development Environment Configuration
+# Extends base configuration with development-specific overrides
+
+# Environment metadata
+environment:
+  name: "development"
+  description: "Local development environment with relaxed settings"
+  
+# Service configurations
+services:
+  # MongoDB configuration for development
+  mongodb:
+    connection_string: "${MONGODB_URL:-mongodb://localhost:27017}"
+    database: "${MONGODB_DATABASE:-phoenix_real_estate_dev}"
+    max_pool_size: 5
+    min_pool_size: 1
+    connection_timeout_ms: 10000
+    
+  # Ollama LLM service for development
+  ollama:
+    base_url: "${OLLAMA_URL:-http://localhost:11434}"
+    model: "${LLM_MODEL:-llama3.2:latest}"
+    timeout: 60
+    startup_timeout_seconds: 180
+    max_retries: 3
+
+# Logging configuration for development
+logging:
+  level: "DEBUG"
+  format: "text"
+  console_output: true
+  file_output: true
+  file_path: "logs/development.log"
+  max_file_size_mb: 10
+  backup_count: 3
+
+# Development-specific collection settings
+collection:
+  max_requests_per_hour: 50  # Lower for development
+  min_request_delay: 5.0     # Slower for safety
+  
+  # Test with single ZIP code
+  target_zip_codes:
+    - "85031"
+  
+  # Request settings
+  timeout_seconds: 30
+  max_retries: 3
+  user_agent: "Phoenix Real Estate Collector (Development)"
+
+# Data source configuration for development
+sources:
+  maricopa_county:
+    enabled: true
+    base_url: "${MARICOPA_BASE_URL:-https://mcassessor.maricopa.gov}"
+    api_key: "${MARICOPA_API_KEY}"
+    rate_limit: 50  # Conservative for development
+    timeout: 10
+    
+  phoenix_mls:
+    enabled: false  # Disable scraping in development
+    base_url: "https://phoenixmlssearch.com"
+    timeout: 30
+    stealth_mode: false
+    
+  particle_space:
+    enabled: false
+    api_key: "${PARTICLE_API_KEY}"
+
+# Proxy configuration (disabled for development)
+proxy:
+  enabled: false
+  provider: "webshare"
+  api_key: "${WEBSHARE_API_KEY}"
+  rotation_enabled: false
+
+# LLM processing configuration for development
+processing:
+  llm_model: "llama3.2:latest"
+  batch_size: 5
+  max_processing_workers: 1
+  timeout_seconds: 60
+  
+  # Extraction settings
+  extraction:
+    temperature: 0.1
+    max_tokens: 2048
+    required_fields: ["address", "price", "bedrooms", "bathrooms"]
+
+# Relaxed validation for development
+validation:
+  strict_mode: false
+  require_address: true
+  require_price: false
+  max_price: 100000000  # Allow higher for testing
+  min_price: 0
+
+# Performance settings for development
+performance:
+  enable_caching: true
+  cache_ttl_minutes: 10  # Shorter cache for development
+  max_memory_usage_mb: 256
+  gc_interval_requests: 50
+
+# Development error handling (relaxed)
+error_handling:
+  max_error_rate: 0.5  # Allow more errors in development
+  error_cooldown_minutes: 5
+  alert_on_consecutive_failures: 10
+  retry_backoff_seconds: [1, 2, 5]
+
+# Feature flags for development
+features:
+  external_apis_enabled: true
+  proxy_required: false
+  captcha_solving_enabled: false
+  email_notifications_enabled: false
+  debug_mode: true
+  
+# Health check configuration
+health_checks:
+  mongodb:
+    enabled: true
+    timeout_seconds: 5
+    
+  ollama:
+    enabled: true
+    timeout_seconds: 10
+    
+  system:
+    enabled: true
+    memory_threshold_percent: 80
+
+# Security settings for development (relaxed)
+security:
+  max_session_age_hours: 24
+  encrypt_sensitive_logs: false  # Disable for easier debugging
+  sanitize_raw_data: false       # Keep raw data for debugging
+  rate_limiting_enabled: false

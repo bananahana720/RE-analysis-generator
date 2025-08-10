@@ -261,22 +261,27 @@ jobs:
         pkill -f ollama || true
         sleep 2
         
+        # Install Ollama
         curl -fsSL https://ollama.ai/install.sh | sh
-        ollama serve &
+        
+        # Start Ollama on a different port to avoid conflicts
+        OLLAMA_HOST=0.0.0.0:11435 ollama serve &
         sleep 15
-        ollama pull llama3.2:latest
-        echo "[OK] Ollama setup completed"
+        
+        # Pull model using the specific host
+        OLLAMA_HOST=localhost:11435 ollama pull llama3.2:latest
+        echo "[OK] Ollama setup completed on port 11435"
     
     - name: Wait for services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
-        timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "[OK] All services ready"
+        timeout 60 bash -c 'until curl -s http://localhost:11435/api/tags > /dev/null 2>&1; do sleep 2; done'
+        echo "[OK] All services ready (MongoDB on 27017, Ollama on 11435)"
     
     - name: Setup integration test environment
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11435
       run: |
         mkdir -p {data,logs,reports,test_data}/{raw,processed,cookies}
         cp -r tests/fixtures/* test_data/ 2>/dev/null || true
@@ -286,7 +291,7 @@ jobs:
       if: github.event.inputs.test_suite == '' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration'
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11435
         TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
         TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
       run: |
@@ -304,7 +309,7 @@ jobs:
     - name: Run LLM processing integration tests
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11435
       run: |
         uv run python scripts/testing/test_property_extractor.py
         echo "[OK] LLM integration tests completed"
@@ -381,23 +386,28 @@ jobs:
         pkill -f ollama || true
         sleep 2
         
+        # Install Ollama
         curl -fsSL https://ollama.ai/install.sh | sh
-        ollama serve &
+        
+        # Start Ollama on dedicated port for E2E tests
+        OLLAMA_HOST=0.0.0.0:11436 ollama serve &
         sleep 15
-        ollama pull llama3.2:latest
-        echo "[OK] Ollama ready for E2E tests"
+        
+        # Pull model using the specific host
+        OLLAMA_HOST=localhost:11436 ollama pull llama3.2:latest
+        echo "[OK] Ollama ready for E2E tests on port 11436"
     
     - name: Wait for all services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
-        timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "[OK] All E2E services ready"
+        timeout 60 bash -c 'until curl -s http://localhost:11436/api/tags > /dev/null 2>&1; do sleep 2; done'
+        echo "[OK] All E2E services ready (MongoDB on 27017, Ollama on 11436)"
     
     - name: Run E2E test suite
       if: github.event.inputs.test_suite == '' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'e2e'
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11436
         TEST_MARICOPA_API_KEY: ${{ secrets.TEST_MARICOPA_API_KEY }}
         TEST_WEBSHARE_API_KEY: ${{ secrets.TEST_WEBSHARE_API_KEY }}
         TEST_CAPTCHA_API_KEY: ${{ secrets.TEST_CAPTCHA_API_KEY }}
@@ -408,7 +418,7 @@ jobs:
     - name: Run quick E2E validation
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11436
       run: |
         uv run python scripts/testing/quick_e2e_check.py
         uv run python scripts/testing/run_e2e_tests.py
@@ -464,7 +474,7 @@ jobs:
     
     - name: Scan for secrets
       run: |
-        uv run python scripts/validate_secrets.py --scan-code
+        uv run python scripts/validation/validate_secrets.py --scan-code
         echo "[OK] Secret scan completed"
     
     - name: Generate security report
@@ -524,22 +534,27 @@ jobs:
         pkill -f ollama || true
         sleep 2
         
+        # Install Ollama
         curl -fsSL https://ollama.ai/install.sh | sh
-        ollama serve &
+        
+        # Start Ollama on dedicated port for performance tests
+        OLLAMA_HOST=0.0.0.0:11437 ollama serve &
         sleep 15
-        ollama pull llama3.2:latest
-        echo "[OK] Ollama ready for performance tests"
+        
+        # Pull model using the specific host
+        OLLAMA_HOST=localhost:11437 ollama pull llama3.2:latest
+        echo "[OK] Ollama ready for performance tests on port 11437"
     
     - name: Wait for services
       run: |
         timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.adminCommand(\"ping\")" > /dev/null 2>&1; do sleep 2; done'
-        timeout 60 bash -c 'until curl -s http://localhost:11434/api/tags > /dev/null 2>&1; do sleep 2; done'
-        echo "[OK] Performance test services ready"
+        timeout 60 bash -c 'until curl -s http://localhost:11437/api/tags > /dev/null 2>&1; do sleep 2; done'
+        echo "[OK] Performance test services ready (MongoDB on 27017, Ollama on 11437)"
     
     - name: Setup performance test environment
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11437
       run: |
         mkdir -p {data,logs,reports}/{raw,processed}
         echo "[OK] Performance test environment setup"
@@ -547,7 +562,7 @@ jobs:
     - name: Run performance benchmarks
       env:
         MONGODB_URL: ${{ env.TEST_MONGODB_URL }}
-        OLLAMA_URL: http://localhost:11434
+        OLLAMA_URL: http://localhost:11437
       run: |
         uv run python scripts/testing/test_performance_optimizations.py --benchmark
         uv run python scripts/testing/demo_performance_optimizations.py

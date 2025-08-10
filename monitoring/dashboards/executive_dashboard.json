@@ -1,0 +1,89 @@
+{
+  "dashboard": {
+    "name": "Phoenix Real Estate - Executive Dashboard",
+    "description": "High-level system performance and business metrics",
+    "type": "executive",
+    "refresh_interval": "5m",
+    "panels": [
+      {
+        "title": "System Health Overview",
+        "type": "stat",
+        "metrics": [
+          {
+            "name": "system_uptime_percentage",
+            "target": ">99.5%"
+          },
+          {
+            "name": "daily_success_rate",
+            "target": ">95%"
+          },
+          {
+            "name": "cost_efficiency",
+            "target": "<$3/month"
+          }
+        ]
+      },
+      {
+        "title": "Business Performance",
+        "type": "graph",
+        "metrics": [
+          {
+            "name": "properties_collected_daily",
+            "target": ">1000"
+          },
+          {
+            "name": "data_quality_score",
+            "target": ">90%"
+          },
+          {
+            "name": "geographic_coverage",
+            "target": "3 zip codes"
+          }
+        ]
+      },
+      {
+        "title": "Cost Tracking",
+        "type": "gauge",
+        "metrics": [
+          {
+            "name": "monthly_spend",
+            "budget": "$25",
+            "current": "<$3"
+          },
+          {
+            "name": "cost_per_property",
+            "target": "<$0.003"
+          },
+          {
+            "name": "efficiency_ratio",
+            "target": "86% under budget"
+          }
+        ]
+      },
+      {
+        "title": "Strategic Targets",
+        "type": "table",
+        "data": [
+          {
+            "metric": "Success Rate",
+            "target": "80%",
+            "current": "95%",
+            "status": "\u2705 EXCEEDED"
+          },
+          {
+            "metric": "Budget Usage",
+            "target": "$25/month",
+            "current": "$2-3/month",
+            "status": "\u2705 EFFICIENT"
+          },
+          {
+            "metric": "Data Quality",
+            "target": "90%",
+            "current": "98%",
+            "status": "\u2705 EXCELLENT"
+          }
+        ]
+      }
+    ]
+  }
+}

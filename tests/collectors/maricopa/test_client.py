@@ -25,14 +25,11 @@ class TestMaricopaAPIClientConfiguration:
     def test_init_success_with_required_config(self):
         """Test successful initialization with all required configuration."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_api_key_12345",
-            "MARICOPA_BASE_URL": "https://mcassessor.maricopa.gov",
-        }.get(key, default)
-        config.get_int.side_effect = lambda key, default=None: {
-            "MARICOPA_RATE_LIMIT": 1000,
-            "MARICOPA_TIMEOUT": 30,
-        }.get(key, default)
+        # Set attributes that the client reads with getattr()
+        config.maricopa_api_key = "test_api_key_12345"
+        config.maricopa_base_url = "https://mcassessor.maricopa.gov"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
 
         client = MaricopaAPIClient(config)
 
@@ -44,13 +41,9 @@ class TestMaricopaAPIClientConfiguration:
     def test_init_with_defaults(self):
         """Test initialization with default configuration values."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {"MARICOPA_API_KEY": "test_key"}.get(
-            key, default
-        )
-        config.get_int.side_effect = lambda key, default=None: {
-            "MARICOPA_RATE_LIMIT": default if key == "MARICOPA_RATE_LIMIT" else default,
-            "MARICOPA_TIMEOUT": default if key == "MARICOPA_TIMEOUT" else default,
-        }.get(key, default)
+        # Only set required API key, let others use environment defaults
+        config.maricopa_api_key = "test_key"
+        # Remove other attributes so getattr() falls back to os.getenv()
 
         client = MaricopaAPIClient(config)
 
@@ -61,8 +54,8 @@ class TestMaricopaAPIClientConfiguration:
     def test_init_missing_api_key(self):
         """Test initialization failure when API key is missing."""
         config = Mock(spec=ConfigProvider)
-        config.get.return_value = None
-        config.get_int.return_value = 30
+        # Set maricopa_api_key to empty string to simulate missing API key
+        config.maricopa_api_key = ""
 
         with pytest.raises(ConfigurationError, match="Missing required config: MARICOPA_API_KEY"):
             MaricopaAPIClient(config)
@@ -70,11 +63,8 @@ class TestMaricopaAPIClientConfiguration:
     def test_init_https_enforcement(self):
         """Test HTTPS-only enforcement."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "http://insecure-api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 30
+        config.maricopa_api_key = "test_key"
+        config.maricopa_base_url = "http://insecure-api.example.com"
 
         with pytest.raises(ConfigurationError, match="HTTPS-only communication required"):
             MaricopaAPIClient(config)
@@ -82,11 +72,8 @@ class TestMaricopaAPIClientConfiguration:
     def test_init_invalid_url_format(self):
         """Test initialization failure with invalid URL format."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "invalid-url-format",
-        }.get(key, default)
-        config.get_int.return_value = 30
+        config.maricopa_api_key = "test_key"
+        config.maricopa_base_url = "invalid-url-format"
 
         with pytest.raises(ConfigurationError, match="Invalid base URL format"):
             MaricopaAPIClient(config)
@@ -94,11 +81,8 @@ class TestMaricopaAPIClientConfiguration:
     def test_base_url_trailing_slash_removal(self):
         """Test that trailing slashes are removed from base URL."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com/",
-        }.get(key, default)
-        config.get_int.return_value = 30
+        config.maricopa_api_key = "test_key"
+        config.maricopa_base_url = "https://api.example.com/"
 
         client = MaricopaAPIClient(config)
         assert client.base_url == "https://api.example.com"
@@ -111,11 +95,10 @@ class TestMaricopaAPIClientAuthentication:
     def mock_config(self):
         """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_api_key_secure",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1000
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     def test_authentication_headers(self, mock_config):
@@ -126,7 +109,7 @@ class TestMaricopaAPIClientAuthentication:
         assert headers["AUTHORIZATION"] == "test_api_key_secure"  # Custom header format
         assert headers["Content-Type"] == "application/json"
         assert headers["Accept"] == "application/json"
-        assert "User-Agent" in headers
+        assert "user-agent" in headers
 
     def test_credential_sanitization_in_logging(self, mock_config):
         """Test that credentials are sanitized in log messages."""
@@ -152,11 +135,10 @@ class TestMaricopaAPIClientRequests:
     def mock_config(self):
         """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1000
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     @pytest.fixture
@@ -265,7 +247,7 @@ class TestMaricopaAPIClientRequests:
         # Mock successful response
         mock_response = AsyncMock()
         mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={"properties": [{"id": "123"}]})
+        mock_response.json = AsyncMock(return_value={"results": [{"id": "123"}]})
         mock_response.headers = {"Content-Length": "100"}
 
         mock_request.return_value.__aenter__.return_value = mock_response
@@ -287,7 +269,7 @@ class TestMaricopaAPIClientRequests:
         mock_response.status = 200
         mock_response.json = AsyncMock(
             return_value={
-                "Real Property": [{"apn": "123-45-678", "property_type": "Residential"}],
+                "results": [{"apn": "123-45-678", "property_type": "Residential"}],
                 "totals": {"Real Property": 1},
             }
         )
@@ -300,7 +282,8 @@ class TestMaricopaAPIClientRequests:
             mock_wait.return_value = 0.0
             result = await client.search_property("85001")
 
-        assert result == [{"apn": "123-45-678", "property_type": "Residential"}]
+        assert result["results"] == [{"apn": "123-45-678", "property_type": "Residential"}]
+        assert result["totals"] == {"Real Property": 1}
         assert client.request_count == 1
         assert client.last_request_time is not None
 
@@ -389,7 +372,7 @@ class TestMaricopaAPIClientRequests:
             # Mock successful response
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(return_value={"properties": [{"id": "123"}]})
+            mock_response.json = AsyncMock(return_value={"results": [{"id": "123"}]})
             mock_response.headers = {"Content-Length": "100"}
             mock_request.return_value.__aenter__.return_value = mock_response
 
@@ -446,12 +429,12 @@ class TestMaricopaAPIClientSecurity:
 
     @pytest.fixture
     def mock_config(self):
+        """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "secret_key_12345",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1000
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     @pytest.fixture
@@ -507,12 +490,12 @@ class TestMaricopaAPIClientRateLimiting:
 
     @pytest.fixture
     def mock_config(self):
+        """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1200  # 1200 requests per hour = 20 per minute
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     def test_rate_limiter_initialization(self, mock_config):
@@ -543,12 +526,12 @@ class TestMaricopaAPIClientMetrics:
 
     @pytest.fixture
     def mock_config(self):
+        """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1000
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     def test_metrics_collection(self, mock_config):
@@ -584,12 +567,12 @@ class TestMaricopaAPIClientContextManager:
 
     @pytest.fixture
     def mock_config(self):
+        """Create mock configuration for testing."""
         config = Mock(spec=ConfigProvider)
-        config.get.side_effect = lambda key, default=None: {
-            "MARICOPA_API_KEY": "test_key",
-            "MARICOPA_BASE_URL": "https://api.example.com",
-        }.get(key, default)
-        config.get_int.return_value = 1000
+        config.maricopa_api_key = "test_api_key_secure"
+        config.maricopa_base_url = "https://api.example.com"
+        config.maricopa_rate_limit = "1000"
+        config.maricopa_timeout = "30"
         return config
 
     async def test_context_manager_cleanup(self, mock_config):

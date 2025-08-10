@@ -1,0 +1,269 @@
+{
+  "timestamp": "2025-08-06T18:34:16.170629",
+  "validation_summary": {
+    "total_checks": 18,
+    "healthy": 5,
+    "warnings": 0,
+    "errors": 13
+  },
+  "results": [
+    {
+      "component": "prometheus",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=9091): Max retries exceeded with url: /-/healthy (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A2688050>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=9091): Max retries exceeded with url: /-/healthy (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A2688050>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "grafana",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A2659E50>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A2659E50>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "alertmanager",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=9093): Max retries exceeded with url: /-/healthy (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A265A850>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=9093): Max retries exceeded with url: /-/healthy (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A265A850>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "phoenix_metrics",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A268CD60>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A268CD60>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "cost_summary",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /cost-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A268D5B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /cost-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A268D5B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "performance_summary",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /performance-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26A83B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /performance-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26A83B0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "business_summary",
+      "status": "error",
+      "message": "Service not accessible: HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /business-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EB350>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "error": "HTTPConnectionPool(host='localhost', port=8080): Max retries exceeded with url: /business-summary (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EB350>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "dashboard_phoenix-executive",
+      "status": "error",
+      "message": "Executive Dashboard validation failed: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-executive (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EBBD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "uid": "phoenix-executive",
+        "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-executive (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EBBD0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "dashboard_phoenix-operational",
+      "status": "error",
+      "message": "Operational Dashboard validation failed: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-operational (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EBF00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "uid": "phoenix-operational",
+        "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-operational (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A22EBF00>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "dashboard_phoenix-performance",
+      "status": "error",
+      "message": "Performance Dashboard validation failed: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-performance (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4050>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "uid": "phoenix-performance",
+        "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-performance (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4050>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "dashboard_phoenix-business",
+      "status": "error",
+      "message": "Business Intelligence Dashboard validation failed: HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-business (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4160>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": {
+        "uid": "phoenix-business",
+        "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: /api/dashboards/uid/phoenix-business (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4160>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))"
+      }
+    },
+    {
+      "component": "alertmanager_api",
+      "status": "error",
+      "message": "AlertManager validation failed: HTTPConnectionPool(host='localhost', port=9093): Max retries exceeded with url: /api/v1/status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4270>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": null
+    },
+    {
+      "component": "prometheus_rules",
+      "status": "error",
+      "message": "Prometheus rules validation failed: HTTPConnectionPool(host='localhost', port=9091): Max retries exceeded with url: /api/v1/rules (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000001F0A26C4490>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))",
+      "response_time_ms": null,
+      "details": null
+    },
+    {
+      "component": "baseline_config",
+      "status": "healthy",
+      "message": "Baseline configuration loaded",
+      "response_time_ms": null,
+      "details": {
+        "config_sections": [
+          "metadata",
+          "performance_baselines",
+          "resource_baselines",
+          "quality_baselines",
+          "cost_baselines",
+          "business_baselines",
+          "health_indicators",
+          "data_retention",
+          "validation_schedule",
+          "alerting_rules"
+        ]
+      }
+    },
+    {
+      "component": "baseline_performance_baselines",
+      "status": "healthy",
+      "message": "Baseline section performance_baselines present",
+      "response_time_ms": null,
+      "details": {
+        "llm_processing": {
+          "metric": "LLM processing time",
+          "baseline_ms": 65,
+          "tolerance_percent": 20,
+          "warning_threshold_ms": 78,
+          "critical_threshold_ms": 130,
+          "description": "Ollama llama3.2:latest model processing time"
+        },
+        "database_queries": {
+          "metric": "Database query time",
+          "baseline_ms": 30.3,
+          "tolerance_percent": 20,
+          "warning_threshold_ms": 36.36,
+          "critical_threshold_ms": 60.6,
+          "description": "MongoDB query response time"
+        },
+        "api_queries": {
+          "metric": "API query time",
+          "baseline_ms": 0.5,
+          "tolerance_percent": 100,
+          "warning_threshold_ms": 1.0,
+          "critical_threshold_ms": 2.0,
+          "description": "Internal API query time"
+        }
+      }
+    },
+    {
+      "component": "baseline_resource_baselines",
+      "status": "healthy",
+      "message": "Baseline section resource_baselines present",
+      "response_time_ms": null,
+      "details": {
+        "cpu_usage": {
+          "metric": "CPU utilization",
+          "baseline_percent": 3.7,
+          "warning_threshold_percent": 15,
+          "critical_threshold_percent": 30,
+          "description": "System CPU usage under normal load"
+        },
+        "memory_usage": {
+          "metric": "Memory utilization",
+          "baseline_percent": 73.0,
+          "available_gb": 27.3,
+          "warning_threshold_percent": 80,
+          "critical_threshold_percent": 85,
+          "description": "System memory usage"
+        },
+        "memory_available": {
+          "metric": "Available memory",
+          "baseline_gb": 27.3,
+          "warning_threshold_gb": 10.0,
+          "critical_threshold_gb": 5.0,
+          "description": "Available system memory"
+        }
+      }
+    },
+    {
+      "component": "baseline_quality_baselines",
+      "status": "healthy",
+      "message": "Baseline section quality_baselines present",
+      "response_time_ms": null,
+      "details": {
+        "success_rate": {
+          "metric": "Operation success rate",
+          "baseline_percent": 84.0,
+          "warning_threshold_percent": 75.0,
+          "critical_threshold_percent": 50.0,
+          "description": "Based on error handling validation results"
+        },
+        "data_quality_score": {
+          "metric": "Overall data quality",
+          "baseline_percent": 95.0,
+          "warning_threshold_percent": 90.0,
+          "critical_threshold_percent": 85.0,
+          "description": "Composite data quality score"
+        },
+        "email_delivery": {
+          "metric": "Email notification delivery",
+          "baseline_percent": 100.0,
+          "warning_threshold_percent": 95.0,
+          "critical_threshold_percent": 90.0,
+          "description": "Email notification system reliability"
+        }
+      }
+    },
+    {
+      "component": "baseline_cost_baselines",
+      "status": "healthy",
+      "message": "Baseline section cost_baselines present",
+      "response_time_ms": null,
+      "details": {
+        "monthly_budget": {
+          "metric": "Monthly operational cost",
+          "budget_limit_usd": 25.0,
+          "current_cost_usd": 2.5,
+          "warning_threshold_usd": 22.5,
+          "critical_threshold_usd": 27.5,
+          "description": "$25/month budget compliance"
+        },
+        "daily_budget": {
+          "metric": "Daily operational cost",
+          "budget_limit_usd": 0.83,
+          "warning_threshold_usd": 0.75,
+          "critical_threshold_usd": 1.0,
+          "description": "Daily cost trending"
+        },
+        "cost_efficiency": {
+          "metric": "Cost per property collected",
+          "target_usd": 0.02,
+          "warning_threshold_usd": 0.05,
+          "critical_threshold_usd": 0.1,
+          "description": "Cost efficiency metric"
+        }
+      }
+    }
+  ]
+}

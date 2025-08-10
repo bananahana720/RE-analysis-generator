@@ -1,0 +1,223 @@
+# Production Monitoring Infrastructure for Phoenix Real Estate
+# Comprehensive monitoring with Prometheus, Grafana, and AlertManager
+# Configured for Go-Live deployment with 99.5% uptime target
+
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+    name: phoenix-monitoring
+  app:
+    driver: bridge  
+    name: phoenix-app
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  alertmanager_data: {}
+
+services:
+  # Core Application Metrics Exporter
+  phoenix-metrics-exporter:
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile.metrics
+    container_name: phoenix-metrics-exporter
+    ports:
+      - "8080:8080"
+    environment:
+      - METRICS_ENABLED=true
+      - METRICS_PORT=8080
+      - COST_TRACKING_ENABLED=true
+      - MONGODB_URL=${MONGODB_URL:-mongodb://host.docker.internal:27017}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+    networks:
+      - monitoring
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - prometheus
+    labels:
+      - "monitoring.role=metrics-exporter"
+      - "monitoring.service=phoenix-real-estate"
+  
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: phoenix-prometheus
+    ports:
+      - "9091:9090"  # Avoid conflict with potential local Prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'  # 30 days retention
+      - '--storage.tsdb.retention.size=10GB'  # 10GB max storage
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./production-alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "monitoring.role=metrics-storage"
+      - "monitoring.service=prometheus"
+  
+  # AlertManager - Alert Processing and Routing
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: phoenix-alertmanager
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--web.route-prefix=/'
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager_data:/alertmanager
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - prometheus
+    labels:
+      - "monitoring.role=alerting"
+      - "monitoring.service=alertmanager"
+  
+  # Grafana - Monitoring Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: phoenix-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-phoenix_admin_2024}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/executive-dashboard.json
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      - prometheus
+    labels:
+      - "monitoring.role=visualization"
+      - "monitoring.service=grafana"
+  
+  # Node Exporter - System Metrics (Windows compatible)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: phoenix-node-exporter
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "monitoring.role=system-metrics"
+      - "monitoring.service=node-exporter"
+  
+  # cAdvisor - Container Metrics  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: phoenix-cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "monitoring.role=container-metrics"
+      - "monitoring.service=cadvisor"
+
+  # Nginx Reverse Proxy (Optional - for production SSL termination)
+  nginx:
+    image: nginx:alpine
+    container_name: phoenix-monitoring-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - grafana
+      - prometheus
+      - alertmanager
+    labels:
+      - "monitoring.role=reverse-proxy"
+      - "monitoring.service=nginx"
+
+  # Log aggregation for monitoring infrastructure
+  loki:
+    image: grafana/loki:latest
+    container_name: phoenix-loki
+    ports:
+      - "3100:3100"
+    command:
+      - -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "monitoring.role=log-aggregation"
+      - "monitoring.service=loki"

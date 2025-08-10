@@ -6,8 +6,8 @@
 
 # Security-related files require security team approval
 /.github/workflows/security.yml @security-team @project-maintainers
-/scripts/setup_secrets.py @security-team @project-maintainers
-/scripts/validate_secrets.py @security-team @project-maintainers
+/scripts/setup/setup_secrets.py @security-team @project-maintainers
+/scripts/validation/validate_secrets.py @security-team @project-maintainers
 /.gitleaks.toml @security-team @project-maintainers
 /CODEOWNERS @security-team @project-maintainers
 

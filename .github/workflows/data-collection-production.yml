@@ -28,8 +28,16 @@ permissions:
   issues: write
 
 env:
+  # Environment configuration
+  ENVIRONMENT: production
   PYTHON_VERSION: "3.13"
-  COLLECTION_TIMEOUT: 60
+  
+  # Service configuration
+  OLLAMA_URL: "http://localhost:11434"
+  LLM_MODEL: "llama3.2:latest"
+  
+  # Timeout configuration
+  COLLECTION_TIMEOUT: 75
 
 concurrency:
   group: production-data-collection
@@ -50,6 +58,168 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Pre-flight Secret Validation
+      id: preflight-secrets
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        echo "🔍 Pre-flight secret validation started at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Pre-flight Secret Validation" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Check all required secrets
+        missing_secrets=()
+        invalid_secrets=()
+        
+        # MongoDB URL validation
+        if [[ -z "$MONGODB_URL" ]]; then
+          missing_secrets+=("MONGODB_URL")
+        elif [[ ! "$MONGODB_URL" =~ ^mongodb ]]; then
+          invalid_secrets+=("MONGODB_URL: Invalid format (must start with 'mongodb')")
+        else
+          echo "✅ MONGODB_URL: Present and valid format" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Maricopa API Key validation
+        if [[ -z "$MARICOPA_API_KEY" ]]; then
+          missing_secrets+=("MARICOPA_API_KEY")
+        elif [[ ! "$MARICOPA_API_KEY" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+          invalid_secrets+=("MARICOPA_API_KEY: Invalid format (must be UUID)")
+        else
+          echo "✅ MARICOPA_API_KEY: Present and valid format" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # WebShare API Key validation
+        if [[ -z "$WEBSHARE_API_KEY" ]]; then
+          missing_secrets+=("WEBSHARE_API_KEY")
+        else
+          echo "✅ WEBSHARE_API_KEY: Present (length: ${#WEBSHARE_API_KEY})" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Captcha API Key validation
+        if [[ -z "$CAPTCHA_API_KEY" ]]; then
+          missing_secrets+=("CAPTCHA_API_KEY")
+        else
+          echo "✅ CAPTCHA_API_KEY: Present (length: ${#CAPTCHA_API_KEY})" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Determine validation result
+        total_issues=$((${#missing_secrets[@]} + ${#invalid_secrets[@]}))
+        
+        if [[ $total_issues -eq 0 ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **All secrets validated successfully**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **Secret validation failed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ ${#missing_secrets[@]} -gt 0 ]]; then
+            echo "**Missing secrets:**" >> $GITHUB_STEP_SUMMARY
+            for secret in "${missing_secrets[@]}"; do
+              echo "- $secret" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ ${#invalid_secrets[@]} -gt 0 ]]; then
+            echo "**Invalid secrets:**" >> $GITHUB_STEP_SUMMARY
+            for secret in "${invalid_secrets[@]}"; do
+              echo "- $secret" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "🚨 **Production data collection cannot proceed with invalid secrets**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action Required:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Fix secret configuration in Repository Settings → Secrets" >> $GITHUB_STEP_SUMMARY
+          echo "2. Run secret validation workflow to verify fixes" >> $GITHUB_STEP_SUMMARY
+          echo "3. Re-run this data collection workflow" >> $GITHUB_STEP_SUMMARY
+          
+          exit 1
+        fi
+    
+    - name: Quick Service Connectivity Check
+      if: steps.preflight-secrets.outputs.status == 'success'
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+      run: |
+        echo "🌐 Performing quick service connectivity checks..."
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Service Connectivity Pre-flight" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Install minimal dependencies for connectivity tests
+        pip install pymongo requests dnspython
+        
+        connectivity_failures=0
+        
+        # Test MongoDB Atlas connectivity (quick check)
+        if timeout 15 python3 -c "
+        import pymongo
+        import sys
+        try:
+            client = pymongo.MongoClient('$MONGODB_URL', serverSelectionTimeoutMS=5000)
+            client.server_info()
+            print('MongoDB Atlas connection successful')
+        except Exception as e:
+            print(f'MongoDB connection failed: {e}')
+            sys.exit(1)
+        " 2>/dev/null; then
+          echo "✅ MongoDB Atlas: Connection successful" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ MongoDB Atlas: Connection failed" >> $GITHUB_STEP_SUMMARY
+          connectivity_failures=$((connectivity_failures + 1))
+        fi
+        
+        # Test Maricopa API (lightweight check)
+        if timeout 10 curl -f -s \
+           -H "Authorization: Bearer $MARICOPA_API_KEY" \
+           "https://api.mcassessor.maricopa.gov/v1/properties?limit=1" >/dev/null 2>&1; then
+          echo "✅ Maricopa API: Connection successful" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Maricopa API: Connection failed or unauthorized" >> $GITHUB_STEP_SUMMARY
+          connectivity_failures=$((connectivity_failures + 1))
+        fi
+        
+        # Test WebShare API (lightweight check)
+        if timeout 10 curl -f -s \
+           -H "Authorization: Token $WEBSHARE_API_KEY" \
+           "https://proxy.webshare.io/api/v2/proxy/list/?limit=1" >/dev/null 2>&1; then
+          echo "✅ WebShare API: Connection successful" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ WebShare API: Connection failed (will retry during collection)" >> $GITHUB_STEP_SUMMARY
+          # Don't fail workflow for WebShare issues as they can be transient
+        fi
+        
+        # Check if critical services are down
+        if [[ $connectivity_failures -gt 1 ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚨 **Multiple critical services unreachable**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Data collection is likely to fail. Consider:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Waiting for service recovery" >> $GITHUB_STEP_SUMMARY
+          echo "2. Checking service status pages" >> $GITHUB_STEP_SUMMARY
+          echo "3. Running comprehensive monitoring workflow" >> $GITHUB_STEP_SUMMARY
+          echo "4. Manually triggering collection later" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        elif [[ $connectivity_failures -gt 0 ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Some services had connectivity issues but proceeding with collection" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **All critical services reachable - proceeding with collection**" >> $GITHUB_STEP_SUMMARY
+        fi
+    
     - name: Environment setup
       uses: actions/setup-python@v4
       with:
@@ -62,12 +232,15 @@ jobs:
     
     - name: Validate production environment
       env:
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
         MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
         WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
         CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
       run: |
-        echo "Validating production environment..."
+        echo "Validating production environment: $ENVIRONMENT"
         
         # Check required secrets
         missing_secrets=()
@@ -77,11 +250,12 @@ jobs:
         [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
         
         if [ ${#missing_secrets[@]} -ne 0 ]; then
-          echo "[FAIL] Missing secrets: ${missing_secrets[*]}"
+          echo "[FAIL] Missing production secrets: ${missing_secrets[*]}"
           exit 1
         fi
         
         echo "[OK] Environment validation passed"
+        echo "Configuration: Environment=$ENVIRONMENT, LLM Model=$LLM_MODEL, Ollama URL=$OLLAMA_URL"
         
         # Setup directories
         mkdir -p data/{processed,raw,cookies} logs reports
@@ -155,12 +329,12 @@ jobs:
         
         # Wait for service and pull model
         sleep 15
-        if ollama pull llama3.2:latest; then
+        if ollama pull ${{ env.LLM_MODEL }}; then
           echo "llm-ready=true" >> $GITHUB_OUTPUT
-          echo "[OK] LLM service ready"
+          echo "[OK] LLM service ready with model ${{ env.LLM_MODEL }}"
         else
           echo "llm-ready=false" >> $GITHUB_OUTPUT
-          echo "[WARN] LLM setup failed"
+          echo "[WARN] LLM setup failed for model ${{ env.LLM_MODEL }}"
         fi
       timeout-minutes: 10
     
@@ -168,8 +342,10 @@ jobs:
       id: llm-processing
       if: steps.llm-setup.outputs.llm-ready == 'true'
       env:
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
-        OLLAMA_URL: "http://localhost:11434"
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
         COLLECTION_MODE: ${{ github.event.inputs.collection_mode || 'incremental' }}
       run: |
         echo "Starting LLM data processing..."

@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-08-06T23:48:43.844484",
+  "mode": "test",
+  "threshold": 90.0,
+  "status": "passed",
+  "summary": {
+    "total_records": 100,
+    "valid_records": 95,
+    "quality_score": 95.0,
+    "issues_found": []
+  }
+}

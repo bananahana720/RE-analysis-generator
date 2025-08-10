@@ -1,0 +1,276 @@
+# Production Alert Rules for Phoenix Real Estate Data Collection System
+# Configured for Go-Live production monitoring with comprehensive coverage
+
+groups:
+  - name: phoenix_re_production_critical
+    interval: 15s
+    rules:
+      # CRITICAL: System Down/Unavailable
+      - alert: SystemCompleteFailure
+        expr: up{job=~"llm_processing|mongodb|ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: engineering
+          priority: P0
+        annotations:
+          summary: "CRITICAL: Phoenix RE core service {{ $labels.job }} is DOWN"
+          description: "Core service {{ $labels.job }} has been unavailable for 2+ minutes. System cannot operate without this service."
+          impact: "Complete system outage - no data collection possible"
+          runbook: "https://docs.phoenix-re.local/runbooks/service-recovery"
+          
+      # CRITICAL: Cost Budget Overrun
+      - alert: CostBudgetOverrun
+        expr: phoenix_cost_tracking_monthly_spend > 27.50  # 110% of $25 budget
+        for: 5m
+        labels:
+          severity: critical
+          team: finance
+          priority: P0
+        annotations:
+          summary: "CRITICAL: Monthly cost budget exceeded"
+          description: "Monthly spending (${{ $value }}) has exceeded 110% of $25 budget limit"
+          impact: "Risk of service suspension due to cost overrun"
+          action_required: "Immediate cost reduction measures required"
+          
+      # CRITICAL: Data Collection Complete Failure
+      - alert: DataCollectionCompleteFailure
+        expr: increase(scraper_properties_scraped_total[2h]) == 0
+        for: 2h
+        labels:
+          severity: critical
+          team: engineering
+          priority: P0
+        annotations:
+          summary: "CRITICAL: No properties collected in 2+ hours"
+          description: "Zero properties have been successfully collected in the past 2 hours"
+          impact: "Complete data pipeline failure"
+          investigation: "Check collector services, proxies, and API connectivity"
+          
+      # CRITICAL: High Error Rate
+      - alert: HighErrorRateCritical
+        expr: 100 * (rate(scraper_requests_total{status="failed"}[5m]) / rate(scraper_requests_total[5m])) > 50
+        for: 10m
+        labels:
+          severity: critical
+          team: engineering
+          priority: P1
+        annotations:
+          summary: "CRITICAL: Error rate above 50% for 10+ minutes"
+          description: "System error rate is {{ $value | humanize }}% - significantly above operational limits"
+          impact: "Severe degradation of data collection capability"
+          baseline: "Normal error rate should be <16% (baseline: 84% success)"
+
+  - name: phoenix_re_production_warning
+    interval: 30s
+    rules:
+      # WARNING: Performance Degradation
+      - alert: PerformanceDegradationLLM
+        expr: histogram_quantile(0.95, rate(phoenix_llm_processing_duration_seconds_bucket[5m])) * 1000 > 130  # 2x baseline of 65ms
+        for: 15m
+        labels:
+          severity: warning
+          team: engineering
+          priority: P2
+        annotations:
+          summary: "WARNING: LLM processing time degraded significantly"
+          description: "95th percentile LLM processing time is {{ $value | humanize }}ms (baseline: 65ms)"
+          impact: "Reduced system throughput - may affect daily collection targets"
+          threshold: "Alert triggers at 2x baseline performance (130ms)"
+          
+      - alert: PerformanceDegradationDatabase
+        expr: histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m])) * 1000 > 60  # 2x baseline of 30.3ms
+        for: 15m
+        labels:
+          severity: warning
+          team: engineering
+          priority: P2
+        annotations:
+          summary: "WARNING: Database query time degraded significantly"
+          description: "95th percentile DB query time is {{ $value | humanize }}ms (baseline: 30.3ms)"
+          impact: "Potential bottleneck in data storage pipeline"
+          threshold: "Alert triggers at 2x baseline performance (60ms)"
+          
+      # WARNING: Cost Budget Approaching
+      - alert: CostBudgetApproaching
+        expr: phoenix_cost_tracking_monthly_spend > 22.50  # 90% of $25 budget
+        for: 10m
+        labels:
+          severity: warning
+          team: finance
+          priority: P2
+        annotations:
+          summary: "WARNING: Monthly cost approaching budget limit"
+          description: "Monthly spending (${{ $value }}) has exceeded 90% of $25 budget"
+          impact: "Risk of budget overrun if current spending rate continues"
+          recommendation: "Monitor usage patterns and consider optimizations"
+          
+      # WARNING: Success Rate Below Baseline
+      - alert: SuccessRateBelowBaseline
+        expr: 100 * (rate(scraper_requests_total{status="success"}[10m]) / rate(scraper_requests_total[10m])) < 75  # Below 75% vs 84% baseline
+        for: 20m
+        labels:
+          severity: warning
+          team: engineering
+          priority: P2
+        annotations:
+          summary: "WARNING: Success rate below operational baseline"
+          description: "Current success rate {{ $value | humanize }}% is below baseline of 84%"
+          impact: "Reduced data collection efficiency"
+          investigation: "Check proxy health, rate limiting, and API responses"
+          
+      # WARNING: Resource Usage High
+      - alert: HighResourceUsageCPU
+        expr: system_cpu_usage_percent > 15  # 4x baseline of 3.7%
+        for: 20m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "WARNING: CPU usage significantly above baseline"
+          description: "CPU usage {{ $value }}% is 4x above baseline of 3.7%"
+          impact: "May indicate performance issues or resource contention"
+          baseline: "Normal CPU usage should be <5%"
+
+  - name: phoenix_re_production_info
+    interval: 60s
+    rules:
+      # INFO: Daily Collection Summary
+      - alert: DailyCollectionSummary
+        expr: increase(scraper_properties_scraped_total[24h]) > 0
+        for: 5m
+        labels:
+          severity: info
+          team: engineering
+          priority: P4
+        annotations:
+          summary: "INFO: Daily collection summary"
+          description: "Collected {{ $value }} properties in the last 24 hours"
+          cost_efficiency: "Average cost per property tracking"
+          quality_metrics: "Data quality assessment available in BI dashboard"
+          
+      # INFO: Performance Baseline Comparison
+      - alert: PerformanceBaselineUpdate
+        expr: hour() == 0 and minute() < 5  # Daily at midnight
+        for: 2m
+        labels:
+          severity: info
+          team: engineering
+          priority: P4
+        annotations:
+          summary: "INFO: Daily performance baseline comparison"
+          description: "Daily performance metrics comparison against established baselines"
+          llm_baseline: "Target: 65ms processing time"
+          db_baseline: "Target: 30.3ms query time"
+          cpu_baseline: "Target: 3.7% utilization"
+          success_baseline: "Target: 84% success rate"
+
+  - name: phoenix_re_production_business
+    interval: 300s  # 5 minute intervals for business metrics
+    rules:
+      # Business Metrics: Geographic Coverage
+      - alert: GeographicCoverageImbalance
+        expr: |
+          abs(
+            increase(scraper_properties_scraped_total{zipcode="85031"}[24h]) - 
+            increase(scraper_properties_scraped_total{zipcode="85033"}[24h])
+          ) > 100
+        for: 2h
+        labels:
+          severity: info
+          team: business
+          priority: P3
+        annotations:
+          summary: "INFO: Geographic coverage imbalance detected"
+          description: "Significant difference in property collection between zip codes"
+          impact: "May indicate market activity differences or collection issues"
+          recommendation: "Review coverage patterns and market conditions"
+          
+      # Business Metrics: Daily Target Tracking
+      - alert: DailyCollectionBelowTarget
+        expr: increase(scraper_properties_scraped_total[24h]) < 200  # Assuming 200/day target
+        for: 1h
+        labels:
+          severity: warning
+          team: business
+          priority: P3
+        annotations:
+          summary: "WARNING: Daily collection below target"
+          description: "Daily collection ({{ $value }}) is below target of 200 properties"
+          impact: "May not meet monthly collection goals"
+          investigation: "Check system health and market conditions"
+
+  - name: phoenix_re_infrastructure_health
+    interval: 30s
+    rules:
+      # Infrastructure Health Monitoring
+      - alert: ProxyHealthDegraded
+        expr: proxy_healthy_count < 2  # Less than 2 healthy proxies
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "WARNING: Limited healthy proxies available"
+          description: "Only {{ $value }} healthy proxies available (minimum: 3 recommended)"
+          impact: "Reduced redundancy and potential for rate limiting"
+          action: "Check proxy service health and rotation logic"
+          
+      - alert: DatabaseConnectionDegraded
+        expr: database_connections_active < 1
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+          priority: P1
+        annotations:
+          summary: "CRITICAL: No active database connections"
+          description: "Database connection pool shows {{ $value }} active connections"
+          impact: "Cannot persist collected data - complete data loss risk"
+          action: "Immediate database connectivity troubleshooting required"
+          
+      # Memory Usage Monitoring (based on 27.3GB available baseline)
+      - alert: MemoryUsageHigh
+        expr: system_memory_usage_percent > 85
+        for: 15m
+        labels:
+          severity: warning
+          team: infrastructure
+          priority: P2
+        annotations:
+          summary: "WARNING: Memory usage approaching critical levels"
+          description: "Memory usage {{ $value }}% approaching critical threshold"
+          impact: "Risk of system instability or OOM conditions"
+          baseline: "Normal memory usage ~73% (27.3GB available)"
+
+  - name: phoenix_re_security_monitoring
+    interval: 60s
+    rules:
+      # Security and Compliance Monitoring
+      - alert: UnusualErrorPatterns
+        expr: rate(scraper_errors_total{error_type="forbidden"}[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: security
+          priority: P2
+        annotations:
+          summary: "WARNING: Unusual error patterns detected"
+          description: "High rate of forbidden errors may indicate IP blocking or detection"
+          impact: "Risk of service degradation or IP ban"
+          investigation: "Review proxy rotation and request patterns"
+          
+      - alert: RateLimitingIncreased
+        expr: rate(rate_limit_hits_total[5m]) > 5  # More than 5 hits per minute
+        for: 15m
+        labels:
+          severity: info
+          team: engineering
+          priority: P3
+        annotations:
+          summary: "INFO: Increased rate limiting activity"
+          description: "Rate limiting triggered {{ $value }} times per minute"
+          impact: "Potential for reduced collection efficiency"
+          optimization: "Consider adjusting request timing or proxy distribution"

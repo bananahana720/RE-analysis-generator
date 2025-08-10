@@ -28,10 +28,21 @@ permissions:
   issues: write
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
+  # Environment configuration for testing
+  ENVIRONMENT: testing
   PYTHON_VERSION: "3.13"
+  
+  # Service configuration for testing
   OLLAMA_VERSION: "latest"
-  COLLECTION_TIMEOUT_MINUTES: 75
+  OLLAMA_URL: "http://localhost:11435"
+  LLM_MODEL: "mock"
+  
+  # MongoDB configuration for testing
+  MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD || 'testpass' }}@localhost:27018/
+  MONGODB_DATABASE: phoenix_real_estate_test
+  
+  # Timeout configuration
+  COLLECTION_TIMEOUT_MINUTES: 45
 
 concurrency:
   group: data-collection-${{ github.ref }}
@@ -50,28 +61,28 @@ jobs:
     - name: Validate Required Secrets
       id: validation
       env:
-        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        # Use test environment settings
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
+        TEST_MONGODB_PASSWORD: ${{ secrets.TEST_MONGODB_PASSWORD }}
         MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
-        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
-        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
       run: |
         missing_secrets=()
         
-        # Check production secrets
-        [[ -z "$MONGODB_URL" ]] && missing_secrets+=("MONGODB_URL")
+        # Check testing environment secrets (minimal requirements)
+        [[ -z "$TEST_MONGODB_PASSWORD" ]] && missing_secrets+=("TEST_MONGODB_PASSWORD")
         [[ -z "$MARICOPA_API_KEY" ]] && missing_secrets+=("MARICOPA_API_KEY")
-        [[ -z "$WEBSHARE_API_KEY" ]] && missing_secrets+=("WEBSHARE_API_KEY")
-        [[ -z "$CAPTCHA_API_KEY" ]] && missing_secrets+=("CAPTCHA_API_KEY")
         
         if [ ${#missing_secrets[@]} -eq 0 ]; then
-          echo "[OK] All required production secrets are configured"
+          echo "[OK] All required testing environment secrets are configured"
           echo "status=success" >> $GITHUB_OUTPUT
         else
-          echo "[FAIL] Missing required production secrets:"
+          echo "[FAIL] Missing required testing environment secrets:"
           printf '%s\n' "${missing_secrets[@]}"
           echo ""
-          echo "Please configure these secrets in:"
-          echo "Repository Settings [?] Secrets and variables [?] Actions [?] Environment secrets [?] production"
+          echo "Please configure these secrets in Repository Settings > Secrets and variables > Actions"
+          echo "Required for testing environment:"
+          echo "  - TEST_MONGODB_PASSWORD: Password for test MongoDB instance"
+          echo "  - MARICOPA_API_KEY: API key for Maricopa County (can be test key)"
           echo ""
           echo "status=failed" >> $GITHUB_OUTPUT
           exit 1

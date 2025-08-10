@@ -1,0 +1,213 @@
+name: Phoenix MLS Data Collection
+
+on:
+  schedule:
+    # Daily at 3:30 AM Phoenix time (10:30 AM UTC)
+    - cron: "30 10 * * *"
+  workflow_dispatch:
+    inputs:
+      zip_codes:
+        description: "ZIP codes (comma-separated)"
+        required: false
+        type: string
+        default: "85031,85033,85035"
+      collection_mode:
+        description: "Collection mode"
+        required: false
+        type: choice
+        options: ["full", "incremental", "test"]
+        default: "incremental"
+  workflow_call:
+    inputs:
+      zip_codes:
+        description: "ZIP codes (comma-separated)"
+        required: false
+        type: string
+        default: "85031,85033,85035"
+      collection_mode:
+        description: "Collection mode"
+        required: false
+        type: string
+        default: "incremental"
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+  COLLECTION_TIMEOUT: 40
+
+concurrency:
+  group: phoenix-mls-collection-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-secrets:
+    name: Validate Secrets
+    uses: ./.github/workflows/validate-secrets.yml
+    with:
+      environment: production
+    secrets: inherit
+
+  collect-phoenix-mls:
+    name: Collect Phoenix MLS Data
+    runs-on: ubuntu-latest
+    needs: validate-secrets
+    timeout-minutes: 45
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --extra dev
+    
+    - name: Install Playwright browsers
+      run: |
+        uv run playwright install chromium
+        uv run playwright install-deps
+    
+    - name: Setup Phoenix MLS environment
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        ZIP_CODES: ${{ inputs.zip_codes || github.event.inputs.zip_codes || "85031,85033,85035" }}
+        COLLECTION_MODE: ${{ inputs.collection_mode || github.event.inputs.collection_mode || "incremental" }}
+      run: |
+        mkdir -p data/{processed,raw,cookies} logs
+        echo "[OK] Phoenix MLS environment setup"
+    
+    - name: Execute Phoenix MLS scraping with retry
+      env:
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        ZIP_CODES: ${{ inputs.zip_codes || github.event.inputs.zip_codes || "85031,85033,85035" }}
+        COLLECTION_MODE: ${{ inputs.collection_mode || github.event.inputs.collection_mode || "incremental" }}
+      run: |
+        max_attempts=2
+        attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "[ATTEMPT] Phoenix MLS collection attempt $attempt/$max_attempts"
+          
+          if uv run python scripts/testing/test_phoenix_mls_with_services.py             --zip-codes "$ZIP_CODES"             --mode "$COLLECTION_MODE"             --timeout 35; then
+            echo "[OK] Phoenix MLS collection successful"
+            break
+          else
+            echo "[WARN] MLS collection attempt $attempt failed"
+            if [ $attempt -eq $max_attempts ]; then
+              echo "[FAIL] All MLS collection attempts failed"
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            sleep 60
+          fi
+        done
+      timeout-minutes: ${{ env.COLLECTION_TIMEOUT }}
+    
+    - name: Validate collection results
+      run: |
+        if ls data/raw/phoenix_mls_*.json 1> /dev/null 2>&1; then
+          file_count=$(ls data/raw/phoenix_mls_*.json | wc -l)
+          echo "[OK] Found $file_count Phoenix MLS data files"
+        else
+          echo "[WARN] No Phoenix MLS data files found"
+          exit 1
+        fi
+    
+    - name: Upload Phoenix MLS artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: phoenix-mls-data-${{ github.run_number }}
+        path: |
+          data/raw/phoenix_mls_*.json
+          data/raw/phoenix_mls_*.html
+          data/cookies/phoenix_mls_session.pkl
+          logs/phoenix_mls_*.log
+        retention-days: 7
+
+  collection-summary:
+    name: Collection Summary
+    runs-on: ubuntu-latest
+    needs: collect-phoenix-mls
+    if: always()
+    
+    steps:
+    - name: Determine collection status
+      id: status
+      run: |
+        if [[ "${{ needs.collect-phoenix-mls.result }}" == "success" ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=[OK] Phoenix MLS collection completed successfully" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=[FAIL] Phoenix MLS collection failed" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Create collection summary
+      run: |
+        cat << EOF >> $GITHUB_STEP_SUMMARY
+        # Phoenix MLS Data Collection Summary
+        
+        **Collection Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Status**: ${{ steps.status.outputs.status }}
+        **Message**: ${{ steps.status.outputs.message }}
+        **ZIP Codes**: ${{ inputs.zip_codes || github.event.inputs.zip_codes || "85031,85033,85035" }}
+        **Collection Mode**: ${{ inputs.collection_mode || github.event.inputs.collection_mode || "incremental" }}
+        
+        ## Results
+        - Collection Status: ${{ needs.collect-phoenix-mls.result }}
+        - Runtime: ~${{ env.COLLECTION_TIMEOUT }} minutes maximum
+        - Artifacts: Available for 7 days
+        
+        ## Next Steps
+        - Data available for LLM processing workflow
+        - Combined with Maricopa data for comprehensive analysis
+        EOF
+    
+    - name: Create issue on failure
+      if: steps.status.outputs.status == "failure"
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = `
+          ## Phoenix MLS Data Collection Failed
+          
+          **Run ID**: ${{ github.run_id }}
+          **Timestamp**: ${new Date().toISOString()}
+          **ZIP Codes**: ${{ inputs.zip_codes || github.event.inputs.zip_codes || "85031,85033,85035" }}
+          **Collection Mode**: ${{ inputs.collection_mode || github.event.inputs.collection_mode || "incremental" }}
+          
+          ### Possible Causes
+          - WebShare proxy issues or rate limiting
+          - 2captcha service unavailable
+          - Phoenix MLS website changes
+          - Network connectivity issues
+          
+          ### Action Required
+          - Check WebShare and 2captcha service status
+          - Review MLS scraping logs for errors
+          - Validate proxy configurations
+          - Consider manual retry or service rotation
+          - Update issue with resolution steps
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Phoenix MLS Collection Failed - ${new Date().toDateString()}`,
+            body: issueBody,
+            labels: ["automation", "phoenix-mls-collection", "failure", "high-priority"]
+          });

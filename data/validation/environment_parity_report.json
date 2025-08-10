@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-08-08T09:25:24Z",
+  "overall_status": "fail",
+  "environments": [
+    {
+      "name": "development",
+      "status": "warning",
+      "issues": [
+        {
+          "severity": "warning",
+          "category": "security",
+          "message": "Sensitive log encryption disabled",
+          "details": {
+            "setting": "encrypt_sensitive_logs"
+          }
+        },
+        {
+          "severity": "warning",
+          "category": "security",
+          "message": "Raw data sanitization disabled",
+          "details": {
+            "setting": "sanitize_raw_data"
+          }
+        }
+      ]
+    },
+    {
+      "name": "testing",
+      "status": "pass",
+      "issues": [
+        {
+          "severity": "info",
+          "category": "security",
+          "message": "Sensitive log encryption disabled (acceptable for testing)",
+          "details": {
+            "setting": "encrypt_sensitive_logs"
+          }
+        },
+        {
+          "severity": "info",
+          "category": "security",
+          "message": "Raw data sanitization disabled (acceptable for testing)",
+          "details": {
+            "setting": "sanitize_raw_data"
+          }
+        }
+      ]
+    },
+    {
+      "name": "production",
+      "status": "pass",
+      "issues": []
+    }
+  ]
+}

@@ -238,11 +238,22 @@ Example: <output>{{"field": "value"}}</output>
         """Build human-readable schema description."""
         lines = []
         for field, spec in schema.items():
-            field_type = spec.get("type", "string")
-            description = spec.get("description", f"The {field}")
+            if isinstance(spec, dict):
+                if "type" in spec:
+                    # Full schema format with type and description
+                    field_type = spec.get("type", "string")
+                    description = spec.get("description", f"The {field}")
+                else:
+                    # Nested schema object
+                    field_type = "object"
+                    description = f"Object containing: {list(spec.keys())}"
+            else:
+                # Simplified format where spec is just the type string
+                field_type = spec
+                description = f"The {field}"
+            
             lines.append(f"- {field} ({field_type}): {description}")
         return "\n".join(lines)
-
     def _extract_json_from_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Extract JSON data from LLM response."""
         try:
@@ -268,3 +279,7 @@ Example: <output>{{"field": "value"}}</output>
                 extra={"error": str(e), "response_preview": response[:200]},
             )
             return None
+
+
+# Backward compatibility alias
+LLMClient = OllamaClient

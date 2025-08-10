@@ -9,8 +9,9 @@ import json
 from pathlib import Path
 
 
-def analyze_test_report():
+def analyze_test_report(mode="test"):
     """Analyze the test report and provide summary."""
+    print(f"[INFO] Running analysis in {mode} mode")
     report_path = Path("maricopa_api_test_report.json")
 
     if not report_path.exists():
@@ -111,5 +112,21 @@ def analyze_test_report():
     print("=" * 80)
 
 
+def main():
+    """Main function with CLI argument parsing."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Analyze Maricopa test report and provide summary")
+    parser.add_argument(
+        "--mode",
+        default="test",
+        choices=["test", "incremental", "full"],
+        help="Analysis mode (default: test)",
+    )
+
+    args = parser.parse_args()
+    analyze_test_report(args.mode)
+
+
 if __name__ == "__main__":
-    analyze_test_report()
+    main()

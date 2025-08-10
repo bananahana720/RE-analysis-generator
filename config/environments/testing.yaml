@@ -1,0 +1,157 @@
+# Testing Environment Configuration
+# Optimized for automated testing with strict validation
+
+# Environment metadata
+environment:
+  name: "testing"
+  description: "Automated testing environment with strict validation"
+
+# Service configurations for testing
+services:
+  # MongoDB configuration for testing
+  mongodb:
+    connection_string: "${MONGODB_URL:-mongodb://localhost:27018}"
+    database: "${MONGODB_DATABASE:-phoenix_real_estate_test}"
+    max_pool_size: 2
+    min_pool_size: 1
+    connection_timeout_ms: 5000
+    
+  # Ollama LLM service for testing (can use mock)
+  ollama:
+    base_url: "${OLLAMA_URL:-http://localhost:11435}"
+    model: "${LLM_MODEL:-mock}"  # Use mock LLM for testing
+    timeout: 5
+    startup_timeout_seconds: 30
+    max_retries: 2
+
+# Logging configuration for testing
+logging:
+  level: "DEBUG"
+  format: "text"
+  console_output: false  # Reduce noise in tests
+  file_output: false     # No log files in tests
+  file_path: null
+
+# Minimal collection settings for testing
+collection:
+  max_requests_per_hour: 10
+  min_request_delay: 1.0
+  
+  # Single test ZIP code
+  target_zip_codes:
+    - "85031"
+    
+  # Fast request settings for tests
+  timeout_seconds: 5
+  max_retries: 1
+  user_agent: "Phoenix Real Estate Collector (Testing)"
+
+# Disable external services for testing
+sources:
+  maricopa_county:
+    enabled: false  # Use mocked responses
+    base_url: "${MARICOPA_BASE_URL:-https://mcassessor.maricopa.gov}"
+    api_key: "${MARICOPA_API_KEY:-test-key}"
+    rate_limit: 10
+    timeout: 5
+    
+  phoenix_mls:
+    enabled: false  # Use mocked responses
+    base_url: "https://phoenixmlssearch.com"
+    timeout: 5
+    stealth_mode: false
+    
+  particle_space:
+    enabled: false
+    api_key: "${PARTICLE_API_KEY:-test-key}"
+
+# No proxy for testing
+proxy:
+  enabled: false
+  provider: "webshare"
+  api_key: "${WEBSHARE_API_KEY:-test-key}"
+  rotation_enabled: false
+
+# Fast processing configuration for tests
+processing:
+  llm_model: "mock"  # Use mock LLM for testing
+  batch_size: 2
+  max_processing_workers: 1
+  timeout_seconds: 5
+  
+  # Simple extraction settings
+  extraction:
+    temperature: 0.0  # Deterministic for testing
+    max_tokens: 512
+    required_fields: ["address", "price"]
+
+# Strict validation for testing
+validation:
+  strict_mode: true
+  require_address: true
+  require_price: false  # Allow testing without price
+  max_price: 10000000
+  min_price: 0
+
+# Minimal performance settings for tests
+performance:
+  enable_caching: false  # Disable caching for consistent tests
+  cache_ttl_minutes: 0
+  max_memory_usage_mb: 128
+  gc_interval_requests: 10
+
+# Sensitive error handling for tests
+error_handling:
+  max_error_rate: 0.0  # No errors allowed in tests
+  error_cooldown_minutes: 1
+  alert_on_consecutive_failures: 1
+  retry_backoff_seconds: [0.5, 1]
+
+# Feature flags for testing
+features:
+  external_apis_enabled: false  # Use mocked services
+  proxy_required: false
+  captcha_solving_enabled: false
+  email_notifications_enabled: false
+  debug_mode: true
+
+# Health check configuration for testing
+health_checks:
+  mongodb:
+    enabled: true
+    timeout_seconds: 3
+    
+  ollama:
+    enabled: false  # Skip for mock service
+    timeout_seconds: 3
+    
+  system:
+    enabled: false  # Skip system checks in tests
+
+# Security settings for testing
+security:
+  max_session_age_hours: 1  # Short sessions for tests
+  encrypt_sensitive_logs: false
+  sanitize_raw_data: false
+  rate_limiting_enabled: false
+
+# Testing-specific configurations
+testing:
+  # Test data management
+  data_management:
+    clean_database_before_tests: true
+    preserve_test_data: false
+    use_test_fixtures: true
+    
+  # Mock service configurations
+  mocks:
+    mongodb:
+      use_in_memory: false  # Use real MongoDB for integration tests
+      
+    ollama:
+      use_mock_responses: true
+      mock_response_delay_ms: 100
+      
+    external_apis:
+      use_mock_responses: true
+      mock_success_rate: 1.0  # Always succeed in tests

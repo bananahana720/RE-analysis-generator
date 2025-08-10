@@ -163,8 +163,8 @@ class MaricopaDataAdapter(DataAdapter):
 
             # Extract core components
             address = self._extract_address(raw_data.get("address", {}))
-            features = self._extract_features(raw_data.get("characteristics", {}))
-            price_history = self._extract_prices(raw_data.get("assessment", {}))
+            features = self._extract_features(raw_data.get("residential_details", {}))
+            price_history = self._extract_prices(raw_data.get("valuation", {}))
             tax_info = self._extract_tax_info(raw_data)
             metadata = self._create_metadata(raw_data)
 
@@ -488,11 +488,13 @@ class MaricopaDataAdapter(DataAdapter):
             PropertyTaxInfo object or None if no tax data available
         """
         # Extract tax data from assessment and property_info sections
-        assessment_info = raw_data.get("assessment", {})
+        assessment_info = raw_data.get("valuation", {})
         property_info = raw_data.get("property_info", {})
 
-        # Extract APN
-        apn = self._get_nested_field(property_info, self.field_mappings["property_info"]["apn"])
+        # Extract APN - try root level first, then property_info
+        apn = raw_data.get("apn")
+        if not apn:
+            apn = self._get_nested_field(property_info, self.field_mappings["property_info"]["apn"])
 
         # Extract assessed value (used for tax calculations)
         assessed_value = safe_float(
@@ -563,27 +565,34 @@ class MaricopaDataAdapter(DataAdapter):
         # Define critical fields and their weights
         critical_fields = {
             "address": ["house_number", "street_name", "zipcode", "city"],
-            "characteristics": ["bedrooms", "bathrooms", "living_area_sqft", "year_built"],
-            "assessment": ["assessed_value", "market_value"],
-            "property_info": ["apn", "legal_description"],
+            "residential_details": ["bedrooms", "bathrooms", "living_area_sqft", "year_built"],
+            "valuation": ["assessed_value", "market_value"],
+            "root": ["apn", "legal_description"],
         }
 
         for section_name, fields in critical_fields.items():
-            section = raw_data.get(section_name, {})
-            if isinstance(section, dict):
+            if section_name == "root":
+                # Handle root level fields
                 for field in fields:
                     total_fields += 1
-                    value = section.get(field)
+                    value = raw_data.get(field)
                     if value is not None and str(value).strip() and str(value) != "0":
                         populated_fields += 1
-
+            else:
+                section = raw_data.get(section_name, {})
+                if isinstance(section, dict):
+                    for field in fields:
+                        total_fields += 1
+                        value = section.get(field)
+                        if value is not None and str(value).strip() and str(value) != "0":
+                            populated_fields += 1
         if total_fields == 0:
             return 0.0
 
         base_score = populated_fields / total_fields
 
         # Bonus for having APN/parcel number (critical identifier)
-        apn = raw_data.get("property_info", {}).get("apn")
+        apn = raw_data.get("apn")
         if apn and str(apn).strip():
             base_score = min(1.0, base_score + 0.1)
 

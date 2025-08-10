@@ -1,6 +1,6 @@
 """LLM-powered data processing for property information."""
 
-from .llm_client import OllamaClient
+from .llm_client import OllamaClient, LLMClient
 from .extractor import PropertyDataExtractor
 from .validator import ProcessingValidator, ValidationResult, ValidationRule
 from .pipeline import DataProcessingPipeline, ProcessingResult
@@ -18,6 +18,7 @@ from .performance import (
 __all__ = [
     # Core components
     "OllamaClient",
+    "LLMClient",  # Backward compatibility alias
     "PropertyDataExtractor",
     "ProcessingValidator",
     "ValidationResult",

@@ -6,13 +6,15 @@ on:
     - cron: '0 */6 * * *'
     # Weekly comprehensive system health check (Sundays at 1 AM UTC)
     - cron: '0 1 * * 0'
+    # Dead man's switch - daily at 5 AM UTC
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       monitoring_type:
         description: 'Type of monitoring to run'
         required: true
         type: choice
-        options: ['budget', 'system-health', 'performance', 'comprehensive']
+        options: ['budget', 'system-health', 'performance', 'comprehensive', 'dead-mans-switch']
         default: 'comprehensive'
       alert_threshold:
         description: 'Budget alert threshold (percentage)'
@@ -611,10 +613,261 @@ jobs:
           logs/db-performance.log
         retention-days: 30
 
+  dead-mans-switch:
+    name: Dead Man's Switch - Critical Workflow Monitor
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.monitoring_type == 'dead-mans-switch' || github.event.inputs.monitoring_type == 'comprehensive'
+    timeout-minutes: 10
+    needs: validate-secrets
+    environment: production
+    secrets: inherit
+    
+    outputs:
+      critical-failures: ${{ steps.check-workflows.outputs.critical-failures }}
+      warning-count: ${{ steps.check-workflows.outputs.warning-count }}
+      last-success: ${{ steps.check-workflows.outputs.last-success }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check Critical Data Collection Workflows
+      id: check-workflows
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "## Dead Man's Switch Monitoring" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Checking critical workflows for the last 24 hours**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Get workflow run data for the last 24 hours
+        cutoff_date=$(date -d "24 hours ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        critical_failures=0
+        warning_count=0
+        last_success=""
+        
+        # Critical workflows to monitor
+        critical_workflows=(
+          "Production Data Collection"
+          "Validate Secrets Configuration"  
+          "System Monitoring & Budget Tracking"
+        )
+        
+        for workflow_name in "${critical_workflows[@]}"; do
+          echo "### Checking: $workflow_name"
+          
+          # Get recent runs for this workflow
+          runs_json=$(gh api repos/${{ github.repository }}/actions/workflows \
+            --jq ".workflows[] | select(.name == \"$workflow_name\") | .id" | head -1)
+          
+          if [[ -n "$runs_json" ]]; then
+            workflow_id=$runs_json
+            
+            # Get latest runs
+            recent_runs=$(gh api "repos/${{ github.repository }}/actions/workflows/$workflow_id/runs" \
+              --jq ".workflow_runs[] | select(.created_at > \"$cutoff_date\") | {conclusion, status, created_at, html_url}" \
+              | jq -s '.' || echo '[]')
+            
+            if [[ "$recent_runs" == "[]" ]]; then
+              # No runs in last 24 hours - CRITICAL
+              critical_failures=$((critical_failures + 1))
+              echo "❌ CRITICAL: No runs in last 24 hours" >> $GITHUB_STEP_SUMMARY
+              
+              # Check last run regardless of time
+              last_run=$(gh api "repos/${{ github.repository }}/actions/workflows/$workflow_id/runs" \
+                --jq '.workflow_runs[0] | {conclusion, created_at, html_url}' 2>/dev/null || echo '{}')
+              
+              if [[ "$last_run" != "{}" ]]; then
+                last_run_time=$(echo "$last_run" | jq -r '.created_at')
+                last_run_url=$(echo "$last_run" | jq -r '.html_url')
+                echo "  Last run: $last_run_time" >> $GITHUB_STEP_SUMMARY
+                echo "  URL: $last_run_url" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              # Check run results
+              failed_runs=$(echo "$recent_runs" | jq 'map(select(.conclusion == "failure")) | length')
+              success_runs=$(echo "$recent_runs" | jq 'map(select(.conclusion == "success")) | length')
+              total_runs=$(echo "$recent_runs" | jq 'length')
+              
+              if [[ $failed_runs -gt 0 && $success_runs -eq 0 ]]; then
+                # All recent runs failed - CRITICAL
+                critical_failures=$((critical_failures + 1))
+                echo "❌ CRITICAL: All $total_runs recent runs failed" >> $GITHUB_STEP_SUMMARY
+              elif [[ $failed_runs -gt 0 ]]; then
+                # Some failures - WARNING  
+                warning_count=$((warning_count + 1))
+                echo "⚠️ WARNING: $failed_runs of $total_runs runs failed" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "✅ HEALTHY: $success_runs successful runs" >> $GITHUB_STEP_SUMMARY
+                if [[ -z "$last_success" ]]; then
+                  latest_success=$(echo "$recent_runs" | jq -r 'map(select(.conclusion == "success")) | .[0].created_at // empty')
+                  [[ -n "$latest_success" ]] && last_success="$latest_success"
+                fi
+              fi
+              
+              # Show recent run summary
+              echo "$recent_runs" | jq -r '.[] | "  " + .created_at + " - " + (.conclusion // .status) + " - " + .html_url' >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ WARNING: Workflow not found" >> $GITHUB_STEP_SUMMARY
+            warning_count=$((warning_count + 1))
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+        done
+        
+        # Output results
+        echo "critical-failures=$critical_failures" >> $GITHUB_OUTPUT
+        echo "warning-count=$warning_count" >> $GITHUB_OUTPUT
+        echo "last-success=$last_success" >> $GITHUB_OUTPUT
+        
+        # Summary
+        echo "### Dead Man's Switch Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Critical Failures**: $critical_failures" >> $GITHUB_STEP_SUMMARY
+        echo "- **Warnings**: $warning_count" >> $GITHUB_STEP_SUMMARY
+        echo "- **Last Success**: ${last_success:-'Unknown'}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $critical_failures -gt 0 ]]; then
+          echo "🚨 **DEAD MAN'S SWITCH ACTIVATED** - Critical workflows are failing!" >> $GITHUB_STEP_SUMMARY
+        elif [[ $warning_count -gt 0 ]]; then
+          echo "⚠️ **WARNING** - Some workflow issues detected" >> $GITHUB_STEP_SUMMARY  
+        else
+          echo "✅ **ALL SYSTEMS OPERATIONAL** - Critical workflows healthy" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Validate Secret Health Status
+      run: |
+        echo "### Secret Health Check Integration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Call the secret validation workflow to get current status
+        validation_status="${{ needs.validate-secrets.outputs.validation-status }}"
+        
+        if [[ "$validation_status" == "failed" ]]; then
+          echo "❌ **CRITICAL**: Secret validation is failing" >> $GITHUB_STEP_SUMMARY
+          echo "  This may be the root cause of workflow failures" >> $GITHUB_STEP_SUMMARY
+          echo "  Review secret configuration immediately" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ **SECRET HEALTH**: Validation passing" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Check GitHub Actions Quota
+      run: |
+        echo "### GitHub Actions Quota Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Get current usage (approximation based on recent runs)
+        recent_usage=$(gh api "repos/${{ github.repository }}/actions/workflows/runs" \
+          --jq '.workflow_runs[] | select(.created_at > "'$(date -d "1 month ago" -u +"%Y-%m-%dT%H:%M:%SZ")'") | .run_started_at' \
+          | wc -l 2>/dev/null || echo "0")
+        
+        # Estimate minutes used (average 10 minutes per run)
+        estimated_minutes=$((recent_usage * 10))
+        quota_limit=2000  # Free tier limit
+        usage_percentage=$((estimated_minutes * 100 / quota_limit))
+        
+        echo "- **Estimated Monthly Usage**: ${estimated_minutes}/${quota_limit} minutes (${usage_percentage}%)" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $usage_percentage -gt 80 ]]; then
+          echo "⚠️ **WARNING**: GitHub Actions quota usage is high" >> $GITHUB_STEP_SUMMARY
+          echo "  Consider optimizing workflows or upgrading plan" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ **QUOTA HEALTHY**: Usage within limits" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Create Critical Dead Man's Switch Alert
+      if: steps.check-workflows.outputs.critical-failures > 0
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const criticalFailures = '${{ steps.check-workflows.outputs.critical-failures }}';
+          const warningCount = '${{ steps.check-workflows.outputs.warning-count }}';
+          const lastSuccess = '${{ steps.check-workflows.outputs.last-success }}';
+          const runId = '${{ github.run_id }}';
+          const serverUrl = '${{ github.server_url }}';
+          const repo = '${{ github.repository }}';
+          
+          const issueBody = `
+          ## 🚨 DEAD MAN'S SWITCH ACTIVATED - Critical Workflows Failing
+          
+          **Alert Type**: Dead Man's Switch - Critical System Failure
+          **Critical Failures**: ${criticalFailures}
+          **Warning Count**: ${warningCount}
+          **Last Successful Run**: ${lastSuccess || 'Unknown'}
+          **Detection Time**: ${new Date().toISOString()}
+          **Monitoring Run**: [${runId}](${serverUrl}/${repo}/actions/runs/${runId})
+          
+          ### 🚨 IMMEDIATE ACTION REQUIRED
+          
+          Critical data collection and monitoring workflows have stopped functioning. This indicates a **potential 2+ day production outage scenario**.
+          
+          **This is a P0 incident - System may be DOWN.**
+          
+          ### Investigation Checklist
+          
+          - [ ] **Check Secret Configuration**: Verify all production secrets are configured and valid
+          - [ ] **Review Recent Failures**: Examine failed workflow logs for error patterns  
+          - [ ] **Test Service Connectivity**: Validate external service connections (MongoDB, APIs, proxies)
+          - [ ] **Check System Resources**: Verify GitHub Actions quotas and runner availability
+          - [ ] **Validate Dependencies**: Ensure all external dependencies are operational
+          - [ ] **Test Manual Recovery**: Attempt manual workflow triggers to isolate issues
+          
+          ### Critical Workflows Affected
+          
+          - Production Data Collection (daily scheduled)
+          - Secret Validation Monitoring (daily scheduled)  
+          - System Health Monitoring (weekly scheduled)
+          
+          ### Escalation Path
+          
+          1. **Immediate (0-15 min)**: Check and fix secret configuration
+          2. **Short term (15-60 min)**: Diagnose and resolve service connectivity issues
+          3. **Medium term (1-4 hours)**: Full system recovery and validation
+          4. **Long term (4+ hours)**: Post-incident review and prevention measures
+          
+          ### Recovery Actions
+          
+          \`\`\`bash
+          # Quick diagnosis commands
+          gh workflow run "validate-secrets.yml" --ref main
+          gh workflow run "monitoring.yml" --ref main -f monitoring_type=comprehensive
+          gh workflow run "data-collection-production.yml" --ref main -f collection_mode=test
+          \`\`\`
+          
+          ### Success Criteria
+          
+          - [ ] All critical workflows returning to healthy state
+          - [ ] Secret validation passing
+          - [ ] Data collection resuming successfully
+          - [ ] System monitoring operational
+          - [ ] No additional dead man's switch alerts for 24 hours
+          
+          **⏰ SLA**: P0 incidents must be acknowledged within 15 minutes, resolved within 2 hours.
+          
+          ---
+          
+          **Auto-generated by**: Dead Man's Switch Monitoring System
+          **Next Check**: In 24 hours (or run manually for immediate recheck)
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `🚨 DEAD MAN'S SWITCH: Critical Workflows Failing - ${new Date().toDateString()}`,
+            body: issueBody,
+            labels: ['critical', 'dead-mans-switch', 'p0-incident', 'production', 'monitoring', 'urgent', 'system-down']
+          });
+          
+          console.log('Dead man\'s switch critical alert created');
+
   monitoring-summary:
     name: Monitoring Summary & Alerts
     runs-on: ubuntu-latest
-    needs: [validate-secrets, budget-monitoring, system-health-monitoring, performance-monitoring]
+    needs: [validate-secrets, budget-monitoring, system-health-monitoring, performance-monitoring, dead-mans-switch]
     if: always()
     environment: production
     secrets: inherit
@@ -625,11 +878,13 @@ jobs:
       run: |
         budget_status="${{ needs.budget-monitoring.outputs.budget-status }}"
         system_status="${{ needs.system-health-monitoring.outputs.system-status }}"
+        dead_mans_failures="${{ needs.dead-mans-switch.outputs.critical-failures || '0' }}"
+        dead_mans_warnings="${{ needs.dead-mans-switch.outputs.warning-count || '0' }}"
         
         # Determine overall alert level
-        if [[ "$budget_status" == "critical" || "$system_status" == "unhealthy" ]]; then
+        if [[ "$budget_status" == "critical" || "$system_status" == "unhealthy" || $dead_mans_failures -gt 0 ]]; then
           alert_level="critical"
-        elif [[ "$budget_status" == "warning" || "$system_status" == "degraded" ]]; then
+        elif [[ "$budget_status" == "warning" || "$system_status" == "degraded" || $dead_mans_warnings -gt 0 ]]; then
           alert_level="warning"
         else
           alert_level="info"
@@ -659,6 +914,11 @@ jobs:
         
         ## Performance
         - **Monitoring**: ${{ needs.performance-monitoring.result || 'skipped' }}
+        
+        ## Dead Man's Switch
+        - **Critical Failures**: ${{ needs.dead-mans-switch.outputs.critical-failures || '0' }}
+        - **Warning Count**: ${{ needs.dead-mans-switch.outputs.warning-count || '0' }}
+        - **Last Success**: ${{ needs.dead-mans-switch.outputs.last-success || 'Unknown' }}
         
         ## Next Monitoring
         - **Budget Check**: Every 6 hours

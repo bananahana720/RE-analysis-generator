@@ -1,0 +1,254 @@
+# LLM Production Configuration for Phoenix Real Estate
+# Optimized for reliability, performance, and cost-efficiency
+
+# Ollama Service Configuration
+ollama:
+  # Service endpoint
+  base_url: "http://localhost:11434"
+  
+  # Model configuration
+  model: "llama3.2:latest"
+  
+  # Connection settings
+  timeout: 30  # seconds
+  max_retries: 3
+  retry_delay: 1.0  # seconds
+  
+  # Health check settings
+  health_check_interval: 60  # seconds
+  health_check_timeout: 5    # seconds
+
+# LLM Processing Configuration
+processing:
+  # Extraction settings
+  extraction:
+    # Prompt optimization
+    temperature: 0.1  # Low temperature for consistent extraction
+    max_tokens: 2048
+    top_p: 0.9
+    
+    # Field extraction priorities
+    required_fields:
+      - address
+      - price
+      - bedrooms
+      - bathrooms
+      - square_feet
+      - property_type
+    
+    optional_fields:
+      - year_built
+      - lot_size
+      - garage_spaces
+      - pool
+      - hoa_fee
+      - listing_date
+      - mls_number
+      - agent_name
+      - agent_phone
+    
+    # Confidence thresholds
+    min_confidence_score: 0.7
+    require_address_confidence: 0.85
+    
+  # Validation settings
+  validation:
+    # Strict validation for production
+    strict_mode: true
+    
+    # Address validation
+    validate_zip_codes:
+      - "85031"
+      - "85033"
+      - "85035"
+    
+    # Price validation
+    min_price: 50000
+    max_price: 5000000
+    
+    # Size validation
+    min_square_feet: 400
+    max_square_feet: 20000
+    
+    # Room count validation
+    max_bedrooms: 10
+    max_bathrooms: 10
+    
+  # Performance optimization
+  performance:
+    # Batch processing
+    batch_size: 10
+    max_concurrent_requests: 3
+    
+    # Memory management
+    max_memory_per_request_mb: 256
+    garbage_collection_interval: 100  # requests
+    
+    # Caching
+    enable_prompt_caching: true
+    cache_ttl_minutes: 60
+    max_cache_entries: 1000
+    
+    # Circuit breaker
+    circuit_breaker:
+      failure_threshold: 5
+      recovery_timeout: 60  # seconds
+      half_open_requests: 2
+
+# Error Handling Configuration
+error_handling:
+  # Retry configuration
+  retry:
+    max_attempts: 3
+    backoff_multiplier: 2.0
+    max_backoff: 30  # seconds
+    
+  # Dead letter queue
+  dead_letter_queue:
+    enabled: true
+    max_size: 1000
+    retention_days: 7
+    
+  # Fallback strategies
+  fallback:
+    enable_simple_extraction: true  # Regex-based fallback
+    enable_partial_extraction: true  # Return partial data if available
+    
+  # Error reporting
+  reporting:
+    log_errors: true
+    alert_threshold: 10  # errors per minute
+    alert_channels:
+      - log_file
+      - metrics
+      # - email  # Configure in deployment
+
+# Monitoring Configuration
+monitoring:
+  # Metrics collection
+  metrics:
+    enabled: true
+    export_interval: 60  # seconds
+    
+    # Prometheus metrics
+    prometheus:
+      enabled: true
+      port: 9090
+      path: "/metrics"
+    
+    # Custom metrics
+    track_metrics:
+      - extraction_duration
+      - extraction_success_rate
+      - field_extraction_rates
+      - model_response_time
+      - cache_hit_rate
+      - error_rate
+      
+  # Logging
+  logging:
+    # Structured logging for production
+    format: "json"
+    level: "INFO"
+    
+    # Log rotation
+    file: "/var/log/phoenix_real_estate/llm_processing.log"
+    max_size_mb: 100
+    backup_count: 10
+    
+    # Performance logging
+    log_slow_requests: true
+    slow_request_threshold_ms: 5000
+    
+  # Health checks
+  health_checks:
+    # Endpoint configuration
+    endpoint: "/health/llm"
+    
+    # Check components
+    checks:
+      - ollama_connection
+      - model_availability
+      - memory_usage
+      - processing_queue
+      
+    # Thresholds
+    memory_threshold_percent: 80
+    queue_threshold: 100
+
+# Security Configuration
+security:
+  # Input sanitization
+  sanitization:
+    remove_scripts: true
+    max_input_length: 50000  # characters
+    allowed_html_tags:
+      - div
+      - span
+      - p
+      - h1
+      - h2
+      - h3
+      - table
+      - tr
+      - td
+      - ul
+      - li
+      - a
+    
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    
+  # Data protection
+  data_protection:
+    mask_sensitive_data: true
+    sensitive_patterns:
+      - ssn
+      - credit_card
+      - email  # Mask in logs only
+      - phone  # Mask in logs only
+
+# Resource Management
+resources:
+  # CPU limits
+  cpu:
+    max_workers: 4
+    worker_timeout: 300  # seconds
+    
+  # Memory limits
+  memory:
+    max_heap_size_mb: 2048
+    max_rss_mb: 3072
+    
+  # Disk usage
+  disk:
+    max_cache_size_mb: 1024
+    temp_directory: "/tmp/phoenix_llm"
+    cleanup_interval_hours: 24
+
+# Deployment Configuration
+deployment:
+  # Service configuration
+  service:
+    name: "phoenix-llm-processor"
+    user: "phoenix"
+    group: "phoenix"
+    
+  # Process management
+  process:
+    restart_policy: "always"
+    restart_delay: 5  # seconds
+    max_restarts: 10
+    
+  # Environment
+  environment:
+    NODE_ENV: "production"
+    TZ: "America/Phoenix"
+    
+  # Dependencies
+  dependencies:
+    - "ollama.service"
+    - "mongodb.service"

@@ -96,14 +96,14 @@ jobs:
       run: |
         # Using bandit from dev dependencies
         # Skip documented false positives: B311 (anti-detection random), B110 (logging fallback), B112 (selector discovery)
-        uv run bandit -r src/ -f json -o bandit-report.json --exit-zero -s B311,B110,B112
+        uv run bandit -r src/ -f json -o security-reports/generated/bandit-report.json --exit-zero -s B311,B110,B112
     
     - name: Upload security reports
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: security-reports
-        path: bandit-report.json
+        path: security-reports/generated/bandit-report.json
 
   compliance-check:
     name: Security Compliance Check
@@ -127,7 +127,7 @@ jobs:
     
     - name: Validate secrets setup
       run: |
-        if ! python scripts/setup_secrets.py validate .env; then
+        if ! python scripts/setup/setup_secrets.py validate .env; then
           echo "[FAIL] Critical: .env validation failed - security requirements not met"
           exit 1
         fi
@@ -135,7 +135,7 @@ jobs:
     
     - name: Check security files
       run: |
-        required_files=("scripts/setup_secrets.py" "scripts/validate_secrets.py" ".gitleaks.toml" "CODEOWNERS")
+        required_files=("scripts/setup/setup_secrets.py" "scripts/validation/validate_secrets.py" ".gitleaks.toml" "CODEOWNERS")
         for file in "${required_files[@]}"; do
           if [ \! -f "$file" ]; then
             echo "Missing: $file"

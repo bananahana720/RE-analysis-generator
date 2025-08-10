@@ -219,10 +219,10 @@ async def run_performance_benchmark():
     print(f"P95 duration: {stats['p95_duration']:.2f}s")
 
 
-async def main():
+async def main(mode="test"):
     """Run all performance tests."""
     print("=" * 60)
-    print("LLM Processing Performance Optimization Tests")
+    print(f"LLM Processing Performance Optimization Tests (mode: {mode})")
     print("=" * 60)
 
     # Run individual tests
@@ -238,5 +238,21 @@ async def main():
     print("=" * 60)
 
 
+def run_main():
+    """Main function with CLI argument parsing."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test LLM processing performance optimizations")
+    parser.add_argument(
+        "--mode",
+        default="test",
+        choices=["test", "incremental", "full"],
+        help="Test mode (default: test)",
+    )
+
+    args = parser.parse_args()
+    asyncio.run(main(args.mode))
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    run_main()

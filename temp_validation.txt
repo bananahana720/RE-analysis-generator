@@ -1,8 +1,0 @@
-        # Mock secrets for testing
-        echo "[OK] Using mock secrets for testing pipeline"
-        echo "MONGODB_URL: ${MONGODB_URL:-mongodb://localhost:27017}"
-        echo "MARICOPA_API_KEY: ${MARICOPA_API_KEY:-mock-maricopa-key}"
-        echo "WEBSHARE_API_KEY: ${WEBSHARE_API_KEY:-mock-webshare-key}"
-        echo "CAPTCHA_API_KEY: ${CAPTCHA_API_KEY:-mock-captcha-key}"
-        echo "status=success" >> $GITHUB_OUTPUT
-EOF < /dev/null

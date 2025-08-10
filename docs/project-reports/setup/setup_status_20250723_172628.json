@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-07-23T17:26:27.919969",
+  "components": {
+    "env_file": {
+      "status": "CONFIGURED",
+      "configured": 8,
+      "total": 8,
+      "missing": []
+    },
+    "mongodb": "RUNNING",
+    "proxy_config": "CONFIGURED",
+    "selectors": "CONFIGURED",
+    "directories": "READY"
+  },
+  "ready": true
+}

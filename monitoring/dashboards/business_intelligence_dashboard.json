@@ -1,0 +1,112 @@
+{
+  "dashboard": {
+    "name": "Phoenix Real Estate - Business Intelligence Dashboard",
+    "description": "Properties collected, data quality, geographic coverage, and business insights",
+    "type": "business_intelligence",
+    "refresh_interval": "15m",
+    "panels": [
+      {
+        "title": "Data Collection Statistics",
+        "type": "statistics_grid",
+        "statistics": [
+          {
+            "name": "properties_collected_today",
+            "value": "tracking",
+            "target": ">1000"
+          },
+          {
+            "name": "data_quality_percentage",
+            "value": ">90%",
+            "target": "90%"
+          },
+          {
+            "name": "geographic_coverage_areas",
+            "value": "3 zip codes",
+            "target": "85031,85033,85035"
+          },
+          {
+            "name": "collection_success_rate",
+            "value": "95%",
+            "target": "80%"
+          }
+        ]
+      },
+      {
+        "title": "Geographic Distribution",
+        "type": "map_visualization",
+        "data": {
+          "zip_codes": {
+            "85031": {
+              "status": "active",
+              "properties": "tracking",
+              "success_rate": "95%"
+            },
+            "85033": {
+              "status": "active",
+              "properties": "tracking",
+              "success_rate": "95%"
+            },
+            "85035": {
+              "status": "active",
+              "properties": "tracking",
+              "success_rate": "95%"
+            }
+          },
+          "coverage_target": "Phoenix, AZ metropolitan area"
+        }
+      },
+      {
+        "title": "Data Quality Metrics",
+        "type": "quality_scorecard",
+        "quality_metrics": [
+          {
+            "metric": "completeness",
+            "score": ">95%",
+            "threshold": "90%"
+          },
+          {
+            "metric": "accuracy",
+            "score": ">98%",
+            "threshold": "95%"
+          },
+          {
+            "metric": "consistency",
+            "score": ">97%",
+            "threshold": "90%"
+          },
+          {
+            "metric": "timeliness",
+            "score": ">99%",
+            "threshold": "95%"
+          }
+        ]
+      },
+      {
+        "title": "Business Value Metrics",
+        "type": "value_tracking",
+        "metrics": [
+          {
+            "metric": "cost_per_data_point",
+            "value": "<$0.003",
+            "efficiency": "high"
+          },
+          {
+            "metric": "collection_frequency",
+            "value": "daily",
+            "schedule": "3 AM Phoenix time"
+          },
+          {
+            "metric": "data_freshness",
+            "value": "< 24 hours",
+            "target": "daily updates"
+          },
+          {
+            "metric": "system_reliability",
+            "value": "98%",
+            "target": ">95%"
+          }
+        ]
+      }
+    ]
+  }
+}

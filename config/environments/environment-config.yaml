@@ -1,0 +1,279 @@
+# Environment Configuration Manager for Phoenix Real Estate Data Collection
+# This file standardizes environment detection and configuration loading
+
+# Environment Detection Configuration
+environment:
+  # Environment detection order (first match wins)
+  detection_order:
+    - environment_variable  # Check ENVIRONMENT env var
+    - github_environment   # Check GITHUB_ENVIRONMENT
+    - hostname_pattern     # Check hostname patterns
+    - default             # Fall back to development
+    
+  # Environment variable mappings
+  variables:
+    primary: "ENVIRONMENT"
+    github: "GITHUB_ENVIRONMENT"
+    legacy: "NODE_ENV"  # Support for legacy NODE_ENV
+    
+  # Hostname patterns for environment detection
+  hostname_patterns:
+    production:
+      - "prod-*"
+      - "*-prod.*"
+      - "*.prod.*"
+    testing:
+      - "test-*"
+      - "*-test.*"
+      - "*.test.*"
+      - "ci-*"
+      - "github-*"
+    development:
+      - "dev-*"
+      - "*-dev.*"
+      - "localhost"
+      - "127.0.0.1"
+
+# Environment-Specific Configurations
+environments:
+  # Development Environment
+  development:
+    description: "Local development environment"
+    
+    # Service configuration
+    services:
+      mongodb:
+        connection_string: "${MONGODB_URL:-mongodb://localhost:27017}"
+        database: "phoenix_real_estate_dev"
+        connection_timeout: 10000
+        
+      ollama:
+        service_url: "${OLLAMA_URL:-http://localhost:11434}"
+        model: "llama3.2:latest"
+        timeout: 60
+        startup_timeout: 180
+        
+    # Feature flags
+    features:
+      external_apis_enabled: true
+      proxy_required: false
+      captcha_solving: false
+      email_notifications: false
+      
+    # Logging configuration
+    logging:
+      level: "DEBUG"
+      format: "text"
+      console_output: true
+      file_output: false
+      
+  # Testing Environment
+  testing:
+    description: "Automated testing environment"
+    
+    # Service configuration
+    services:
+      mongodb:
+        connection_string: "${MONGODB_URL:-mongodb://localhost:27018}"
+        database: "phoenix_real_estate_test"
+        connection_timeout: 5000
+        
+      ollama:
+        service_url: "${OLLAMA_URL:-http://localhost:11435}"
+        model: "mock"
+        timeout: 5
+        startup_timeout: 30
+        
+    # Feature flags
+    features:
+      external_apis_enabled: false  # Disable external APIs in tests
+      proxy_required: false
+      captcha_solving: false
+      email_notifications: false
+      
+    # Logging configuration
+    logging:
+      level: "DEBUG"
+      format: "text"
+      console_output: false
+      file_output: false
+      
+  # Production Environment
+  production:
+    description: "Production environment"
+    
+    # Service configuration
+    services:
+      mongodb:
+        connection_string: "${MONGODB_URL}"  # Required in production
+        database: "${MONGODB_DATABASE:-phoenix_real_estate}"
+        connection_timeout: 5000
+        
+      ollama:
+        service_url: "${OLLAMA_URL:-http://localhost:11434}"
+        model: "${LLM_MODEL:-llama3.2:latest}"
+        timeout: 30
+        startup_timeout: 120
+        
+    # Feature flags
+    features:
+      external_apis_enabled: true
+      proxy_required: true
+      captcha_solving: true
+      email_notifications: true
+      
+    # Logging configuration
+    logging:
+      level: "INFO"
+      format: "json"
+      console_output: false
+      file_output: true
+
+# Configuration Validation Rules
+validation:
+  # Required environment variables per environment
+  required_variables:
+    development:
+      - ENVIRONMENT
+      
+    testing:
+      - ENVIRONMENT
+      
+    production:
+      - ENVIRONMENT
+      - MONGODB_URL
+      - MARICOPA_API_KEY
+      - SECRET_KEY
+      
+  # Service validation requirements
+  service_requirements:
+    development:
+      mongodb:
+        required: true
+        health_check: true
+        
+      ollama:
+        required: true
+        health_check: true
+        
+    testing:
+      mongodb:
+        required: true
+        health_check: true
+        
+      ollama:
+        required: false  # Can use mock
+        health_check: false
+        
+    production:
+      mongodb:
+        required: true
+        health_check: true
+        
+      ollama:
+        required: true
+        health_check: true
+
+# GitHub Actions Environment Mapping
+github_actions:
+  # Environment mapping for GitHub Actions
+  environment_mapping:
+    # GitHub environment name -> Internal environment name
+    production: production
+    prod: production
+    staging: testing
+    test: testing
+    development: development
+    dev: development
+    
+  # Required secrets per environment
+  required_secrets:
+    production:
+      - MONGODB_URL
+      - MARICOPA_API_KEY
+      - WEBSHARE_API_KEY
+      - CAPTCHA_API_KEY
+      - SECRET_KEY
+      
+    testing:
+      - TEST_MONGODB_PASSWORD  # For local MongoDB in CI
+      - MARICOPA_API_KEY  # Can be test key
+      
+  # Environment-specific workflow settings
+  workflow_settings:
+    production:
+      timeout_minutes: 75
+      retry_attempts: 3
+      concurrent_limit: 1  # No concurrent production runs
+      
+    testing:
+      timeout_minutes: 45
+      retry_attempts: 2
+      concurrent_limit: 3
+
+# Configuration Loading Priority
+loading_priority:
+  # Configuration loading order (higher priority first)
+  sources:
+    - name: "environment_variables"
+      priority: 100
+      description: "Environment variables override everything"
+      
+    - name: "environment_specific_file"
+      priority: 90
+      description: "Environment-specific YAML files"
+      pattern: "config/environments/{environment}.yaml"
+      
+    - name: "base_configuration"
+      priority: 80
+      description: "Base configuration files"
+      pattern: "config/base.yaml"
+      
+    - name: "service_defaults"
+      priority: 70
+      description: "Service default configurations"
+      pattern: "config/services/*.yaml"
+      
+    - name: "application_defaults"
+      priority: 60
+      description: "Application default values"
+
+# Environment Transition Rules
+transitions:
+  # Allowed environment transitions
+  allowed_transitions:
+    development:
+      - testing
+      - production  # Direct development to production allowed
+      
+    testing:
+      - production
+      - development
+      
+    production:
+      - testing    # For rollback/debugging
+      
+  # Validation rules for transitions
+  transition_validation:
+    to_production:
+      - check_required_secrets
+      - validate_service_health
+      - confirm_data_backup
+      
+    from_production:
+      - require_explicit_confirmation
+      - log_transition_reason
+      
+# Configuration Debugging
+debugging:
+  # Enable configuration debugging
+  enable_config_logging: false
+  
+  # Log configuration sources and values
+  log_config_resolution: false
+  
+  # Validate configuration completeness
+  validate_config_completeness: true
+  
+  # Configuration diff tracking
+  track_config_changes: true

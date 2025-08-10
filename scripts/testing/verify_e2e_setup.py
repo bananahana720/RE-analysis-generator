@@ -138,9 +138,9 @@ def check_dependencies():
     return all_present
 
 
-async def main():
+async def main(mode="test"):
     """Run all verification checks."""
-    print("E2E Test Setup Verification")
+    print(f"E2E Test Setup Verification (mode: {mode})")
     print("=" * 60)
 
     # Run checks
@@ -182,6 +182,24 @@ async def main():
         return 1
 
 
-if __name__ == "__main__":
-    exit_code = asyncio.run(main())
+def run_main():
+    """Main function with CLI argument parsing."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Verify E2E test setup for LLM processing pipeline"
+    )
+    parser.add_argument(
+        "--mode",
+        default="test",
+        choices=["test", "incremental", "full"],
+        help="Verification mode (default: test)",
+    )
+
+    args = parser.parse_args()
+    exit_code = asyncio.run(main(args.mode))
     sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    run_main()

@@ -22,7 +22,7 @@ A comprehensive, automated system for collecting and analyzing Phoenix metropoli
 uv sync                                    # Install dependencies
 uv run pytest tests/ -v                   # Run tests
 uv run ruff check . --fix                # Lint code
-python scripts/workflow_validator.py      # Validate GitHub Actions
+python scripts/validation/workflow_validator.py      # Validate GitHub Actions
 
 # Services (Windows)
 net start MongoDB                         # Start database (Admin)
@@ -38,7 +38,7 @@ gh run list                             # View recent runs
 - `.env` - API keys configuration
 - `config/proxies.yaml` - Proxy settings
 - `.github/workflows/` - GitHub Actions workflows
-- `CLAUDE.md` - Development guide for AI assistants
+- `docs/project-overview/CLAUDE.md` - Development guide for AI assistants
 
 ## 🚀 Quick Start
 
@@ -138,7 +138,7 @@ The repository includes 7 production-ready workflows:
 To verify they're working:
 ```bash
 # Check workflow syntax locally
-python scripts/workflow_validator.py
+python scripts/validation/workflow_validator.py
 
 # View in GitHub UI
 # Go to "Actions" tab - all workflows should appear
@@ -413,7 +413,7 @@ uv run pytest tests/integration/
 
 1. **Workflow Not Appearing**:
    - Ensure file is in `.github/workflows/` directory
-   - Check YAML syntax with `python scripts/workflow_validator.py`
+   - Check YAML syntax with `python scripts/validation/workflow_validator.py`
    - Verify GitHub Actions is enabled in repository settings
 
 2. **Workflow Failures**:
@@ -477,7 +477,7 @@ API documentation is auto-generated and available at:
 
 ## 🤝 Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+Please see [CONTRIBUTING.md](docs/project-overview/CONTRIBUTING.md) for detailed guidelines on:
 - Development setup
 - Code style requirements
 - Testing requirements

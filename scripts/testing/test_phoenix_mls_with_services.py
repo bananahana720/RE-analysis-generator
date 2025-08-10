@@ -228,9 +228,9 @@ class PhoenixMLSServiceTester:
 
         return False
 
-    async def run_all_tests(self):
+    async def run_all_tests(self, mode="test"):
         """Run all service tests."""
-        print("Phoenix MLS Service Test Suite")
+        print(f"Phoenix MLS Service Test Suite (mode: {mode})")
         print("=" * 60)
         print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -314,7 +314,19 @@ class PhoenixMLSServiceTester:
 
 
 async def main():
-    """Run the service tests."""
+    """Run the service tests with CLI argument parsing."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test Phoenix MLS with services")
+    parser.add_argument(
+        "--mode",
+        default="test",
+        choices=["test", "incremental", "full"],
+        help="Test mode (default: test)",
+    )
+
+    args = parser.parse_args()
+
     # Check for required environment variables
     required_vars = ["WEBSHARE_USERNAME", "WEBSHARE_PASSWORD", "CAPTCHA_API_KEY"]
     missing_vars = []
@@ -331,7 +343,7 @@ async def main():
 
     # Run tests
     tester = PhoenixMLSServiceTester()
-    success = await tester.run_all_tests()
+    success = await tester.run_all_tests(args.mode)
 
     sys.exit(0 if success else 1)
 

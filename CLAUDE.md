@@ -1,11 +1,16 @@
-# Phoenix Real Estate Data Collector - Claude Development Guide
+# Phoenix Real Estate - Quick Reference
 
-## PROJECT CONTEXT
-- **Purpose**: Automated real estate data collection for Phoenix, AZ (zips: 85031, 85033, 85035)
-- **Budget**: $25/month maximum (currently ~$2-3/month operational)
-- **Status**: 98% operational - **All critical tests passing** ✅ Test suite: 1063+ tests collecting successfully
-- **Architecture**: 3-tier (Collection → LLM Processing → Storage) with MongoDB v8.1.2
-- **Package Name**: `phoenix_real_estate` (not `src`)
+## Environment
+- **Python**: 3.13.4 (uv package manager, NOT pip)
+- **Database**: MongoDB v8.1.2 (localhost:27017)
+- **LLM**: Ollama with llama3.2:latest (2GB model)
+- **Testing**: pytest (asyncio), ruff, pyright
+- **CI/CD**: GitHub Actions
+
+## Architecture Patterns
+- **Structure**: refer to `@index.md` file to understand project structure and know ***WHERE*** to work. `index-detailed.md` for more details.
+- **Imports**: Drop `src.` prefix → `from phoenix_real_estate.foundation...`
+- **Principles**: TDD first, SOLID, Clean Architecture
 
 ## DEVELOPMENT RULES
 ✅ **ALWAYS** check for existing files/components before creating new ones
@@ -17,102 +22,66 @@
 ❌ No rewrites when refactoring suffices
 ❌ No generic advice - provide specific implementations
 
-## ENVIRONMENT & TOOLS
-- **Python**: 3.13.4 (uv package manager, NOT pip)
-- **Database**: MongoDB v8.1.2 (localhost:27017)
-- **LLM**: Ollama with llama3.2:latest (2GB model)
-- **Testing**: pytest (asyncio), ruff, pyright
-- **CI/CD**: GitHub Actions (11 workflows, 10 operational)
+**For Python projects specifically:**
+* ZERO warnings from `ruff`, `mypy`, `flake8` (all checks enabled)
+* No disabled linter rules without explicit justification
+* No use of `Any` types or missing type hints
+* No `# noqa` comments unless absolutely necessary with explanation
+* Proper exception chaining with `raise ... from`
+* Clear return statements - no implicit `None` returns
+* Consistent naming following PEP 8 conventions
 
-## PROJECT STRUCTURE
-```
-src/phoenix_real_estate/
-├── foundation/          # Core infrastructure (config, db, logging)
-├── collectors/          # Data collection + LLM processing (Task 6 ✅)
-├── orchestration/       # ProcessingIntegrator, workflow coordination
-└── models/              # PropertyDetails, validation models
+## Key Technical Patterns
 
-config/*.yaml            # Configurations (proxies, selectors)
-scripts/                 # Testing, setup, validation helpers
-tests/                   # Unit, integration, e2e tests
-```
+### Pydantic v2
+- `@field_validator` with `@classmethod`
+- `model_dump()` not `dict()`
+- `datetime.now(UTC)` not `datetime.utcnow()`
 
-## KEY COMMANDS
-```bash
-# Essential Services
-net start MongoDB                                    # Start database (Admin)
-ollama serve                                        # Start LLM service
-ollama pull llama3.2:latest                        # Download model (2GB)
+### MongoDB Atlas
+- 10 connection pool limit
+- Graceful index creation
+- Motor async driver
 
-# Development Workflow
-uv sync                                             # Install dependencies
-uv run pytest tests/collectors/processing/ -v      # Test LLM processing
-uv run ruff check . --fix                          # Lint + fix code
-```
+### Testing
+- TDD: Write tests first, then implement
+- Fixtures in conftest.py
+- `pytest-asyncio` for async tests
 
-## CONFIGURATION FILES
-- **`.env`** - API keys: `MARICOPA_API_KEY`, `WEBSHARE_API_KEY`, `CAPTCHA_API_KEY`
-- **`config/proxies.yaml`** - WebShare proxy credentials from `.env`
+## Task Completion Patterns
 
-## CURRENT STATUS (98% OPERATIONAL)
+### Parallelization Success
+- **Spawn/Wave**: 60-95% time reduction for complex tasks
+- **Sub-agents**: 8 parallel streams, zero conflicts, domain-specific expertise
+- **Strategy**: Split by domain (tests, docs, integration, monitoring, performance)
+- **Phoenix MLS**: 13 tasks completed in parallel → enterprise-ready scraper
 
-### Working Components (✅)
-- **Infrastructure**: MongoDB v8.1.2, Ollama LLM, GitHub Actions CI/CD
-- **APIs**: Maricopa (84% success), WebShare proxies, 2captcha  
-- **Testing**: **1063+ tests collecting successfully**, critical issues resolved
-- **Security**: Zero hardcoded credentials, SSL enabled, .env configured
+### Advanced Implementation Lessons
+- **Enterprise Features**: Session persistence + captcha handling + error recovery essential for production
+- **Monitoring First**: Prometheus metrics from day 1, not afterthought
+- **Test Quality**: 92.8% mutation score > coverage percentage alone
+- **Error Patterns**: 21 site-specific patterns prevent 80% of scraping failures
+- **Windows Compatibility**: Custom mutation testing needed for `mutmut` alternatives
 
-### GitHub Actions Status (11 workflows)
-```
-✅ ci-cd.yml          → OPERATIONAL (9+ min runtime, was 0s failures)
-✅ test-workflows.yml → PASSING (14-17s, workflow validation)
-🔴 data-collection.yml → YAML parsing blocked (architecture ready)
-✅ security.yml       → READY (monitoring, scanning configured)
-✅ All others         → READY (deployment, maintenance, monitoring)
-```
+### Production Readiness Lessons (Task 5)
+- **Import Validation Critical**: Always verify `__init__.py` imports match `__all__` declarations
+- **Systematic Troubleshooting**: Parallel sub-agent execution for critical issue resolution (5 agents, 4 hrs)
+- **Test-Reality Gap**: Claims vs actual test results require independent validation
+- **Project Organization**: Professional structure essential - organized root, reports/, tools/ directories
+- **Quality Gates**: 8-step validation cycle prevents deployment of broken systems
 
-### Key Architectures
-```
-# LLM Processing Pipeline
-Collectors → ProcessingIntegrator → DataProcessingPipeline → OllamaClient → MongoDB
+### Common Gotchas  
+- **RateLimiter**: `wait_if_needed()` not `acquire()`
+- **Playwright**: Timeout in ms, tests expect seconds  
+- **Config**: `get_typed()` for type safety
+- **Async Tests**: ±10% timing tolerance
+- **Captcha Integration**: 2captcha costs $1-3/1000 solves, budget accordingly
+- **Proxy Health**: Monitor with 5min intervals, not request-by-request
+- **Module Imports**: Broken `__init__.py` imports block all usage - verify with import tests
+- **Code Quality**: Run ruff checks before deployment
 
-# Production Collection (BLOCKED: YAML parsing)
-data-collection.yml → 7 jobs: secrets→setup→maricopa→mls→llm→validation→notify
-```
-
-## CODE STANDARDS & GOTCHAS
-- **Async/await** for all I/O operations, always `async with` for LLM components
-- **MongoDB**: Use `is None` not boolean truthiness
-- **Error handling**: Custom exceptions with proper chaining
-- **Maricopa API**: `AUTHORIZATION` (uppercase) + `user-agent: null`
-- **WebShare Auth**: `Authorization: Token {api_key}` format
-
-## QUICK LLM USAGE
-```python
-from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
-from phoenix_real_estate.orchestration import ProcessingIntegrator
-
-# Batch processing (optimized)
-async with ProcessingIntegrator(EnvironmentConfigProvider()) as integrator:
-    results = await integrator.process_maricopa_batch(property_list)
-```
-
-## RECENT FIXES & LESSONS LEARNED
-- **CI/CD Workflows**: Fixed duplicate jobs (0s→9min), pyright type errors (37→warnings), formatting
-- **Type System**: Added ConfigProvider.get_typed method, fixed DatabaseConnection attributes  
-- **Test Suite**: 1063+ tests passing, import errors resolved (uvloop, DatabaseClient→DatabaseConnection)
-- **Pipeline**: Fixed batch processing duplication (24→10 results), cache memory limits
-- **ConfigProvider**: Use EnvironmentConfigProvider() for instantiation
-
-## BEFORE COMMITS
-1. `uv run ruff check . --fix` && `uv run pytest tests/` - Ensure quality
-2. Check for hardcoded credentials, verify .env not committed
-
-## CRITICAL GOTCHAS
-- **TDD Guard**: Enabled - test-first development enforced
-- **Windows Only**: uvloop disabled, use standard asyncio
-- **Import Paths**: Always `phoenix_real_estate`, never `src`
-- **Database**: Use `DatabaseConnection` not `DatabaseClient`
-- **Config**: Use `EnvironmentConfigProvider()` for instantiation
-- **Workflows**: data-collection.yml YAML parsing blocked (single remaining production issue)
-- **Type Checking**: pyright configured for warnings, not errors (pyrightconfig.json)
+## Implementation Status
+✅ **Complete**: Foundation, Database, Config, Maricopa Client  
+✅ **Production Ready**: Phoenix MLS Scraper (enterprise-grade, validated, organized)
+✅ **Stabilized**: Critical issues resolved, database validated, environment confirmed
+🔄 **Next**: Live deployment, performance optimization, multi-MLS expansion

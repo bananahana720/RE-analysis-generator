@@ -1,0 +1,257 @@
+# Base Service Configuration for Phoenix Real Estate Data Collection
+# This file defines standard service configurations that can be overridden by environment-specific settings
+
+# MongoDB Service Configuration
+mongodb:
+  # Connection settings - will be overridden by environment variables
+  connection:
+    # Default connection string for local development
+    uri: "mongodb://localhost:27017"
+    database: "phoenix_real_estate"
+    
+    # Connection pool settings
+    max_pool_size: 10
+    min_pool_size: 1
+    connection_timeout_ms: 10000
+    socket_timeout_ms: 30000
+    server_selection_timeout_ms: 5000
+    
+    # Retry configuration
+    retry_writes: true
+    retry_reads: true
+    
+  # Environment-specific overrides
+  environments:
+    development:
+      database: "phoenix_real_estate_dev"
+      max_pool_size: 5
+      
+    testing:
+      database: "phoenix_real_estate_test"
+      max_pool_size: 2
+      min_pool_size: 1
+      
+    production:
+      database: "phoenix_real_estate"
+      max_pool_size: 15
+      min_pool_size: 3
+      connection_timeout_ms: 5000
+
+# Ollama LLM Service Configuration
+ollama:
+  # Service endpoint
+  connection:
+    base_url: "http://localhost:11434"
+    timeout: 30
+    max_retries: 3
+    retry_delay: 1.0
+    
+  # Health check settings
+  health_check:
+    interval_seconds: 60
+    timeout_seconds: 5
+    startup_timeout_seconds: 120
+    
+  # Environment-specific settings
+  environments:
+    development:
+      model: "llama3.2:latest"
+      timeout: 60
+      startup_timeout_seconds: 180
+      
+    testing:
+      model: "mock"  # Use mock LLM for testing
+      timeout: 5
+      startup_timeout_seconds: 30
+      
+    production:
+      model: "llama3.2:latest"
+      timeout: 30
+      startup_timeout_seconds: 120
+
+# Service Health Checks
+health_checks:
+  # MongoDB health check
+  mongodb:
+    endpoint: "/health/mongodb"
+    timeout_seconds: 5
+    retry_attempts: 3
+    checks:
+      - connection_status
+      - database_accessibility
+      - collection_accessibility
+      
+  # Ollama health check
+  ollama:
+    endpoint: "/health/ollama"
+    timeout_seconds: 10
+    retry_attempts: 3
+    checks:
+      - service_status
+      - model_availability
+      - memory_usage
+      
+  # System health check
+  system:
+    endpoint: "/health/system"
+    timeout_seconds: 5
+    checks:
+      - memory_usage
+      - disk_space
+      - cpu_usage
+
+# Port Configuration
+ports:
+  # Application ports
+  app:
+    development: 8000
+    testing: 8001
+    production: 8000
+    
+  # Service ports
+  mongodb:
+    development: 27017
+    testing: 27018
+    production: 27017
+    
+  ollama:
+    development: 11434
+    testing: 11435
+    production: 11434
+    
+  # Monitoring ports
+  prometheus:
+    development: 9090
+    testing: 9091
+    production: 9090
+    
+  grafana:
+    development: 3000
+    testing: 3001
+    production: 3000
+
+# Service Dependencies
+dependencies:
+  # Service startup order
+  startup_order:
+    - mongodb
+    - ollama
+    - application
+    
+  # Service health dependencies
+  health_dependencies:
+    application:
+      - mongodb
+      - ollama
+    ollama:
+      - system_resources
+    mongodb:
+      - disk_space
+
+# Environment Variable Mapping
+environment_variables:
+  # MongoDB configuration
+  mongodb:
+    connection_string:
+      env_var: "MONGODB_URL"
+      required: true
+      default_development: "mongodb://localhost:27017"
+      default_testing: "mongodb://localhost:27018"
+      
+    database_name:
+      env_var: "MONGODB_DATABASE"
+      required: false
+      default: "phoenix_real_estate"
+      
+  # Ollama configuration
+  ollama:
+    service_url:
+      env_var: "OLLAMA_URL"
+      required: false
+      default: "http://localhost:11434"
+      
+    model_name:
+      env_var: "LLM_MODEL"
+      required: false
+      default: "llama3.2:latest"
+      
+  # Environment detection
+  environment:
+    env_var: "ENVIRONMENT"
+    required: true
+    allowed_values: ["development", "testing", "production"]
+    default: "development"
+
+# Service Validation Rules
+validation:
+  # MongoDB validation
+  mongodb:
+    required_collections:
+      - properties
+      - daily_reports
+    required_indexes:
+      - properties.address
+      - properties.zip_code
+      - daily_reports.date
+      
+  # Ollama validation
+  ollama:
+    required_models:
+      development: ["llama3.2:latest"]
+      testing: []  # Mock service, no models needed
+      production: ["llama3.2:latest"]
+      
+    memory_requirements:
+      development: 4096  # MB
+      testing: 512      # MB (mock service)
+      production: 8192   # MB
+
+# Error Recovery Configuration
+error_recovery:
+  # Service restart policies
+  restart_policies:
+    mongodb:
+      max_attempts: 3
+      backoff_seconds: [5, 15, 30]
+      
+    ollama:
+      max_attempts: 5
+      backoff_seconds: [10, 30, 60, 120, 300]
+      
+  # Circuit breaker configuration
+  circuit_breakers:
+    mongodb:
+      failure_threshold: 5
+      recovery_timeout_seconds: 60
+      half_open_requests: 2
+      
+    ollama:
+      failure_threshold: 3
+      recovery_timeout_seconds: 120
+      half_open_requests: 1
+
+# Monitoring Configuration
+monitoring:
+  # Service metrics
+  metrics:
+    mongodb:
+      - connection_pool_size
+      - query_duration
+      - error_rate
+      
+    ollama:
+      - model_response_time
+      - memory_usage
+      - request_queue_size
+      
+  # Alerting thresholds
+  alerts:
+    mongodb:
+      high_connection_usage: 80  # percent
+      slow_query_threshold_ms: 1000
+      error_rate_threshold: 0.05  # 5%
+      
+    ollama:
+      high_memory_usage: 90  # percent
+      slow_response_threshold_ms: 10000
+      queue_size_threshold: 50

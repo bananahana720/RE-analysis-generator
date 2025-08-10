@@ -1,0 +1,102 @@
+{
+  "dashboard": {
+    "name": "Phoenix Real Estate - Operational Dashboard",
+    "description": "Service health, API response times, and system operations",
+    "type": "operational",
+    "refresh_interval": "1m",
+    "panels": [
+      {
+        "title": "Service Health Status",
+        "type": "status_grid",
+        "services": [
+          {
+            "name": "MongoDB",
+            "status": "healthy",
+            "response_time": "<50ms"
+          },
+          {
+            "name": "Ollama LLM",
+            "status": "healthy",
+            "response_time": "<100ms"
+          },
+          {
+            "name": "Maricopa API",
+            "status": "healthy",
+            "success_rate": "84%"
+          },
+          {
+            "name": "GitHub Actions",
+            "status": "healthy",
+            "workflow_status": "operational"
+          }
+        ]
+      },
+      {
+        "title": "API Performance Metrics",
+        "type": "timeseries",
+        "metrics": [
+          {
+            "name": "maricopa_api_response_time",
+            "threshold": "200ms"
+          },
+          {
+            "name": "database_query_time",
+            "threshold": "50ms"
+          },
+          {
+            "name": "llm_processing_time",
+            "threshold": "5s"
+          },
+          {
+            "name": "overall_pipeline_time",
+            "threshold": "30s"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate Monitoring",
+        "type": "alert_panel",
+        "alerts": [
+          {
+            "type": "CRITICAL",
+            "condition": "error_rate > 5%"
+          },
+          {
+            "type": "WARNING",
+            "condition": "error_rate > 2%"
+          },
+          {
+            "type": "INFO",
+            "condition": "daily_summary"
+          }
+        ]
+      },
+      {
+        "title": "Resource Utilization",
+        "type": "resource_metrics",
+        "resources": [
+          {
+            "name": "CPU Usage",
+            "current": "<15%",
+            "threshold": "80%"
+          },
+          {
+            "name": "Memory Usage",
+            "current": "adequate",
+            "threshold": "85%"
+          },
+          {
+            "name": "Disk Usage",
+            "current": "low",
+            "threshold": "90%"
+          },
+          {
+            "name": "Network I/O",
+            "current": "normal",
+            "threshold": "high"
+          }
+        ]
+      }
+    ]
+  }
+}

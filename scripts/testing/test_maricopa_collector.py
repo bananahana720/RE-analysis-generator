@@ -16,9 +16,9 @@ from phoenix_real_estate.foundation.config.base import EnvironmentConfigProvider
 from phoenix_real_estate.collectors.maricopa import MaricopaAPICollector
 
 
-async def test_maricopa_collector():
+async def test_maricopa_collector(mode="test"):
     """Test the Maricopa collector with authentication."""
-    print("[TEST] Maricopa County Collector")
+    print(f"[TEST] Maricopa County Collector (mode: {mode})")
     print("=" * 60)
 
     # Initialize configuration
@@ -98,8 +98,20 @@ async def test_maricopa_collector():
 
 
 async def main():
-    """Main function."""
-    success = await test_maricopa_collector()
+    """Main function with CLI argument parsing."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test Maricopa collector")
+    parser.add_argument(
+        "--mode",
+        default="test",
+        choices=["test", "incremental", "full"],
+        help="Test mode (default: test)",
+    )
+
+    args = parser.parse_args()
+
+    success = await test_maricopa_collector(args.mode)
     return 0 if success else 1
 
 

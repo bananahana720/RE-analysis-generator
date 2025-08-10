@@ -1,6 +1,6 @@
 name: Daily Real Estate Data Collection
 
-on:
+"on":
   schedule:
     # Daily at 3 AM Phoenix time (10 AM UTC)
     - cron: '0 10 * * *'
@@ -28,9 +28,16 @@ permissions:
   issues: write
 
 env:
-  TEST_MONGODB_URL: mongodb://admin:${{ secrets.TEST_MONGODB_PASSWORD }}@localhost:27017/
+  # Environment configuration
+  ENVIRONMENT: production
   PYTHON_VERSION: "3.13"
+  
+  # Service configuration
   OLLAMA_VERSION: "latest"
+  OLLAMA_URL: "http://localhost:11434"
+  LLM_MODEL: "llama3.2:latest"
+  
+  # Timeout configuration
   COLLECTION_TIMEOUT_MINUTES: 75
 
 concurrency:
@@ -121,12 +128,15 @@ jobs:
     
     - name: Validate environment configuration
       env:
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
         MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
         WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
         CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
-        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
       run: |
-        uv run python scripts/workflow_validator.py validate data-collection
+        uv run python scripts/validation/workflow_validator.py validate data-collection
         echo "[OK] Environment validation passed"
     
     - name: Check service health
@@ -278,12 +288,15 @@ jobs:
       run: uv sync --extra dev
     
     - name: Setup Ollama LLM service
+      env:
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
       run: |
         curl -fsSL https://ollama.ai/install.sh | sh
         ollama serve &
-        sleep 10
-        ollama pull llama3.2:latest
-        echo "[OK] Ollama LLM service ready"
+        sleep 15
+        ollama pull $LLM_MODEL
+        echo "[OK] Ollama LLM service ready at $OLLAMA_URL with model $LLM_MODEL"
     
     - name: Download collection artifacts
       uses: actions/download-artifact@v4
@@ -292,20 +305,24 @@ jobs:
     
     - name: Setup LLM processing environment
       env:
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
-        OLLAMA_URL: "http://localhost:11434"
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
         FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false' }}
       run: |
         mkdir -p data/processed logs
         # Copy artifacts to working directories
         find collection-artifacts/ -name "*.json" -exec cp {} data/raw/ \;
         find collection-artifacts/ -name "*.html" -exec cp {} data/raw/ \;
-        echo "[OK] LLM processing environment ready"
+        echo "[OK] LLM processing environment ready - Environment: $ENVIRONMENT, Model: $LLM_MODEL"
     
     - name: Execute LLM data processing
       env:
+        ENVIRONMENT: ${{ env.ENVIRONMENT }}
         MONGODB_URL: ${{ secrets.MONGODB_URL }}
-        OLLAMA_URL: "http://localhost:11434"
+        OLLAMA_URL: ${{ env.OLLAMA_URL }}
+        LLM_MODEL: ${{ env.LLM_MODEL }}
         FORCE_LLM_PROCESSING: ${{ github.event.inputs.force_llm_processing || 'false' }}
         COLLECTION_MODE: ${{ needs.pre-collection-setup.outputs.collection-mode }}
       run: |

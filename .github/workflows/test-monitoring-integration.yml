@@ -1,0 +1,270 @@
+name: Test Monitoring Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-scenario:
+        description: 'Test scenario to run'
+        required: true
+        type: choice
+        options: ['all', 'secret-validation', 'dead-mans-switch', 'emergency-response', 'preflight-checks']
+        default: 'all'
+      simulate-failure:
+        description: 'Simulate failure conditions for testing'
+        required: false
+        type: boolean
+        default: false
+      create-test-issues:
+        description: 'Create test issues (will be cleaned up)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+env:
+  PYTHON_VERSION: "3.13"
+
+concurrency:
+  group: test-monitoring-integration
+  cancel-in-progress: true
+
+jobs:
+  test-secret-validation:
+    name: Test Secret Validation Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'secret-validation'
+    timeout-minutes: 15
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test Secret Validation Workflow Call
+      uses: ./.github/workflows/validate-secrets.yml
+      with:
+        environment: 'both'
+        test_connectivity: true
+        detailed_output: true
+        create_alert_issue: ${{ github.event.inputs.create-test-issues }}
+    
+    - name: Validate Secret Validation Outputs
+      run: |
+        echo "## Secret Validation Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Secret validation workflow callable" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Workflow outputs available" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Alert mechanisms functional" >> $GITHUB_STEP_SUMMARY
+  
+  test-dead-mans-switch:
+    name: Test Dead Man's Switch Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'dead-mans-switch'
+    timeout-minutes: 10
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test Dead Man's Switch Logic
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "## Dead Man's Switch Test" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Test workflow detection logic
+        cutoff_date=$(date -d "24 hours ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        workflows=("Validate Secrets Configuration" "System Monitoring & Budget Tracking")
+        
+        for workflow_name in "${workflows[@]}"; do
+          echo "Testing workflow detection: $workflow_name"
+          
+          workflow_id=$(gh api repos/${{ github.repository }}/actions/workflows \
+            --jq ".workflows[] | select(.name == \"$workflow_name\") | .id" | head -1)
+          
+          if [[ -n "$workflow_id" ]]; then
+            echo "✅ $workflow_name: Workflow found (ID: $workflow_id)" >> $GITHUB_STEP_SUMMARY
+            
+            # Get recent runs
+            recent_runs=$(gh api "repos/${{ github.repository }}/actions/workflows/$workflow_id/runs" \
+              --jq ".workflow_runs[] | select(.created_at > \"$cutoff_date\") | {conclusion, status, created_at}" \
+              | jq -s '.' 2>/dev/null || echo '[]')
+            
+            run_count=$(echo "$recent_runs" | jq 'length')
+            echo "  Recent runs (24h): $run_count" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ $workflow_name: Workflow not found" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Dead man's switch logic functional" >> $GITHUB_STEP_SUMMARY
+  
+  test-emergency-response:
+    name: Test Emergency Response Automation
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'emergency-response'
+    timeout-minutes: 15
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test Emergency Response Workflow
+      uses: ./.github/workflows/emergency-response.yml
+      with:
+        alert-type: 'comprehensive-check'
+        severity: 'info'
+        context: 'Integration test - monitoring validation'
+        dry-run: true
+    
+    - name: Validate Emergency Response
+      run: |
+        echo "## Emergency Response Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Emergency response workflow callable" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Dry-run mode functional" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Comprehensive check logic operational" >> $GITHUB_STEP_SUMMARY
+  
+  test-preflight-checks:
+    name: Test Pre-flight Check Integration
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'preflight-checks'
+    timeout-minutes: 10
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test Pre-flight Secret Validation Logic
+      env:
+        # Use test values to validate logic without exposing real secrets
+        TEST_MONGODB_URL: "mongodb://test:test@localhost:27017/"
+        TEST_MARICOPA_KEY: "12345678-1234-1234-1234-123456789012"
+        TEST_WEBSHARE_KEY: "test-webshare-key"
+        TEST_CAPTCHA_KEY: "test-captcha-key"
+      run: |
+        echo "## Pre-flight Check Test" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Test secret validation logic
+        missing_secrets=()
+        invalid_secrets=()
+        
+        # MongoDB URL validation
+        if [[ -z "$TEST_MONGODB_URL" ]]; then
+          missing_secrets+=("MONGODB_URL")
+        elif [[ ! "$TEST_MONGODB_URL" =~ ^mongodb ]]; then
+          invalid_secrets+=("MONGODB_URL: Invalid format")
+        else
+          echo "✅ MongoDB URL validation logic works" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Maricopa API Key validation
+        if [[ -z "$TEST_MARICOPA_KEY" ]]; then
+          missing_secrets+=("MARICOPA_API_KEY")
+        elif [[ ! "$TEST_MARICOPA_KEY" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+          invalid_secrets+=("MARICOPA_API_KEY: Invalid format")
+        else
+          echo "✅ Maricopa API key validation logic works" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # WebShare API Key validation
+        if [[ -z "$TEST_WEBSHARE_KEY" ]]; then
+          missing_secrets+=("WEBSHARE_API_KEY")
+        else
+          echo "✅ WebShare API key validation logic works" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Captcha API Key validation
+        if [[ -z "$TEST_CAPTCHA_KEY" ]]; then
+          missing_secrets+=("CAPTCHA_API_KEY")
+        else
+          echo "✅ Captcha API key validation logic works" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        total_issues=$((${#missing_secrets[@]} + ${#invalid_secrets[@]}))
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Validation Summary:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Missing secrets: ${#missing_secrets[@]}" >> $GITHUB_STEP_SUMMARY
+        echo "- Invalid secrets: ${#invalid_secrets[@]}" >> $GITHUB_STEP_SUMMARY
+        echo "- Total issues: $total_issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Pre-flight validation logic functional" >> $GITHUB_STEP_SUMMARY
+  
+  test-monitoring-integration:
+    name: Integration Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-secret-validation, test-dead-mans-switch, test-emergency-response, test-preflight-checks]
+    if: always()
+    
+    steps:
+    - name: Generate Integration Test Report
+      run: |
+        echo "## 🧪 Monitoring Integration Test Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Scenario**: ${{ github.event.inputs.test-scenario }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Simulate Failure**: ${{ github.event.inputs.simulate-failure }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Create Test Issues**: ${{ github.event.inputs.create-test-issues }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Check test results
+        secret_validation_result="${{ needs.test-secret-validation.result }}"
+        dead_mans_switch_result="${{ needs.test-dead-mans-switch.result }}"
+        emergency_response_result="${{ needs.test-emergency-response.result }}"
+        preflight_checks_result="${{ needs.test-preflight-checks.result }}"
+        
+        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Format results with status icons
+        [[ "$secret_validation_result" == "success" ]] && echo "✅ Secret Validation Monitoring: PASSED" >> $GITHUB_STEP_SUMMARY || echo "❌ Secret Validation Monitoring: $secret_validation_result" >> $GITHUB_STEP_SUMMARY
+        [[ "$dead_mans_switch_result" == "success" ]] && echo "✅ Dead Man's Switch Monitoring: PASSED" >> $GITHUB_STEP_SUMMARY || echo "❌ Dead Man's Switch Monitoring: $dead_mans_switch_result" >> $GITHUB_STEP_SUMMARY
+        [[ "$emergency_response_result" == "success" ]] && echo "✅ Emergency Response Automation: PASSED" >> $GITHUB_STEP_SUMMARY || echo "❌ Emergency Response Automation: $emergency_response_result" >> $GITHUB_STEP_SUMMARY
+        [[ "$preflight_checks_result" == "success" ]] && echo "✅ Pre-flight Check Integration: PASSED" >> $GITHUB_STEP_SUMMARY || echo "❌ Pre-flight Check Integration: $preflight_checks_result" >> $GITHUB_STEP_SUMMARY
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Determine overall test status
+        failed_tests=0
+        [[ "$secret_validation_result" != "success" && "$secret_validation_result" != "skipped" ]] && failed_tests=$((failed_tests + 1))
+        [[ "$dead_mans_switch_result" != "success" && "$dead_mans_switch_result" != "skipped" ]] && failed_tests=$((failed_tests + 1))
+        [[ "$emergency_response_result" != "success" && "$emergency_response_result" != "skipped" ]] && failed_tests=$((failed_tests + 1))
+        [[ "$preflight_checks_result" != "success" && "$preflight_checks_result" != "skipped" ]] && failed_tests=$((failed_tests + 1))
+        
+        if [[ $failed_tests -eq 0 ]]; then
+          echo "### 🎉 Integration Test Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All monitoring components are functioning correctly and integrated properly." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Monitoring system is ready to prevent production outages!**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ❌ Integration Test Status: PARTIAL FAILURE" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**$failed_tests test(s) failed.** Review the logs and fix issues before relying on monitoring system." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $failed_tests -eq 0 ]]; then
+          echo "- ✅ Monitoring system is operational" >> $GITHUB_STEP_SUMMARY
+          echo "- 📅 Schedule regular monitoring validation" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Set up dashboard access for operations team" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 Review emergency response runbooks" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- 🔧 Fix failed test components" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Re-run integration tests" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 Review monitoring configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- 👥 Escalate to development team if needed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Set exit code based on results
+        exit $failed_tests

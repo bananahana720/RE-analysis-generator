@@ -1,0 +1,205 @@
+name: Data Quality Validation
+
+on:
+  schedule:
+    # Daily at 4 AM Phoenix time (11 AM UTC) - after data processing
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+    inputs:
+      validation_mode:
+        description: "Validation mode"
+        required: false
+        type: choice
+        options: ["full", "quick", "test"]
+        default: "full"
+      notification_enabled:
+        description: "Enable email notifications"
+        required: false
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      validation_mode:
+        description: "Validation mode"
+        required: false
+        type: string
+        default: "full"
+      notification_enabled:
+        description: "Enable email notifications"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+  VALIDATION_TIMEOUT: 15
+
+concurrency:
+  group: data-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-secrets:
+    name: Validate Environment
+    uses: ./.github/workflows/validate-secrets.yml
+    with:
+      environment: production
+    secrets: inherit
+
+  data-quality-validation:
+    name: Validate Data Quality
+    runs-on: ubuntu-latest
+    needs: validate-secrets
+    timeout-minutes: 20
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync --extra dev
+    
+    - name: Setup validation environment
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        VALIDATION_MODE: ${{ inputs.validation_mode || github.event.inputs.validation_mode || 'full' }}
+      run: |
+        mkdir -p data/{validation,reports} logs
+        echo "[OK] Validation environment setup"
+    
+    - name: Execute data quality validation
+      id: validation
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        VALIDATION_MODE: ${{ inputs.validation_mode || github.event.inputs.validation_mode || 'full' }}
+      run: |
+        echo "[START] Data quality validation in $VALIDATION_MODE mode"
+        
+        if uv run python scripts/testing/validation/validate_data_quality.py           --mode "$VALIDATION_MODE"           --threshold 90           --output data/validation/quality_report.json; then
+          echo "[OK] Data quality validation completed successfully"
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "[FAIL] Data quality validation failed"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+      timeout-minutes: ${{ env.VALIDATION_TIMEOUT }}
+    
+    - name: Generate validation report
+      if: always()
+      run: |
+        if [ -f data/validation/quality_report.json ]; then
+          echo "[OK] Quality report generated"
+          cat data/validation/quality_report.json | head -20
+        else
+          echo "[WARN] No quality report found"
+        fi
+    
+    - name: Upload validation artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: validation-report-${{ github.run_number }}
+        path: |
+          data/validation/*.json
+          data/reports/*.html
+          logs/validation_*.log
+        retention-days: 30
+
+  notification:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: data-quality-validation
+    if: always() && (inputs.notification_enabled == true || github.event.inputs.notification_enabled == 'true')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: uv sync --extra dev
+    
+    - name: Send email notification
+      env:
+        VALIDATION_STATUS: ${{ needs.data-quality-validation.outputs.status }}
+        NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+        SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      run: |
+        echo "[START] Generating notification for status: $VALIDATION_STATUS"
+        
+        uv run python scripts/testing/validation/send_notification.py           --status "$VALIDATION_STATUS"           --run-id "${{ github.run_id }}"           --timestamp "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+
+  validation-summary:
+    name: Validation Summary  
+    runs-on: ubuntu-latest
+    needs: [data-quality-validation, notification]
+    if: always()
+    
+    steps:
+    - name: Create validation summary
+      run: |
+        cat << EOF >> $GITHUB_STEP_SUMMARY
+        # Data Quality Validation Summary
+        
+        **Validation Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Status**: ${{ needs.data-quality-validation.result }}
+        **Validation Mode**: ${{ inputs.validation_mode || github.event.inputs.validation_mode || 'full' }}
+        **Notifications**: ${{ inputs.notification_enabled || github.event.inputs.notification_enabled || true }}
+        
+        ## Results
+        - Validation Status: ${{ needs.data-quality-validation.result }}
+        - Notification Status: ${{ needs.notification.result }}
+        - Runtime: ~${{ env.VALIDATION_TIMEOUT }} minutes maximum
+        - Reports: Available for 30 days
+        
+        ## Quality Metrics
+        - Data completeness validation completed
+        - Accuracy threshold checks performed  
+        - Consistency validation executed
+        - Performance benchmarks measured
+        EOF
+    
+    - name: Create issue on validation failure
+      if: needs.data-quality-validation.result == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueBody = `
+          ## Data Quality Validation Failed
+          
+          **Run ID**: ${{ github.run_id }}
+          **Timestamp**: ${new Date().toISOString()}
+          **Validation Mode**: ${{ inputs.validation_mode || github.event.inputs.validation_mode || 'full' }}
+          
+          ### Action Required
+          - Review data quality metrics and thresholds
+          - Check data collection and processing pipelines
+          - Investigate potential data corruption or processing errors
+          - Update validation rules if business requirements changed
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Data Quality Validation Failed - ${new Date().toDateString()}`,
+            body: issueBody,
+            labels: ["automation", "data-quality", "validation", "failure", "high-priority"]
+          });

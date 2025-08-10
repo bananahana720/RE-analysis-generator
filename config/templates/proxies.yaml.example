@@ -1,0 +1,55 @@
+# Proxy Configuration Example
+# Copy this file to config/proxies.yaml and update with your actual credentials
+
+# Webshare.io configuration (recommended for budget option)
+webshare:
+  enabled: true
+  api_key: "YOUR_WEBSHARE_API_KEY_HERE"
+  username: "YOUR_WEBSHARE_USERNAME"
+  password: "YOUR_WEBSHARE_PASSWORD"
+  endpoint: "proxy.webshare.io"
+  port: 80
+  proxy_list:
+    - host: "proxy1.webshare.io"
+      port: 80
+    - host: "proxy2.webshare.io"
+      port: 80
+    - host: "proxy3.webshare.io"
+      port: 80
+  rotation_strategy: "round_robin"  # Options: round_robin, random, least_used
+  
+# SmartProxy configuration (alternative premium option)
+smartproxy:
+  enabled: false
+  username: "YOUR_SMARTPROXY_USERNAME"
+  password: "YOUR_SMARTPROXY_PASSWORD"
+  endpoint: "gate.smartproxy.com"
+  port: 10000
+  
+# Generic proxy configuration
+generic:
+  enabled: false
+  proxies:
+    - url: "http://username:password@proxy1.example.com:8080"
+    - url: "http://username:password@proxy2.example.com:8080"
+    - url: "socks5://username:password@proxy3.example.com:1080"
+
+# Proxy settings
+settings:
+  timeout: 30  # Connection timeout in seconds
+  max_retries: 3
+  verify_ssl: false  # Set to true for production
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  
+# Rate limiting per proxy
+rate_limits:
+  requests_per_minute: 20
+  requests_per_hour: 500
+  cooldown_period: 60  # Seconds to wait when rate limit is hit
+
+# Proxy validation
+validation:
+  check_on_startup: true
+  check_interval: 300  # Seconds between health checks
+  remove_failed_proxies: true
+  min_success_rate: 0.8  # Minimum success rate to keep proxy active

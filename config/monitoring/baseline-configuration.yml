@@ -1,0 +1,182 @@
+# Phoenix Real Estate Production Monitoring Baseline Configuration
+# Based on E2E validation results with 95% confidence GO decision
+
+metadata:
+  system: "Phoenix Real Estate Data Collection"
+  version: "1.0.0"
+  environment: "production"
+  validation_date: "2025-01-20"
+  confidence_level: "95%"
+  go_decision: true
+
+# Performance Baselines (from validation results)
+performance_baselines:
+  llm_processing:
+    metric: "LLM processing time"
+    baseline_ms: 65
+    tolerance_percent: 20  # ±20% acceptable
+    warning_threshold_ms: 78    # 65 * 1.2
+    critical_threshold_ms: 130  # 65 * 2.0
+    description: "Ollama llama3.2:latest model processing time"
+    
+  database_queries:
+    metric: "Database query time"
+    baseline_ms: 30.3
+    tolerance_percent: 20  # ±20% acceptable
+    warning_threshold_ms: 36.36  # 30.3 * 1.2
+    critical_threshold_ms: 60.6   # 30.3 * 2.0
+    description: "MongoDB query response time"
+    
+  api_queries:
+    metric: "API query time" 
+    baseline_ms: 0.5
+    tolerance_percent: 100  # ±100% acceptable (very fast baseline)
+    warning_threshold_ms: 1.0    # 0.5 * 2.0
+    critical_threshold_ms: 2.0   # 0.5 * 4.0
+    description: "Internal API query time"
+
+# Resource Utilization Baselines
+resource_baselines:
+  cpu_usage:
+    metric: "CPU utilization"
+    baseline_percent: 3.7
+    warning_threshold_percent: 15    # 4x baseline
+    critical_threshold_percent: 30   # 8x baseline
+    description: "System CPU usage under normal load"
+    
+  memory_usage:
+    metric: "Memory utilization"
+    baseline_percent: 73.0  # Based on 27.3GB available
+    available_gb: 27.3
+    warning_threshold_percent: 80
+    critical_threshold_percent: 85
+    description: "System memory usage"
+    
+  memory_available:
+    metric: "Available memory"
+    baseline_gb: 27.3
+    warning_threshold_gb: 10.0
+    critical_threshold_gb: 5.0
+    description: "Available system memory"
+
+# Quality and Reliability Baselines  
+quality_baselines:
+  success_rate:
+    metric: "Operation success rate"
+    baseline_percent: 84.0
+    warning_threshold_percent: 75.0
+    critical_threshold_percent: 50.0
+    description: "Based on error handling validation results"
+    
+  data_quality_score:
+    metric: "Overall data quality"
+    baseline_percent: 95.0
+    warning_threshold_percent: 90.0
+    critical_threshold_percent: 85.0
+    description: "Composite data quality score"
+    
+  email_delivery:
+    metric: "Email notification delivery"
+    baseline_percent: 100.0  # 36/36 tests passed
+    warning_threshold_percent: 95.0
+    critical_threshold_percent: 90.0
+    description: "Email notification system reliability"
+
+# Cost Compliance Baselines
+cost_baselines:
+  monthly_budget:
+    metric: "Monthly operational cost"
+    budget_limit_usd: 25.00
+    current_cost_usd: 2.50  # <$1/day observed
+    warning_threshold_usd: 22.50  # 90% of budget
+    critical_threshold_usd: 27.50  # 110% of budget
+    description: "$25/month budget compliance"
+    
+  daily_budget:
+    metric: "Daily operational cost"
+    budget_limit_usd: 0.83  # $25/30 days
+    warning_threshold_usd: 0.75
+    critical_threshold_usd: 1.00
+    description: "Daily cost trending"
+    
+  cost_efficiency:
+    metric: "Cost per property collected"
+    target_usd: 0.02  # $0.02 per property target
+    warning_threshold_usd: 0.05
+    critical_threshold_usd: 0.10
+    description: "Cost efficiency metric"
+
+# Business Intelligence Baselines
+business_baselines:
+  collection_targets:
+    metric: "Properties collected per day"
+    target_daily: 200
+    minimum_daily: 100
+    warning_threshold: 150
+    description: "Daily collection target"
+    
+  geographic_coverage:
+    metric: "Geographic distribution"
+    target_zip_codes: ["85031", "85033", "85035"]
+    balanced_percentage: 33.3  # Equal distribution
+    imbalance_threshold: 10.0  # ±10% acceptable
+    description: "Phoenix zip code coverage balance"
+    
+  property_type_distribution:
+    metric: "Property type diversity"
+    expected_single_family_percent: 65
+    expected_condo_percent: 25
+    expected_townhouse_percent: 10
+    variance_threshold_percent: 15
+    description: "Property type distribution"
+
+# System Health Indicators
+health_indicators:
+  uptime_target:
+    metric: "System uptime"
+    target_percent: 99.5  # 99.5% uptime target
+    monthly_downtime_minutes: 216  # 99.5% = 216 min/month
+    critical_downtime_minutes: 120  # 2 hours continuous
+    description: "Production uptime requirement"
+    
+  service_availability:
+    required_services:
+      - "mongodb"
+      - "ollama"
+      - "phoenix_metrics_exporter"
+      - "prometheus"
+      - "grafana"
+    failure_tolerance: 0  # No service failures tolerated
+    description: "All core services must be operational"
+    
+  alert_response:
+    critical_response_time_minutes: 15
+    warning_response_time_minutes: 60
+    info_digest_hours: 24
+    description: "Alert response time requirements"
+
+# Retention and Storage
+data_retention:
+  metrics_retention_days: 30
+  alert_history_days: 90
+  log_retention_days: 14
+  dashboard_refresh_seconds: 30
+  description: "Data retention policies for monitoring"
+
+# Validation and Testing
+validation_schedule:
+  health_checks_interval_seconds: 30
+  performance_validation_interval_hours: 24
+  cost_tracking_interval_hours: 1
+  dashboard_validation_interval_hours: 12
+  alert_testing_interval_days: 7
+  description: "Monitoring system validation schedule"
+
+# Alerting Configuration
+alerting_rules:
+  evaluation_interval_seconds: 15
+  scrape_interval_seconds: 15
+  group_wait_seconds: 10
+  group_interval_seconds: 10
+  repeat_interval_minutes: 60
+  description: "Alert evaluation and notification timing"

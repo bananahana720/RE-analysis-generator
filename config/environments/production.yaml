@@ -1,0 +1,209 @@
+# Production Environment Configuration
+# Optimized for reliability, security, and performance
+
+# Environment metadata
+environment:
+  name: "production"
+  description: "Production environment with strict security and reliability requirements"
+
+# Service configurations for production
+services:
+  # MongoDB configuration for production
+  mongodb:
+    connection_string: "${MONGODB_URL}"  # Required secret in production
+    database: "${MONGODB_DATABASE:-phoenix_real_estate}"
+    max_pool_size: 15
+    min_pool_size: 3
+    connection_timeout_ms: 5000
+    socket_timeout_ms: 30000
+    
+  # Ollama LLM service for production
+  ollama:
+    base_url: "${OLLAMA_URL:-http://localhost:11434}"
+    model: "${LLM_MODEL:-llama3.2:latest}"
+    timeout: 30
+    startup_timeout_seconds: 120
+    max_retries: 3
+
+# Structured logging for production
+logging:
+  level: "INFO"
+  format: "json"  # Structured logging for production
+  console_output: false
+  file_output: true
+  file_path: "/var/log/phoenix_real_estate/app.log"
+  max_file_size_mb: 50
+  backup_count: 10
+
+# Production collection settings
+collection:
+  max_requests_per_hour: 100
+  min_request_delay: 3.6
+  
+  # All target ZIP codes
+  target_zip_codes:
+    - "85031"
+    - "85033"
+    - "85035"
+    - "85048"
+    - "85083"
+    - "85254"
+    
+  # Request settings
+  timeout_seconds: 30
+  max_retries: 3
+  user_agent: "Phoenix Real Estate Collector (Production)"
+
+# Production data sources
+sources:
+  maricopa_county:
+    enabled: true
+    base_url: "${MARICOPA_BASE_URL:-https://mcassessor.maricopa.gov}"
+    api_key: "${MARICOPA_API_KEY}"  # Required secret
+    rate_limit: 1000
+    timeout: 10
+    
+  phoenix_mls:
+    enabled: true
+    base_url: "https://phoenixmlssearch.com"
+    timeout: 30
+    stealth_mode: true
+    
+    # Production captcha configuration
+    captcha:
+      enabled: true
+      service: "${CAPTCHA_SERVICE:-2captcha}"
+      api_key: "${CAPTCHA_API_KEY}"  # Required secret
+      timeout: 180
+      max_retries: 3
+    
+  particle_space:
+    enabled: true  # Enable if API key available
+    api_key: "${PARTICLE_API_KEY}"
+    base_url: "https://api.particle.space"
+
+# Production proxy settings
+proxy:
+  enabled: true
+  provider: "webshare"
+  api_key: "${WEBSHARE_API_KEY}"  # Required secret
+  rotation_enabled: true
+  max_retries: 3
+
+# Production LLM processing
+processing:
+  llm_model: "llama3.2:latest"
+  batch_size: 10
+  max_processing_workers: 2
+  timeout_seconds: 30
+  
+  # Production extraction settings
+  extraction:
+    temperature: 0.1
+    max_tokens: 2048
+    required_fields: ["address", "price", "bedrooms", "bathrooms", "square_feet"]
+
+# Strict validation for production
+validation:
+  strict_mode: true
+  require_address: true
+  require_price: false  # Some listings may not have price
+  max_price: 50000000  # $50M maximum
+  min_price: 50000     # $50K minimum
+
+# Optimized performance for production
+performance:
+  enable_caching: true
+  cache_ttl_minutes: 60
+  max_memory_usage_mb: 1024
+  gc_interval_requests: 100
+
+# Conservative error handling for production
+error_handling:
+  max_error_rate: 0.05  # 5% max error rate
+  error_cooldown_minutes: 30
+  alert_on_consecutive_failures: 3
+  retry_backoff_seconds: [5, 15, 45]
+
+# Feature flags for production
+features:
+  external_apis_enabled: true
+  proxy_required: true
+  captcha_solving_enabled: true
+  email_notifications_enabled: true
+  debug_mode: false
+
+# Health check configuration for production
+health_checks:
+  mongodb:
+    enabled: true
+    timeout_seconds: 5
+    interval_seconds: 60
+    
+  ollama:
+    enabled: true
+    timeout_seconds: 10
+    interval_seconds: 60
+    
+  system:
+    enabled: true
+    memory_threshold_percent: 85
+    disk_threshold_percent: 90
+
+# Production security settings
+security:
+  max_session_age_hours: 12
+  encrypt_sensitive_logs: true
+  sanitize_raw_data: true
+  rate_limiting_enabled: true
+  
+  # API rate limiting
+  api_rate_limits:
+    per_minute: 60
+    per_hour: 1000
+    per_day: 10000
+
+# Production monitoring and alerting
+monitoring:
+  metrics:
+    enabled: true
+    export_interval_seconds: 30
+    prometheus_port: 9090
+    
+  alerts:
+    enabled: true
+    error_rate_threshold: 0.05
+    response_time_threshold_ms: 5000
+    memory_usage_threshold: 85
+    
+  health_check_endpoints:
+    - "/health"
+    - "/health/mongodb"
+    - "/health/ollama"
+    - "/metrics"
+
+# Production deployment settings
+deployment:
+  environment: "production"
+  timezone: "America/Phoenix"
+  
+  # Resource limits
+  resources:
+    max_memory_mb: 2048
+    max_cpu_percent: 80
+    max_disk_usage_percent: 85
+    
+  # Backup and recovery
+  backup:
+    enabled: true
+    frequency_hours: 6
+    retention_days: 30
+    
+  # Service dependencies
+  dependencies:
+    required_services:
+      - mongodb
+      - ollama
+    optional_services:
+      - prometheus
+      - grafana

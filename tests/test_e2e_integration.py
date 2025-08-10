@@ -927,7 +927,7 @@ async def test_end_to_end_integration_suite(temp_config_dir):
         report_content = test_report.generate_report()
 
         # Save report to file
-        report_path = Path(__file__).parent.parent / "E2E_INTEGRATION_TEST_REPORT.md"
+        report_path = Path(__file__).parent.parent / "docs" / "project-reports" / "testing" / "E2E_INTEGRATION_TEST_REPORT.md"
         with open(report_path, "w") as f:
             f.write(report_content)
 

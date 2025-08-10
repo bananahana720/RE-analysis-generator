@@ -101,6 +101,30 @@ class MaricopaAPIClient(RateLimitObserver):
         self.error_count = 0
         self.last_request_time: Optional[datetime] = None
 
+
+    def _validate_apn(self, apn: str) -> str:
+        """Validate APN format for Maricopa County.
+        
+        Args:
+            apn: The APN to validate
+            
+        Returns:
+            Cleaned APN string
+            
+        Raises:
+            ValidationError: If APN format is invalid
+        """
+        if not apn or not apn.strip():
+            raise ValidationError("APN cannot be empty")
+            
+        cleaned_apn = apn.strip()
+        
+        # Basic APN format validation - should be at least 5 characters
+        # Maricopa County APNs are typically in format like "123-45-678"
+        if len(cleaned_apn) < 5:
+            raise ValidationError("Invalid APN format: APN must be at least 5 characters")
+            
+        return cleaned_apn
         self.logger.info(
             f"Maricopa API client initialized: {actual_requests_per_hour} req/hour "
             f"({requests_per_minute:.1f} req/min), timeout: {self.timeout_seconds}s"
@@ -197,12 +221,11 @@ class MaricopaAPIClient(RateLimitObserver):
             DataCollectionError: If request fails
             ValidationError: If APN is invalid
         """
-        # Basic APN validation (format varies by county)
-        if not apn or not apn.strip():
-            raise ValidationError("APN cannot be empty")
+        # Validate APN format
+        validated_apn = self._validate_apn(apn)
 
         try:
-            endpoint = self.ENDPOINTS["parcel_details"].format(apn=apn.strip())
+            endpoint = self.ENDPOINTS["parcel_details"].format(apn=validated_apn)
             response_data = await self._make_request("GET", endpoint)
 
             self.logger.debug(

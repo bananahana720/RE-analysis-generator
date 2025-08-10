@@ -86,7 +86,7 @@ def test_critical_files_exist():
         "pyproject.toml",
         "uv.lock",
         "README.md",
-        "CLAUDE.md",
+        "docs/project-overview/CLAUDE.md",
         "src/phoenix_real_estate/__init__.py",
         "src/phoenix_real_estate/foundation/__init__.py",
         "src/phoenix_real_estate/foundation/utils/__init__.py",

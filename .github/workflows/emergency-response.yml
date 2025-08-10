@@ -1,0 +1,542 @@
+name: Emergency Response Automation
+
+on:
+  workflow_call:
+    inputs:
+      alert-type:
+        description: 'Type of emergency (secrets-failure, dead-mans-switch, service-down)'
+        required: true
+        type: string
+      severity:
+        description: 'Severity level (critical, warning, info)'
+        required: false
+        default: 'critical'
+        type: string
+      context:
+        description: 'Additional context for the emergency'
+        required: false
+        type: string
+    outputs:
+      recovery-status:
+        description: 'Emergency recovery status'
+        value: ${{ jobs.emergency-response.outputs.recovery-status }}
+      actions-taken:
+        description: 'List of automated recovery actions taken'
+        value: ${{ jobs.emergency-response.outputs.actions-taken }}
+  
+  workflow_dispatch:
+    inputs:
+      alert-type:
+        description: 'Emergency type'
+        required: true
+        type: choice
+        options: ['secrets-failure', 'dead-mans-switch', 'service-down', 'comprehensive-check']
+        default: 'comprehensive-check'
+      severity:
+        description: 'Severity level'
+        required: false
+        type: choice
+        options: ['critical', 'warning', 'info']
+        default: 'critical'
+      context:
+        description: 'Emergency context or description'
+        required: false
+        type: string
+      dry-run:
+        description: 'Perform dry run without taking corrective actions'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+env:
+  PYTHON_VERSION: "3.13"
+  EMERGENCY_TIMEOUT: 30
+
+concurrency:
+  group: emergency-response-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  emergency-response:
+    name: Emergency Response & Recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    
+    outputs:
+      recovery-status: ${{ steps.recovery-summary.outputs.recovery-status }}
+      actions-taken: ${{ steps.recovery-summary.outputs.actions-taken }}
+      next-steps: ${{ steps.recovery-summary.outputs.next-steps }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Initialize Emergency Response
+      id: init-emergency
+      run: |
+        echo "🚨 Emergency Response Automation Activated"
+        echo "**Alert Type**: ${{ github.event.inputs.alert-type || inputs.alert-type }}"
+        echo "**Severity**: ${{ github.event.inputs.severity || inputs.severity || 'critical' }}"
+        echo "**Context**: ${{ github.event.inputs.context || inputs.context || 'No additional context provided' }}"
+        echo "**Dry Run**: ${{ github.event.inputs.dry-run || 'false' }}"
+        echo "**Started**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Initialize response tracking
+        mkdir -p emergency/{logs,reports,recovery}
+        
+        echo "## 🚨 Emergency Response Activated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Alert Type**: ${{ github.event.inputs.alert-type || inputs.alert-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Severity**: ${{ github.event.inputs.severity || inputs.severity || 'critical' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Dry Run Mode**: ${{ github.event.inputs.dry-run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Set emergency context
+        echo "alert-type=${{ github.event.inputs.alert-type || inputs.alert-type }}" >> $GITHUB_OUTPUT
+        echo "severity=${{ github.event.inputs.severity || inputs.severity || 'critical' }}" >> $GITHUB_OUTPUT
+        echo "dry-run=${{ github.event.inputs.dry-run || 'false' }}" >> $GITHUB_OUTPUT
+    
+    - name: Emergency Secret Validation
+      id: emergency-secrets
+      if: steps.init-emergency.outputs.alert-type == 'secrets-failure' || steps.init-emergency.outputs.alert-type == 'comprehensive-check'
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        echo "### 🔍 Emergency Secret Validation" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        validation_issues=0
+        recovery_actions=()
+        
+        # Critical secret checks with detailed diagnostics
+        secrets_to_check=(
+          "MONGODB_URL:$MONGODB_URL:mongodb connection string"
+          "MARICOPA_API_KEY:$MARICOPA_API_KEY:UUID format API key"
+          "WEBSHARE_API_KEY:$WEBSHARE_API_KEY:proxy service token"
+          "CAPTCHA_API_KEY:$CAPTCHA_API_KEY:2captcha service key"
+        )
+        
+        for secret_config in "${secrets_to_check[@]}"; do
+          IFS=':' read -ra SECRET_PARTS <<< "$secret_config"
+          secret_name="${SECRET_PARTS[0]}"
+          secret_value="${SECRET_PARTS[1]}"
+          secret_desc="${SECRET_PARTS[2]}"
+          
+          if [[ -z "$secret_value" ]]; then
+            echo "❌ $secret_name: MISSING" >> $GITHUB_STEP_SUMMARY
+            validation_issues=$((validation_issues + 1))
+            recovery_actions+=("Configure $secret_name in repository secrets")
+          elif [[ "$secret_name" == "MONGODB_URL" && ! "$secret_value" =~ ^mongodb ]]; then
+            echo "❌ $secret_name: INVALID FORMAT (must start with 'mongodb')" >> $GITHUB_STEP_SUMMARY
+            validation_issues=$((validation_issues + 1))
+            recovery_actions+=("Fix $secret_name format to valid MongoDB connection string")
+          elif [[ "$secret_name" == "MARICOPA_API_KEY" && ! "$secret_value" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+            echo "❌ $secret_name: INVALID FORMAT (must be UUID)" >> $GITHUB_STEP_SUMMARY
+            validation_issues=$((validation_issues + 1))
+            recovery_actions+=("Fix $secret_name to valid UUID format")
+          else
+            echo "✅ $secret_name: Valid ($secret_desc)" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+        
+        echo "validation-issues=$validation_issues" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $validation_issues -eq 0 ]]; then
+          echo "✅ **All secrets validated successfully**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **$validation_issues secret validation issues found**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Required Actions:**" >> $GITHUB_STEP_SUMMARY
+          for action in "${recovery_actions[@]}"; do
+            echo "- $action" >> $GITHUB_STEP_SUMMARY
+          done
+        fi
+    
+    - name: Emergency Service Connectivity Check
+      id: emergency-connectivity
+      if: steps.init-emergency.outputs.alert-type != 'secrets-failure' || steps.emergency-secrets.outputs.validation-issues == '0'
+      env:
+        MONGODB_URL: ${{ secrets.MONGODB_URL }}
+        MARICOPA_API_KEY: ${{ secrets.MARICOPA_API_KEY }}
+        WEBSHARE_API_KEY: ${{ secrets.WEBSHARE_API_KEY }}
+        CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+      run: |
+        echo "### 🌐 Emergency Service Connectivity Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Install required packages for connectivity testing
+        pip install pymongo requests dnspython || echo "Failed to install packages"
+        
+        connectivity_failures=0
+        service_status=() 
+        
+        # MongoDB Atlas connectivity with detailed error reporting
+        if [[ -n "$MONGODB_URL" ]]; then
+          echo "Testing MongoDB Atlas connection..."
+          if timeout ${{ env.EMERGENCY_TIMEOUT }} python3 -c "
+          import pymongo
+          import sys
+          try:
+              client = pymongo.MongoClient('$MONGODB_URL', serverSelectionTimeoutMS=10000)
+              info = client.server_info()
+              print(f'MongoDB Atlas: Connected successfully (Version: {info.get(\"version\", \"unknown\")})')
+          except Exception as e:
+              print(f'MongoDB Atlas connection failed: {e}')
+              sys.exit(1)
+          " 2>emergency/logs/mongodb_error.log; then
+            echo "✅ MongoDB Atlas: Connection successful" >> $GITHUB_STEP_SUMMARY
+            service_status+=("MongoDB:healthy")
+          else
+            echo "❌ MongoDB Atlas: Connection failed" >> $GITHUB_STEP_SUMMARY
+            connectivity_failures=$((connectivity_failures + 1))
+            service_status+=("MongoDB:failed")
+            echo "  Error details:" >> $GITHUB_STEP_SUMMARY
+            echo "  $(cat emergency/logs/mongodb_error.log 2>/dev/null | head -3)" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ MongoDB Atlas: Skipped (no URL configured)" >> $GITHUB_STEP_SUMMARY
+          service_status+=("MongoDB:not_configured")
+        fi
+        
+        # Maricopa API connectivity with retry logic
+        if [[ -n "$MARICOPA_API_KEY" ]]; then
+          echo "Testing Maricopa API connection..."
+          api_attempts=0
+          api_success=false
+          
+          while [[ $api_attempts -lt 3 && "$api_success" == "false" ]]; do
+            api_attempts=$((api_attempts + 1))
+            
+            if timeout 15 curl -f -s -w "HTTP %{http_code}" \
+               -H "Authorization: Bearer $MARICOPA_API_KEY" \
+               "https://api.mcassessor.maricopa.gov/v1/properties?limit=1" \
+               >emergency/logs/maricopa_response.log 2>&1; then
+              api_success=true
+              echo "✅ Maricopa API: Connection successful (attempt $api_attempts)" >> $GITHUB_STEP_SUMMARY
+              service_status+=("Maricopa:healthy")
+              break
+            else
+              echo "❌ Maricopa API: Attempt $api_attempts failed" >> $GITHUB_STEP_SUMMARY
+              if [[ $api_attempts -eq 3 ]]; then
+                connectivity_failures=$((connectivity_failures + 1))
+                service_status+=("Maricopa:failed")
+                echo "  Final error: $(cat emergency/logs/maricopa_response.log 2>/dev/null)" >> $GITHUB_STEP_SUMMARY
+              fi
+              sleep 5
+            fi
+          done
+        else
+          echo "⚠️ Maricopa API: Skipped (no key configured)" >> $GITHUB_STEP_SUMMARY
+          service_status+=("Maricopa:not_configured")
+        fi
+        
+        # WebShare API connectivity
+        if [[ -n "$WEBSHARE_API_KEY" ]]; then
+          echo "Testing WebShare API connection..."
+          if timeout 15 curl -f -s \
+             -H "Authorization: Token $WEBSHARE_API_KEY" \
+             "https://proxy.webshare.io/api/v2/proxy/list/?limit=1" \
+             >emergency/logs/webshare_response.log 2>&1; then
+            echo "✅ WebShare API: Connection successful" >> $GITHUB_STEP_SUMMARY
+            service_status+=("WebShare:healthy")
+          else
+            echo "⚠️ WebShare API: Connection failed (non-critical for emergency)" >> $GITHUB_STEP_SUMMARY
+            service_status+=("WebShare:degraded")
+            # Don't increment critical failures for WebShare
+          fi
+        else
+          echo "⚠️ WebShare API: Skipped (no key configured)" >> $GITHUB_STEP_SUMMARY
+          service_status+=("WebShare:not_configured")
+        fi
+        
+        echo "connectivity-failures=$connectivity_failures" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $connectivity_failures -eq 0 ]]; then
+          echo "✅ **All critical services reachable**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **$connectivity_failures critical service(s) unreachable**" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Emergency Workflow Health Check
+      id: emergency-workflows
+      if: steps.init-emergency.outputs.alert-type == 'dead-mans-switch' || steps.init-emergency.outputs.alert-type == 'comprehensive-check'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### ⚙️ Emergency Workflow Health Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        workflow_issues=0
+        
+        # Check critical workflows from the last 48 hours (extended for emergency)
+        cutoff_date=$(date -d "48 hours ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        critical_workflows=(
+          "Production Data Collection"
+          "Validate Secrets Configuration"
+          "System Monitoring & Budget Tracking"
+        )
+        
+        for workflow_name in "${critical_workflows[@]}"; do
+          echo "Checking workflow: $workflow_name"
+          
+          # Get workflow ID
+          workflow_id=$(gh api repos/${{ github.repository }}/actions/workflows \
+            --jq ".workflows[] | select(.name == \"$workflow_name\") | .id" | head -1)
+          
+          if [[ -n "$workflow_id" ]]; then
+            # Get recent runs
+            recent_runs=$(gh api "repos/${{ github.repository }}/actions/workflows/$workflow_id/runs" \
+              --jq ".workflow_runs[] | select(.created_at > \"$cutoff_date\") | {conclusion, status, created_at}" \
+              | jq -s '.' 2>/dev/null || echo '[]')
+            
+            if [[ "$recent_runs" == "[]" ]]; then
+              echo "❌ $workflow_name: No runs in last 48 hours" >> $GITHUB_STEP_SUMMARY
+              workflow_issues=$((workflow_issues + 1))
+            else
+              failed_runs=$(echo "$recent_runs" | jq 'map(select(.conclusion == "failure")) | length')
+              success_runs=$(echo "$recent_runs" | jq 'map(select(.conclusion == "success")) | length')
+              total_runs=$(echo "$recent_runs" | jq 'length')
+              
+              if [[ $success_runs -eq 0 && $total_runs -gt 0 ]]; then
+                echo "❌ $workflow_name: All recent runs failed ($total_runs failed)" >> $GITHUB_STEP_SUMMARY
+                workflow_issues=$((workflow_issues + 1))
+              elif [[ $failed_runs -gt 0 ]]; then
+                echo "⚠️ $workflow_name: Partial failures ($failed_runs/$total_runs failed)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "✅ $workflow_name: Healthy ($success_runs successful runs)" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          else
+            echo "⚠️ $workflow_name: Workflow not found" >> $GITHUB_STEP_SUMMARY
+            workflow_issues=$((workflow_issues + 1))
+          fi
+        done
+        
+        echo "workflow-issues=$workflow_issues" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $workflow_issues -eq 0 ]]; then
+          echo "✅ **All critical workflows healthy**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **$workflow_issues workflow issue(s) detected**" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Automated Recovery Actions
+      id: recovery-actions
+      if: steps.init-emergency.outputs.dry-run != 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔧 Automated Recovery Actions" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        actions_taken=()
+        recovery_success=0
+        
+        # Determine what recovery actions to take based on findings
+        validation_issues="${{ steps.emergency-secrets.outputs.validation-issues || '0' }}"
+        connectivity_failures="${{ steps.emergency-connectivity.outputs.connectivity-failures || '0' }}"
+        workflow_issues="${{ steps.emergency-workflows.outputs.workflow-issues || '0' }}"
+        
+        # Recovery Action 1: Trigger secret validation workflow if issues found
+        if [[ $validation_issues -gt 0 ]]; then
+          echo "Triggering secret validation workflow for diagnostics..."
+          if gh workflow run "validate-secrets.yml" --ref main -f environment=production -f detailed_output=true; then
+            echo "✅ Triggered secret validation workflow" >> $GITHUB_STEP_SUMMARY
+            actions_taken+=("secret_validation_triggered")
+            recovery_success=$((recovery_success + 1))
+          else
+            echo "❌ Failed to trigger secret validation workflow" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        # Recovery Action 2: Trigger comprehensive monitoring if connectivity issues
+        if [[ $connectivity_failures -gt 0 ]]; then
+          echo "Triggering comprehensive system monitoring..."
+          if gh workflow run "monitoring.yml" --ref main -f monitoring_type=comprehensive; then
+            echo "✅ Triggered comprehensive monitoring workflow" >> $GITHUB_STEP_SUMMARY
+            actions_taken+=("comprehensive_monitoring_triggered")
+            recovery_success=$((recovery_success + 1))
+          else
+            echo "❌ Failed to trigger monitoring workflow" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        # Recovery Action 3: Test data collection workflow if workflow issues
+        if [[ $workflow_issues -gt 0 ]]; then
+          echo "Triggering test data collection to validate system..."
+          if gh workflow run "data-collection-production.yml" --ref main -f collection_mode=test -f zip_codes="85031"; then
+            echo "✅ Triggered test data collection workflow" >> $GITHUB_STEP_SUMMARY
+            actions_taken+=("test_collection_triggered")
+            recovery_success=$((recovery_success + 1))
+          else
+            echo "❌ Failed to trigger test data collection" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        # Recovery Action 4: Create recovery tracking issue
+        echo "Creating emergency response tracking issue..."
+        
+        issue_body="## 🚨 Emergency Response Tracking
+        
+        **Emergency Type**: ${{ steps.init-emergency.outputs.alert-type }}
+        **Severity**: ${{ steps.init-emergency.outputs.severity }}
+        **Started**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Run ID**: ${{ github.run_id }}
+        
+        ### Issues Detected
+        - Secret validation issues: $validation_issues
+        - Service connectivity failures: $connectivity_failures  
+        - Workflow health issues: $workflow_issues
+        
+        ### Automated Actions Taken
+        $(printf '%s\n' "${actions_taken[@]}" | sed 's/^/- /')
+        
+        ### Next Steps
+        - [ ] Monitor triggered workflows for success
+        - [ ] Verify service recovery
+        - [ ] Update issue when resolved
+        - [ ] Close issue when system fully operational
+        
+        **This issue will be automatically updated as recovery progresses.**
+        "
+        
+        if gh issue create --title "🚨 Emergency Response: ${{ steps.init-emergency.outputs.alert-type }} - $(date '+%Y-%m-%d %H:%M')" \
+           --body "$issue_body" \
+           --label "emergency,p0-incident,monitoring,automated"; then
+          echo "✅ Created emergency response tracking issue" >> $GITHUB_STEP_SUMMARY
+          actions_taken+=("tracking_issue_created")
+          recovery_success=$((recovery_success + 1))
+        else
+          echo "❌ Failed to create tracking issue" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Save actions taken for summary
+        printf '%s,' "${actions_taken[@]}" | sed 's/,$//' > emergency/recovery/actions_taken.txt
+        echo "recovery-success=$recovery_success" >> $GITHUB_OUTPUT
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Recovery Actions Completed**: $recovery_success" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Dry Run Analysis
+      if: steps.init-emergency.outputs.dry-run == 'true'
+      run: |
+        echo "### 🧪 Dry Run Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        validation_issues="${{ steps.emergency-secrets.outputs.validation-issues || '0' }}"
+        connectivity_failures="${{ steps.emergency-connectivity.outputs.connectivity-failures || '0' }}"
+        workflow_issues="${{ steps.emergency-workflows.outputs.workflow-issues || '0' }}"
+        
+        echo "**Issues Summary (Dry Run)**:" >> $GITHUB_STEP_SUMMARY
+        echo "- Secret validation issues: $validation_issues" >> $GITHUB_STEP_SUMMARY
+        echo "- Service connectivity failures: $connectivity_failures" >> $GITHUB_STEP_SUMMARY
+        echo "- Workflow health issues: $workflow_issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "**Actions that WOULD be taken in live run:**" >> $GITHUB_STEP_SUMMARY
+        [[ $validation_issues -gt 0 ]] && echo "- Trigger secret validation workflow" >> $GITHUB_STEP_SUMMARY
+        [[ $connectivity_failures -gt 0 ]] && echo "- Trigger comprehensive monitoring" >> $GITHUB_STEP_SUMMARY
+        [[ $workflow_issues -gt 0 ]] && echo "- Trigger test data collection" >> $GITHUB_STEP_SUMMARY
+        echo "- Create emergency response tracking issue" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "**To execute recovery actions, re-run without dry-run mode**" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Recovery Summary
+      id: recovery-summary
+      if: always()
+      run: |
+        echo "### 📊 Emergency Response Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Collect all status information
+        validation_issues="${{ steps.emergency-secrets.outputs.validation-issues || '0' }}"
+        connectivity_failures="${{ steps.emergency-connectivity.outputs.connectivity-failures || '0' }}"
+        workflow_issues="${{ steps.emergency-workflows.outputs.workflow-issues || '0' }}"
+        recovery_success="${{ steps.recovery-actions.outputs.recovery-success || '0' }}"
+        
+        total_issues=$((validation_issues + connectivity_failures + workflow_issues))
+        
+        # Determine overall recovery status
+        if [[ $total_issues -eq 0 ]]; then
+          recovery_status="healthy"
+          echo "✅ **System Status**: HEALTHY - No critical issues detected" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ steps.init-emergency.outputs.dry-run }}" == "true" ]]; then
+          recovery_status="dry-run-completed"
+          echo "🧪 **Dry Run Status**: COMPLETED - $total_issues issue(s) identified" >> $GITHUB_STEP_SUMMARY
+        elif [[ $recovery_success -gt 0 ]]; then
+          recovery_status="recovery-initiated"
+          echo "🔧 **Recovery Status**: INITIATED - $recovery_success recovery action(s) taken" >> $GITHUB_STEP_SUMMARY
+        else
+          recovery_status="manual-intervention-required"
+          echo "⚠️ **Recovery Status**: MANUAL INTERVENTION REQUIRED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Actions taken
+        if [[ -f "emergency/recovery/actions_taken.txt" ]]; then
+          actions_taken=$(cat emergency/recovery/actions_taken.txt)
+        else
+          actions_taken="none"
+        fi
+        
+        # Next steps recommendations
+        next_steps=()
+        if [[ $validation_issues -gt 0 ]]; then
+          next_steps+=("Fix secret configuration in repository settings")
+        fi
+        if [[ $connectivity_failures -gt 0 ]]; then
+          next_steps+=("Investigate service outages and network connectivity")
+        fi
+        if [[ $workflow_issues -gt 0 ]]; then
+          next_steps+=("Review failed workflow logs and fix underlying issues")
+        fi
+        if [[ $total_issues -eq 0 ]]; then
+          next_steps+=("Continue monitoring system health")
+        fi
+        
+        # Output results
+        echo "recovery-status=$recovery_status" >> $GITHUB_OUTPUT
+        echo "actions-taken=$actions_taken" >> $GITHUB_OUTPUT
+        echo "next-steps=$(printf '%s;' "${next_steps[@]}" | sed 's/;$//')" >> $GITHUB_OUTPUT
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Completion Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Total Issues Found**: $total_issues" >> $GITHUB_STEP_SUMMARY
+        echo "**Recovery Actions Taken**: $recovery_success" >> $GITHUB_STEP_SUMMARY
+        echo "**Final Status**: $recovery_status" >> $GITHUB_STEP_SUMMARY
+        
+        # Final status check
+        if [[ "$recovery_status" == "manual-intervention-required" ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚨 **ATTENTION: Manual intervention is required to resolve critical issues**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Immediate Actions Required:**" >> $GITHUB_STEP_SUMMARY
+          for step in "${next_steps[@]}"; do
+            echo "- $step" >> $GITHUB_STEP_SUMMARY
+          done
+        fi
+    
+    - name: Upload Emergency Response Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: emergency-response-${{ github.run_number }}
+        path: |
+          emergency/logs/*
+          emergency/reports/*
+          emergency/recovery/*
+        retention-days: 90

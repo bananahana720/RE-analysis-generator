@@ -1,0 +1,87 @@
+{
+  "alert_system": {
+    "name": "Phoenix Real Estate Alert System",
+    "notification_channels": {
+      "console": {
+        "enabled": true,
+        "level": "INFO"
+      },
+      "log_file": {
+        "enabled": true,
+        "level": "ALL",
+        "file": "logs/alerts.log"
+      },
+      "email": {
+        "enabled": false,
+        "level": "CRITICAL",
+        "recipients": []
+      },
+      "github_issues": {
+        "enabled": true,
+        "level": "CRITICAL",
+        "repo": "automatic"
+      }
+    },
+    "alert_levels": {
+      "INFO": {
+        "description": "Daily summaries and system status updates",
+        "examples": [
+          "daily_collection_summary",
+          "system_health_report",
+          "performance_summary"
+        ],
+        "frequency": "daily",
+        "auto_resolve": true
+      },
+      "WARNING": {
+        "description": "Performance degradation and cost thresholds",
+        "examples": [
+          "performance_degradation > 20%",
+          "cost_threshold_90_percent",
+          "success_rate_below_90_percent",
+          "api_response_time > 500ms"
+        ],
+        "frequency": "immediate",
+        "auto_resolve": false
+      },
+      "CRITICAL": {
+        "description": "System failures and cost overruns",
+        "examples": [
+          "system_failure_complete",
+          "cost_overrun_110_percent",
+          "data_collection_failure_24h",
+          "security_breach_detected"
+        ],
+        "frequency": "immediate",
+        "auto_resolve": false,
+        "escalation": true
+      }
+    },
+    "alert_rules": [
+      {
+        "name": "cost_monitoring",
+        "condition": "monthly_cost > ($25 * 0.90)",
+        "level": "WARNING",
+        "message": "Monthly cost approaching budget limit"
+      },
+      {
+        "name": "cost_overrun",
+        "condition": "monthly_cost > ($25 * 1.10)",
+        "level": "CRITICAL",
+        "message": "Monthly cost exceeded budget by 10%"
+      },
+      {
+        "name": "success_rate_degradation",
+        "condition": "success_rate < 80%",
+        "level": "WARNING",
+        "message": "Collection success rate below strategic target"
+      },
+      {
+        "name": "system_health_critical",
+        "condition": "system_uptime < 99%",
+        "level": "CRITICAL",
+        "message": "System uptime below reliability threshold"
+      }
+    ]
+  }
+}

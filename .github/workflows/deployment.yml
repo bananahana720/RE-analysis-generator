@@ -117,7 +117,7 @@ jobs:
     
     - name: Validate deployment configuration
       run: |
-        uv run python scripts/workflow_validator.py validate deployment
+        uv run python scripts/validation/workflow_validator.py validate deployment
     
     - name: Check deployment prerequisites  
       id: checks
@@ -130,7 +130,7 @@ jobs:
     
     - name: Security scan for deployment
       run: |
-        uv run python scripts/validate_secrets.py deployment
+        uv run python scripts/validation/validate_secrets.py deployment
         echo "[OK] Security validation passed"
 
   database-deployment:
