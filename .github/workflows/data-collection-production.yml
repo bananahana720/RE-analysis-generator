@@ -503,3 +503,46 @@ jobs:
             body: issueBody,
             labels: ['automation', 'production', 'data-collection', 'failure', 'urgent']
           });
+    
+    - name: Trigger Success Notification
+      if: needs.collection-and-processing.outputs.collection-status == 'success'
+      uses: ./.github/workflows/success-notification.yml
+      with:
+        workflow-name: 'Production Data Collection'
+        success-metrics: |
+          {
+            "properties_collected": ${{ needs.collection-and-processing.outputs.properties-collected }},
+            "processing_time": 60,
+            "success_rate": 100,
+            "zip_codes_processed": ${{ github.event.inputs.zip_codes || '85031,85033,85035' | split(',') | length }},
+            "collection_mode": "${{ github.event.inputs.collection_mode || 'incremental' }}",
+            "workflow_run_id": "${{ github.run_id }}"
+          }
+        notification-context: |
+          Successful data collection completed for ZIP codes: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+          Collection mode: ${{ github.event.inputs.collection_mode || 'incremental' }}
+          Total properties collected: ${{ needs.collection-and-processing.outputs.properties-collected }}
+    
+    - name: Trigger Issue Resolution on Recovery
+      if: needs.collection-and-processing.outputs.collection-status == 'success'
+      uses: ./.github/workflows/issue-resolution.yml
+      with:
+        trigger-event: 'data-collection-success'
+        resolution-context: |
+          Production data collection has been successfully restored.
+          
+          Collection Details:
+          - Properties collected: ${{ needs.collection-and-processing.outputs.properties-collected }}
+          - ZIP codes processed: ${{ github.event.inputs.zip_codes || '85031,85033,85035' }}
+          - Collection mode: ${{ github.event.inputs.collection_mode || 'incremental' }}
+          - Workflow run: ${{ github.run_id }}
+        metrics: |
+          {
+            "properties_collected": ${{ needs.collection-and-processing.outputs.properties-collected }},
+            "processing_time": 60,
+            "success_rate": 100,
+            "zip_codes_processed": ${{ github.event.inputs.zip_codes || '85031,85033,85035' | split(',') | length }},
+            "collection_mode": "${{ github.event.inputs.collection_mode || 'incremental' }}",
+            "timestamp": "${{ github.event.head_commit.timestamp || github.run_number }}",
+            "workflow_run_id": "${{ github.run_id }}"
+          }

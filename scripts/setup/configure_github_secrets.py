@@ -8,10 +8,9 @@ secrets that are preventing CI/CD workflows from running.
 """
 
 import sys
-import os
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import Dict, Optional
 import json
 
 
@@ -265,7 +264,7 @@ class GitHubSecretsSetupAssistant:
         print()
         
         # Save checklist
-        checklist_path = self.save_checklist()
+        self.save_checklist()
         
         print("🎯 NEXT ACTIONS")
         print("-" * 13)

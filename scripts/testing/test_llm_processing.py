@@ -5,8 +5,6 @@ import asyncio
 import sys
 import os
 import time
-import json
-from datetime import datetime
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
@@ -14,7 +12,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
 from phoenix_real_estate.orchestration import ProcessingIntegrator
 from phoenix_real_estate.foundation.database.mock import MockPropertyRepository
-from phoenix_real_estate.models import PropertyDetails
 
 # Sample property data for LLM processing test
 SAMPLE_PROPERTY = {
@@ -88,14 +85,14 @@ async def test_llm_processing_pipeline():
                 # Check result structure
                 result = processed_results[0]
                 if "property_summary" in result or "analysis" in result or "processed_data" in result:
-                    print(f"[PASS] LLM processing generated structured output")
+                    print("[PASS] LLM processing generated structured output")
                     results["tests_passed"] += 1
                 else:
-                    print(f"[FAIL] LLM processing did not generate expected structure")
+                    print("[FAIL] LLM processing did not generate expected structure")
                     results["tests_failed"] += 1
                     
             else:
-                print(f"[FAIL] Single property processing failed")
+                print("[FAIL] Single property processing failed")
                 results["tests_failed"] += 1
             
             # Test 2: Batch processing (3 properties)
@@ -119,7 +116,7 @@ async def test_llm_processing_pipeline():
                 
                 # Check for performance target (<60 seconds per property)
                 if avg_per_property < 60000:
-                    print(f"[PASS] Performance target met (<60s per property)")
+                    print("[PASS] Performance target met (<60s per property)")
                     results["tests_passed"] += 1
                 else:
                     print(f"[WARN] Performance target missed (>{avg_per_property/1000:.1f}s per property)")

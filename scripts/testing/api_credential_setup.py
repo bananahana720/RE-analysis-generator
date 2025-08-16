@@ -5,8 +5,6 @@ API Credential Setup and Validation Tool
 This script helps configure and validate API credentials for production deployment.
 """
 
-import os
-import sys
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent
@@ -30,27 +28,27 @@ def main():
         if 'test_key' in content:
             test_keys.append('Found test_key placeholders')
         
-        print('
-Current issues:')
+        print('''
+Current issues:''')
         if test_keys:
             for issue in test_keys:
                 print(f'  - {issue}')
             
-            print('
-Required Actions:')
+            print('''
+Required Actions:''')
             print('1. Get Maricopa County API key:')
             print('   - Visit: https://api.mcassessor.maricopa.gov')
             print('   - Register for API access')
             print('   - Replace MARICOPA_API_KEY=test_key with real key')
             
-            print('
-2. Optional: WebShare proxy service (~-5/month):')
+            print('''
+2. Optional: WebShare proxy service (~$5/month):''')
             print('   - Visit: https://proxy.webshare.io') 
             print('   - Sign up for residential proxy plan')
             print('   - Replace WEBSHARE_API_KEY=test_key with real credentials')
             
-            print('
-3. Optional: 2captcha service (~-3/month):')
+            print('''
+3. Optional: 2captcha service (~$3/month):''')
             print('   - Visit: https://2captcha.com')
             print('   - Add funds and get API key')
             print('   - Replace CAPTCHA_API_KEY=test_key with real key')

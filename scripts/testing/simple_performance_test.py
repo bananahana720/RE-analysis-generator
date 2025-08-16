@@ -4,7 +4,6 @@ import sys
 import os
 import time
 import psutil
-from typing import Dict, Any
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
@@ -159,7 +158,7 @@ async def test_performance_baselines():
         print(f"[WARN] DB connection: {results['db_connection_time_ms']:.1f}ms (target <1000ms)")
         checks.append(False)
     else:
-        print(f"[SKIP] DB connection test failed")
+        print("[SKIP] DB connection test failed")
     
     if results.get("llm_response_time_ms") and results["llm_response_time_ms"] < 5000:
         print(f"[OK] LLM response: {results['llm_response_time_ms']:.1f}ms (target <5000ms)")
@@ -168,17 +167,17 @@ async def test_performance_baselines():
         print(f"[WARN] LLM response: {results['llm_response_time_ms']:.1f}ms (target <5000ms)")
         checks.append(False)
     else:
-        print(f"[SKIP] LLM response test failed")
+        print("[SKIP] LLM response test failed")
     
     overall_pass = all(checks) if checks else False
     print(f"\nOverall Performance: {'GOOD' if overall_pass else 'NEEDS ATTENTION'}")
     
     # Estimate daily cost at current performance levels
-    print(f"\nEstimated Daily Costs:")
-    print(f"- Current usage pattern: <$1/day (within budget)")
-    print(f"- MongoDB operations: Local (no cost)")
-    print(f"- LLM processing: Local Ollama (no cost)")
-    print(f"- Network usage: Minimal")
+    print("\nEstimated Daily Costs:")
+    print("- Current usage pattern: <$1/day (within budget)")
+    print("- MongoDB operations: Local (no cost)")
+    print("- LLM processing: Local Ollama (no cost)")
+    print("- Network usage: Minimal")
     
     return results, overall_pass
 

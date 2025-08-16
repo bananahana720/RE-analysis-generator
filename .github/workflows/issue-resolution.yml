@@ -1,0 +1,486 @@
+name: GitHub Issues Resolution Framework
+
+on:
+  workflow_call:
+    inputs:
+      trigger-event:
+        description: 'Event that triggered issue resolution (data-collection-success, manual-resolution, etc.)'
+        required: true
+        type: string
+      resolution-context:
+        description: 'Context information about the resolution'
+        required: false
+        type: string
+      metrics:
+        description: 'JSON string of success metrics (properties collected, processing time, etc.)'
+        required: false
+        type: string
+    outputs:
+      issues-closed:
+        description: 'Number of issues automatically closed'
+        value: ${{ jobs.resolve-issues.outputs.issues-closed }}
+      issues-updated:
+        description: 'Number of issues updated with resolution info'
+        value: ${{ jobs.resolve-issues.outputs.issues-updated }}
+
+  workflow_dispatch:
+    inputs:
+      trigger-event:
+        description: 'Resolution trigger event'
+        required: true
+        type: choice
+        options: 
+          - 'data-collection-success'
+          - 'service-recovery'
+          - 'secret-validation-passed'
+          - 'manual-resolution'
+          - 'system-health-restored'
+        default: 'manual-resolution'
+      resolution-context:
+        description: 'Resolution context or notes'
+        required: false
+        type: string
+      metrics:
+        description: 'Success metrics (JSON format)'
+        required: false
+        type: string
+        default: '{"properties_collected": 0, "processing_time": 0, "success_rate": 100}'
+      date-range:
+        description: 'Date range for issue resolution (days back from now)'
+        required: false
+        type: number
+        default: 7
+      dry-run:
+        description: 'Preview actions without making changes'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+
+concurrency:
+  group: issue-resolution-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resolve-issues:
+    name: Automatic Issue Resolution
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    outputs:
+      issues-closed: ${{ steps.resolve-issues.outputs.issues-closed }}
+      issues-updated: ${{ steps.resolve-issues.outputs.issues-updated }}
+      summary-report: ${{ steps.resolve-issues.outputs.summary-report }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Initialize Issue Resolution
+      id: init
+      run: |
+        echo "🔍 GitHub Issues Resolution Framework Started"
+        echo "**Trigger Event**: ${{ github.event.inputs.trigger-event || inputs.trigger-event }}"
+        echo "**Context**: ${{ github.event.inputs.resolution-context || inputs.resolution-context || 'No additional context' }}"
+        echo "**Dry Run Mode**: ${{ github.event.inputs.dry-run || 'false' }}"
+        echo "**Date Range**: ${{ github.event.inputs.date-range || '7' }} days"
+        echo "**Started**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Initialize tracking
+        mkdir -p resolution/{logs,reports}
+        
+        echo "## 🔍 Issue Resolution Framework" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger Event**: ${{ github.event.inputs.trigger-event || inputs.trigger-event }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Resolution Mode**: ${{ github.event.inputs.dry-run == 'true' && 'Dry Run (Preview Only)' || 'Live Resolution' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Parse and validate metrics
+        metrics='${{ github.event.inputs.metrics || inputs.metrics || "{}" }}'
+        echo "$metrics" > resolution/reports/metrics.json || echo '{}' > resolution/reports/metrics.json
+        
+        # Set outputs
+        echo "trigger-event=${{ github.event.inputs.trigger-event || inputs.trigger-event }}" >> $GITHUB_OUTPUT
+        echo "dry-run=${{ github.event.inputs.dry-run || 'false' }}" >> $GITHUB_OUTPUT
+        echo "date-range=${{ github.event.inputs.date-range || '7' }}" >> $GITHUB_OUTPUT
+    
+    - name: Query Related Issues
+      id: query-issues
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔎 Querying Related Issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Calculate date cutoff
+        date_range="${{ steps.init.outputs.date-range }}"
+        cutoff_date=$(date -d "$date_range days ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Define issue labels based on trigger event
+        trigger_event="${{ steps.init.outputs.trigger-event }}"
+        
+        case "$trigger_event" in
+          "data-collection-success")
+            target_labels="production-failure,data-collection,automation"
+            ;;
+          "service-recovery")
+            target_labels="service-down,connectivity,monitoring"
+            ;;
+          "secret-validation-passed")
+            target_labels="secrets,configuration,critical"
+            ;;
+          "system-health-restored")
+            target_labels="monitoring,health-check,system"
+            ;;
+          "manual-resolution")
+            target_labels="production-failure,critical,urgent"
+            ;;
+          *)
+            target_labels="production-failure,automation"
+            ;;
+        esac
+        
+        echo "Searching for issues with labels: $target_labels"
+        echo "Created after: $cutoff_date"
+        
+        # Query open issues with relevant labels
+        gh issue list \
+          --state open \
+          --label "$target_labels" \
+          --json number,title,labels,createdAt,updatedAt,body \
+          --jq ".[] | select(.createdAt > \"$cutoff_date\")" \
+          > resolution/reports/candidate_issues.json
+        
+        # Count and categorize issues
+        total_candidates=$(jq length resolution/reports/candidate_issues.json)
+        
+        if [[ $total_candidates -eq 0 ]]; then
+          echo "✅ No related open issues found in the last $date_range days" >> $GITHUB_STEP_SUMMARY
+          echo "candidates-found=0" >> $GITHUB_OUTPUT
+        else
+          echo "📋 Found $total_candidates candidate issue(s) for resolution" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # List candidate issues
+          echo "**Candidate Issues:**" >> $GITHUB_STEP_SUMMARY
+          jq -r '.[] | "- #\(.number): \(.title) (Created: \(.createdAt | split("T")[0]))"' \
+            resolution/reports/candidate_issues.json >> $GITHUB_STEP_SUMMARY
+          
+          echo "candidates-found=$total_candidates" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "target-labels=$target_labels" >> $GITHUB_OUTPUT
+    
+    - name: Analyze Issues for Resolution
+      id: analyze-issues
+      if: steps.query-issues.outputs.candidates-found != '0'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔍 Analyzing Issues for Auto-Resolution" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        trigger_event="${{ steps.init.outputs.trigger-event }}"
+        
+        # Analyze each candidate issue
+        resolvable_issues=()
+        update_only_issues=()
+        
+        jq -c '.[]' resolution/reports/candidate_issues.json | while read -r issue; do
+          issue_number=$(echo "$issue" | jq -r '.number')
+          issue_title=$(echo "$issue" | jq -r '.title')
+          issue_body=$(echo "$issue" | jq -r '.body // ""')
+          created_at=$(echo "$issue" | jq -r '.createdAt')
+          
+          echo "Analyzing issue #$issue_number: $issue_title"
+          
+          # Determine if issue is resolvable based on trigger event and content
+          resolvable=false
+          update_only=false
+          resolution_reason=""
+          
+          case "$trigger_event" in
+            "data-collection-success")
+              # Check if issue is about data collection failures
+              if echo "$issue_title $issue_body" | grep -i -E "(data collection|collection failed|production.*fail)" >/dev/null; then
+                resolvable=true
+                resolution_reason="Data collection has been successfully restored"
+              elif echo "$issue_title $issue_body" | grep -i -E "(mongodb|database|connection)" >/dev/null; then
+                update_only=true
+                resolution_reason="Database connectivity verified during successful data collection"
+              fi
+              ;;
+            "secret-validation-passed")
+              # Check if issue is about secret/configuration problems
+              if echo "$issue_title $issue_body" | grep -i -E "(secret|configuration|missing.*key|invalid.*format)" >/dev/null; then
+                resolvable=true
+                resolution_reason="Secret validation has passed - all required secrets are properly configured"
+              fi
+              ;;
+            "service-recovery")
+              # Check if issue is about service connectivity
+              if echo "$issue_title $issue_body" | grep -i -E "(service.*down|connectivity|unreachable|timeout)" >/dev/null; then
+                resolvable=true
+                resolution_reason="Service connectivity has been restored"
+              fi
+              ;;
+            "system-health-restored")
+              # Check if issue is about system health
+              if echo "$issue_title $issue_body" | grep -i -E "(monitoring|health|system.*down|infrastructure)" >/dev/null; then
+                resolvable=true
+                resolution_reason="System health monitoring indicates full recovery"
+              fi
+              ;;
+            "manual-resolution")
+              # For manual resolution, mark critical production issues for update
+              if echo "$issue_title $issue_body" | grep -i -E "(critical|urgent|production)" >/dev/null; then
+                update_only=true
+                resolution_reason="Manual resolution initiated - please verify if this issue is resolved"
+              fi
+              ;;
+          esac
+          
+          # Store analysis results
+          if [[ "$resolvable" == "true" ]]; then
+            echo "$issue_number|$issue_title|$resolution_reason" >> resolution/reports/resolvable_issues.txt
+            echo "  → Auto-resolvable: $resolution_reason"
+          elif [[ "$update_only" == "true" ]]; then
+            echo "$issue_number|$issue_title|$resolution_reason" >> resolution/reports/update_only_issues.txt
+            echo "  → Update only: $resolution_reason"
+          else
+            echo "  → No automatic action"
+          fi
+        done
+        
+        # Count results
+        resolvable_count=$(wc -l < resolution/reports/resolvable_issues.txt 2>/dev/null || echo "0")
+        update_count=$(wc -l < resolution/reports/update_only_issues.txt 2>/dev/null || echo "0")
+        
+        echo "resolvable-count=$resolvable_count" >> $GITHUB_OUTPUT
+        echo "update-count=$update_count" >> $GITHUB_OUTPUT
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Analysis Results:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues for auto-resolution: $resolvable_count" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues for status update: $update_count" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $resolvable_count -gt 0 ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issues Ready for Auto-Resolution:**" >> $GITHUB_STEP_SUMMARY
+          while IFS='|' read -r num title reason; do
+            echo "- #$num: $title" >> $GITHUB_STEP_SUMMARY
+            echo "  *Reason*: $reason" >> $GITHUB_STEP_SUMMARY
+          done < resolution/reports/resolvable_issues.txt
+        fi
+        
+        if [[ $update_count -gt 0 ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issues for Status Update:**" >> $GITHUB_STEP_SUMMARY
+          while IFS='|' read -r num title reason; do
+            echo "- #$num: $title" >> $GITHUB_STEP_SUMMARY
+            echo "  *Update*: $reason" >> $GITHUB_STEP_SUMMARY
+          done < resolution/reports/update_only_issues.txt
+        fi
+    
+    - name: Execute Issue Resolution
+      id: resolve-issues
+      if: steps.analyze-issues.outputs.resolvable-count != '0' || steps.analyze-issues.outputs.update-count != '0'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔧 Executing Issue Resolution" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        dry_run="${{ steps.init.outputs.dry-run }}"
+        trigger_event="${{ steps.init.outputs.trigger-event }}"
+        resolution_context="${{ github.event.inputs.resolution-context || inputs.resolution-context || '' }}"
+        
+        # Load success metrics
+        metrics=$(cat resolution/reports/metrics.json)
+        
+        issues_closed=0
+        issues_updated=0
+        
+        # Process resolvable issues (close them)
+        if [[ -f "resolution/reports/resolvable_issues.txt" ]]; then
+          echo "**Auto-Closing Resolved Issues:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          while IFS='|' read -r issue_number issue_title resolution_reason; do
+            echo "Processing issue #$issue_number: $issue_title"
+            
+            # Create resolution comment using heredoc
+            read -r -d '' resolution_comment << 'EOF'
+        ## ✅ Issue Automatically Resolved
+
+        **Resolution Trigger**: $trigger_event
+        **Resolution Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Workflow Run**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+        ### Resolution Details
+        $resolution_reason
+
+        ### Success Metrics
+        ```json
+        $metrics
+        ```
+
+        $(if [[ -n "$resolution_context" ]]; then echo "### Additional Context
+        $resolution_context"; fi)
+
+        ### Verification
+        This issue has been automatically resolved based on successful system recovery indicators. If the problem persists or recurs, please:
+
+        1. Reopen this issue with updated details
+        2. Run the latest monitoring workflows to verify current system status
+        3. Check that all recent data collection and validation workflows are passing
+
+        ---
+        *This resolution was performed automatically by the GitHub Issues Resolution Framework*
+        EOF
+            
+            if [[ "$dry_run" == "true" ]]; then
+              echo "  → [DRY RUN] Would close issue #$issue_number with resolution comment" >> $GITHUB_STEP_SUMMARY
+            else
+              # Add resolution comment and close issue
+              if gh issue comment "$issue_number" --body "$resolution_comment" && \
+                 gh issue close "$issue_number" --reason "completed"; then
+                echo "  → ✅ Closed issue #$issue_number" >> $GITHUB_STEP_SUMMARY
+                issues_closed=$((issues_closed + 1))
+                
+                # Add resolution label
+                gh issue edit "$issue_number" --add-label "auto-resolved,verified-fixed" || true
+              else
+                echo "  → ❌ Failed to close issue #$issue_number" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done < resolution/reports/resolvable_issues.txt
+        fi
+        
+        # Process update-only issues (add status comment)
+        if [[ -f "resolution/reports/update_only_issues.txt" ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Updating Issue Status:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          while IFS='|' read -r issue_number issue_title update_reason; do
+            echo "Processing update for issue #$issue_number: $issue_title"
+            
+            # Create status update comment using heredoc
+            read -r -d '' status_comment << 'EOF'
+        ## 📊 Automated Status Update
+
+        **Update Trigger**: $trigger_event
+        **Update Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Workflow Run**: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+        ### Status Update
+        $update_reason
+
+        ### Current System Metrics
+        ```json
+        $metrics
+        ```
+
+        $(if [[ -n "$resolution_context" ]]; then echo "### Additional Context
+        $resolution_context"; fi)
+
+        ### Recommended Actions
+        Please review the current status and determine if this issue can be closed. Recent system recovery indicators suggest the underlying problem may be resolved.
+
+        ---
+        *This update was generated automatically by the GitHub Issues Resolution Framework*
+        EOF
+            
+            if [[ "$dry_run" == "true" ]]; then
+              echo "  → [DRY RUN] Would update issue #$issue_number with status comment" >> $GITHUB_STEP_SUMMARY
+            else
+              # Add status update comment
+              if gh issue comment "$issue_number" --body "$status_comment"; then
+                echo "  → ✅ Updated issue #$issue_number" >> $GITHUB_STEP_SUMMARY
+                issues_updated=$((issues_updated + 1))
+                
+                # Add status update label
+                gh issue edit "$issue_number" --add-label "status-updated,recovery-detected" || true
+              else
+                echo "  → ❌ Failed to update issue #$issue_number" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done < resolution/reports/update_only_issues.txt
+        fi
+        
+        # Output results
+        echo "issues-closed=$issues_closed" >> $GITHUB_OUTPUT
+        echo "issues-updated=$issues_updated" >> $GITHUB_OUTPUT
+        
+        # Generate summary report
+        summary_report="Trigger: $trigger_event | Closed: $issues_closed | Updated: $issues_updated | Mode: $dry_run"
+        echo "summary-report=$summary_report" >> $GITHUB_OUTPUT
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Resolution Summary:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues automatically closed: $issues_closed" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues updated with status: $issues_updated" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "$dry_run" == "true" ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🧪 **This was a dry run** - no actual changes were made to issues. Re-run without dry-run mode to execute the resolution actions." >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Generate Resolution Report
+      id: report
+      if: always()
+      run: |
+        echo "### 📋 Final Resolution Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Collect final statistics
+        candidates="${{ steps.query-issues.outputs.candidates-found || '0' }}"
+        resolvable="${{ steps.analyze-issues.outputs.resolvable-count || '0' }}"
+        update_only="${{ steps.analyze-issues.outputs.update-count || '0' }}"
+        closed="${{ steps.resolve-issues.outputs.issues-closed || '0' }}"
+        updated="${{ steps.resolve-issues.outputs.issues-updated || '0' }}"
+        
+        echo "**Final Statistics:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Candidate issues found: $candidates" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues analyzed for resolution: $((resolvable + update_only))" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues automatically closed: $closed" >> $GITHUB_STEP_SUMMARY
+        echo "- Issues updated with status: $updated" >> $GITHUB_STEP_SUMMARY
+        
+        # Generate recommendations
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Recommendations:**" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $candidates -eq 0 ]]; then
+          echo "- ✅ No open issues requiring resolution - system appears healthy" >> $GITHUB_STEP_SUMMARY
+        elif [[ $((closed + updated)) -eq 0 ]]; then
+          echo "- 🔍 Found issues but none matched auto-resolution criteria" >> $GITHUB_STEP_SUMMARY
+          echo "- 📝 Consider manual review of open issues" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔧 Verify that trigger event accurately reflects system recovery" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ✅ Issue resolution framework successfully processed related issues" >> $GITHUB_STEP_SUMMARY
+          echo "- 👀 Monitor for any reopened issues or new related problems" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Continue regular system health monitoring" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Completion Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger Event**: ${{ steps.init.outputs.trigger-event }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Resolution Mode**: ${{ steps.init.outputs.dry-run == 'true' && 'Dry Run' || 'Live Execution' }}" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload Resolution Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: issue-resolution-${{ github.run_number }}
+        path: |
+          resolution/logs/*
+          resolution/reports/*
+        retention-days: 30

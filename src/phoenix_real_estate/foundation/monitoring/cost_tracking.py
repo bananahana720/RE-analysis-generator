@@ -5,9 +5,8 @@ cost efficiency metrics, and automated alerts for production deployment.
 """
 
 import time
-import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Any, List
+from datetime import datetime
+from typing import Dict, Optional, Any
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
 

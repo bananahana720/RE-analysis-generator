@@ -9,7 +9,7 @@ import json
 import logging
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -378,26 +378,26 @@ async def main():
         
         # Dashboard validation
         dashboard_results = validation_results["dashboard_validation"]
-        print(f"\n📊 DASHBOARD VALIDATION:")
+        print("\n📊 DASHBOARD VALIDATION:")
         print(f"   Status: {dashboard_results['validation_status'].upper()}")
         print(f"   Dashboards: {dashboard_results['total_found']}/{dashboard_results['total_expected']} operational")
         
         # Alert system validation
         alert_results = validation_results["alert_system_validation"]
-        print(f"\n🚨 ALERT SYSTEM VALIDATION:")
+        print("\n🚨 ALERT SYSTEM VALIDATION:")
         print(f"   Status: {alert_results['validation_status'].upper()}")
         print(f"   Alert Levels: {len(alert_results['alert_levels'])}")
         print(f"   Notification Channels: {len(alert_results['notification_channels'])}")
         
         # Performance baselines
         baseline_results = validation_results["performance_baseline_validation"]
-        print(f"\n⚡ PERFORMANCE BASELINES:")
+        print("\n⚡ PERFORMANCE BASELINES:")
         print(f"   Status: {baseline_results['validation_status'].upper()}")
         print(f"   Baselines Configured: {baseline_results['baselines_configured']}")
         
         # Go-Live readiness
         readiness_results = validation_results["go_live_readiness"]
-        print(f"\n🎯 GO-LIVE READINESS ASSESSMENT:")
+        print("\n🎯 GO-LIVE READINESS ASSESSMENT:")
         print(f"   Overall Status: {readiness_results['overall_status']}")
         print(f"   Readiness Score: {readiness_results['readiness_percentage']:.1f}%")
         print(f"   Recommendation: {readiness_results['recommendation']}")

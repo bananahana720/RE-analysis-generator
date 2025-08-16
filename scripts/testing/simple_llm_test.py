@@ -1,7 +1,6 @@
 """Simple direct LLM test"""
 import asyncio
 import aiohttp
-import json
 
 async def test_ollama_direct():
     """Direct test of Ollama API"""

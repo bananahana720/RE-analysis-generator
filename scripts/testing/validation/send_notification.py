@@ -13,11 +13,11 @@ def main():
     args = parser.parse_args()
     
     # Mock notification for now - in production would send actual email
-    print(f'[NOTIFICATION] Sending notification:')
+    print('[NOTIFICATION] Sending notification:')
     print(f'  Status: {args.status}')
     print(f'  Run ID: {args.run_id}')
     print(f'  Timestamp: {args.timestamp}')
-    print(f'[SUCCESS] Notification sent successfully')
+    print('[SUCCESS] Notification sent successfully')
     
     return 0
 

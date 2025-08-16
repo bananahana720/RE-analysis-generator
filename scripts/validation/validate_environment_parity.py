@@ -7,11 +7,10 @@ Validates configuration consistency across development, testing, and production 
 import argparse
 import json
 import logging
-import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Set, Any, Optional
+from typing import Dict, List, Any
 
 import yaml
 

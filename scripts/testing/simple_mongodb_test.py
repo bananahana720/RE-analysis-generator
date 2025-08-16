@@ -2,7 +2,6 @@
 import asyncio
 import sys
 import os
-import time
 from datetime import datetime
 
 # Add src to path
@@ -30,8 +29,8 @@ async def test_mongodb_operations():
         await db.connect()
         
         print("[TEST] Running health check...")
-        health = await db.health_check()
-        print(f"[OK] Health check completed")
+        await db.health_check()
+        print("[OK] Health check completed")
         
         # Test collection operations
         print("[TEST] Testing collection operations...")

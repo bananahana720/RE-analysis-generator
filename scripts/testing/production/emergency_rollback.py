@@ -4,7 +4,6 @@ Emergency Rollback System
 Critical rollback procedures for production system failures.
 """
 
-import os
 import sys
 import json
 import time
@@ -14,7 +13,6 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from enum import Enum
-from pathlib import Path
 
 # Configure logging
 logging.basicConfig(

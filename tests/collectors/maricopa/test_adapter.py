@@ -186,7 +186,11 @@ class TestMaricopaDataAdapter:
         assert result.features.bathrooms is None
         assert result.price_history == []  # No pricing data
         assert result.current_price is None
-        assert result.tax_info is None  # No tax data
+        # Tax info should be present with minimal data (APN only)
+        assert result.tax_info is not None
+        assert result.tax_info.apn == "456-78-901"
+        assert result.tax_info.assessed_value is None
+        assert result.tax_info.tax_amount_annual is None
 
     @pytest.mark.asyncio
     async def test_address_extraction_with_unit(self, adapter):

@@ -13,8 +13,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-from urllib.parse import urlparse
+from typing import Dict, List, Optional, Any
 
 import aiohttp
 import pymongo
@@ -360,7 +359,7 @@ class EnvironmentHealthChecker:
         
     def print_health_report(self, results: List[HealthCheckResult]) -> bool:
         """Print a formatted health report and return overall health status."""
-        print(f"\n=== Environment Health Check Report ===")
+        print("\n=== Environment Health Check Report ===")
         print(f"Environment: {self.config.name}")
         print(f"Description: {self.config.description}")
         print(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
@@ -381,7 +380,7 @@ class EnvironmentHealthChecker:
             print(f"   Response Time: {result.response_time_ms:.1f}ms")
             
             if result.details:
-                print(f"   Details:")
+                print("   Details:")
                 for key, value in result.details.items():
                     if isinstance(value, list):
                         print(f"     {key}: {', '.join(str(v) for v in value)}")

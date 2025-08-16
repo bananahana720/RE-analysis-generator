@@ -8,7 +8,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from phoenix_real_estate.foundation.config import EnvironmentConfigProvider
-from phoenix_real_estate.orchestration import ProcessingIntegrator
 
 async def run_smoke_tests():
     """Critical path smoke tests for production deployment."""

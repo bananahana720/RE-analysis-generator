@@ -101,6 +101,12 @@ class MaricopaAPIClient(RateLimitObserver):
         self.error_count = 0
         self.last_request_time: Optional[datetime] = None
 
+        # Log initialization
+        self.logger.info(
+            f"Maricopa API client initialized: {actual_requests_per_hour} req/hour "
+            f"({requests_per_minute:.1f} req/min), timeout: {self.timeout_seconds}s"
+        )
+
 
     def _validate_apn(self, apn: str) -> str:
         """Validate APN format for Maricopa County.
@@ -125,10 +131,6 @@ class MaricopaAPIClient(RateLimitObserver):
             raise ValidationError("Invalid APN format: APN must be at least 5 characters")
             
         return cleaned_apn
-        self.logger.info(
-            f"Maricopa API client initialized: {actual_requests_per_hour} req/hour "
-            f"({requests_per_minute:.1f} req/min), timeout: {self.timeout_seconds}s"
-        )
 
     def _load_config(self) -> None:
         """Load and validate Epic 1 configuration."""

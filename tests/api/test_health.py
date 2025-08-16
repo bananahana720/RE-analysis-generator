@@ -2,8 +2,6 @@
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from aiohttp import web
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
-import json
 
 # Import health module
 try:
@@ -155,7 +153,7 @@ class TestHealthEdgeCases:
         start_time = time.time()
         
         try:
-            status = health_checker.check_system_health()
+            health_checker.check_system_health()
             end_time = time.time()
             
             # Health check should be fast (< 1 second)

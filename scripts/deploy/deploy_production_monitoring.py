@@ -22,7 +22,7 @@ import yaml
 import subprocess
 import requests
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 import json
 from datetime import datetime
@@ -613,7 +613,7 @@ class MonitoringDeployer:
     async def _generate_deployment_summary(self):
         """Generate deployment summary with access URLs."""
         
-        summary = f"""
+        summary = """
         
 ╭─────────────────────────────────────────────────────────────────────────────╮
 │                    PRODUCTION MONITORING DEPLOYED                          │

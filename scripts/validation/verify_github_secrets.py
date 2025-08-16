@@ -12,7 +12,6 @@ import sys
 import logging
 import argparse
 import re
-import time
 import json
 from datetime import datetime
 from typing import Dict, List, Optional, NamedTuple, Any
@@ -331,7 +330,7 @@ Examples:
         logger.info("\nChecking workflow compatibility...")
         compatibility = validator.check_workflow_compatibility()
         
-        print(f"\nWorkflow Compatibility:")
+        print("\nWorkflow Compatibility:")
         print(f"  CI/CD Pipeline: {'✅' if compatibility['ci_cd_compatible'] else '❌'}")
         print(f"  Integration Tests: {'✅' if compatibility['integration_tests_compatible'] else '❌'}")
         print(f"  E2E Tests: {'✅' if compatibility['e2e_tests_compatible'] else '❌'}")
@@ -346,7 +345,7 @@ Examples:
         logger.info("\nSimulating GitHub Actions environment...")
         simulation = validator.simulate_github_actions_environment()
         
-        print(f"\nGitHub Actions Simulation:")
+        print("\nGitHub Actions Simulation:")
         for key, value in simulation["environment_url_construction"].items():
             print(f"  {key}: {value}")
             
@@ -375,10 +374,10 @@ Examples:
     
     # Exit with appropriate code
     if overall_success:
-        print(f"\n✅ All validations passed!")
+        print("\n✅ All validations passed!")
         sys.exit(0)
     else:
-        print(f"\n❌ Validation failed - see details above")
+        print("\n❌ Validation failed - see details above")
         sys.exit(1)
 
 

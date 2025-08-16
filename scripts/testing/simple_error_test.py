@@ -2,7 +2,6 @@
 import asyncio
 import sys
 import os
-import time
 
 # Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
@@ -29,8 +28,8 @@ async def test_error_scenarios():
             await db.connect()
             print("[FAIL] Should have failed with invalid URI")
             test_results["db_error_handling"] = False
-        except Exception as e:
-            print(f"[OK] Database error handled correctly: Connection error")
+        except Exception:
+            print("[OK] Database error handled correctly: Connection error")
             test_results["db_error_handling"] = True
             
     except Exception as e:
@@ -88,7 +87,7 @@ async def test_error_scenarios():
         nonexistent_file = "this_file_does_not_exist.json"
         try:
             with open(nonexistent_file, 'r') as f:
-                content = f.read()
+                f.read()
             print("[FAIL] Should have failed reading non-existent file")
             test_results["file_error_handling"] = False
         except FileNotFoundError:
@@ -144,7 +143,7 @@ async def test_error_scenarios():
             new_config = EnvironmentConfigProvider()
             if new_config.get("MONGODB_URI"):
                 recovery_success = True
-        except:
+        except Exception:
             recovery_success = False
         
         if recovery_success:
@@ -183,7 +182,7 @@ async def test_error_scenarios():
         pass_rate = len(passed_tests) / total_tests * 100
         print(f"\nTest Results: {len(passed_tests)}/{total_tests} passed ({pass_rate:.1f}%)")
     else:
-        print(f"\nTest Results: No tests completed")
+        print("\nTest Results: No tests completed")
     
     if skipped_tests:
         print(f"Skipped: {len(skipped_tests)} tests")

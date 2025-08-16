@@ -1,0 +1,627 @@
+name: GitHub Issues Lifecycle Management
+
+on:
+  issues:
+    types: [opened, reopened, edited, labeled, unlabeled]
+  
+  workflow_call:
+    inputs:
+      operation:
+        description: 'Lifecycle operation to perform'
+        required: true
+        type: string
+      issue-numbers:
+        description: 'Comma-separated list of issue numbers to process'
+        required: false
+        type: string
+    outputs:
+      issues-processed:
+        description: 'Number of issues processed'
+        value: ${{ jobs.lifecycle-management.outputs.issues-processed }}
+      operations-completed:
+        description: 'List of completed operations'
+        value: ${{ jobs.lifecycle-management.outputs.operations-completed }}
+
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Lifecycle operation'
+        required: true
+        type: choice
+        options:
+          - 'auto-label-issues'
+          - 'group-related-issues'
+          - 'close-stale-issues'
+          - 'update-issue-status'
+          - 'cleanup-resolved-issues'
+          - 'comprehensive-maintenance'
+        default: 'comprehensive-maintenance'
+      issue-numbers:
+        description: 'Specific issue numbers (comma-separated, optional)'
+        required: false
+        type: string
+      date-range:
+        description: 'Date range for operations (days back from now)'
+        required: false
+        type: number
+        default: 30
+      dry-run:
+        description: 'Preview actions without making changes'
+        required: false
+        type: boolean
+        default: false
+      auto-close-threshold:
+        description: 'Days after which resolved issues are auto-closed'
+        required: false
+        type: number
+        default: 7
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  PYTHON_VERSION: "3.13"
+
+concurrency:
+  group: issue-lifecycle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lifecycle-management:
+    name: Issue Lifecycle Management
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    outputs:
+      issues-processed: ${{ steps.process-issues.outputs.issues-processed }}
+      operations-completed: ${{ steps.process-issues.outputs.operations-completed }}
+      maintenance-summary: ${{ steps.process-issues.outputs.maintenance-summary }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Initialize Lifecycle Management
+      id: init
+      run: |
+        echo "🔄 GitHub Issues Lifecycle Management Started"
+        echo "**Operation**: ${{ github.event.inputs.operation || inputs.operation }}"
+        echo "**Trigger**: ${{ github.event_name }}"
+        echo "**Dry Run**: ${{ github.event.inputs.dry-run || 'false' }}"
+        echo "**Date Range**: ${{ github.event.inputs.date-range || '30' }} days"
+        echo "**Started**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Initialize tracking
+        mkdir -p lifecycle/{logs,reports,operations}
+        
+        echo "## 🔄 Issue Lifecycle Management" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Operation**: ${{ github.event.inputs.operation || inputs.operation }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Mode**: ${{ github.event.inputs.dry-run == 'true' && 'Dry Run (Preview Only)' || 'Live Operations' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Set operation context
+        operation="${{ github.event.inputs.operation || inputs.operation }}"
+        trigger="${{ github.event_name }}"
+        
+        # For webhook triggers, determine operation based on event
+        if [[ "$trigger" == "issues" ]]; then
+          case "${{ github.event.action }}" in
+            "opened"|"reopened")
+              operation="auto-label-new-issue"
+              ;;
+            "edited"|"labeled"|"unlabeled")
+              operation="update-issue-classification"
+              ;;
+            *)
+              operation="general-maintenance"
+              ;;
+          esac
+        fi
+        
+        echo "operation=$operation" >> $GITHUB_OUTPUT
+        echo "trigger=$trigger" >> $GITHUB_OUTPUT
+        echo "dry-run=${{ github.event.inputs.dry-run || 'false' }}" >> $GITHUB_OUTPUT
+        echo "date-range=${{ github.event.inputs.date-range || '30' }}" >> $GITHUB_OUTPUT
+    
+    - name: Analyze Issue Context
+      id: analyze-context
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔍 Issue Context Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        operation="${{ steps.init.outputs.operation }}"
+        trigger="${{ steps.init.outputs.trigger }}"
+        date_range="${{ steps.init.outputs.date-range }}"
+        
+        # Calculate date cutoff
+        cutoff_date=$(date -d "$date_range days ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        # Query issues based on operation type
+        case "$operation" in
+          "auto-label-new-issue")
+            # Single issue from webhook trigger
+            if [[ "$trigger" == "issues" ]]; then
+              issue_number="${{ github.event.issue.number }}"
+              echo "Processing single issue: #$issue_number"
+              echo "${{ github.event.issue.number }}" > lifecycle/reports/target_issues.txt
+              echo "1" > lifecycle/reports/issue_count.txt
+            else
+              echo "No issue to process for non-webhook trigger"
+              echo "0" > lifecycle/reports/issue_count.txt
+            fi
+            ;;
+          "auto-label-issues"|"comprehensive-maintenance")
+            # Query recent issues that need labeling
+            echo "Querying recent issues for auto-labeling..."
+            gh issue list \
+              --state open \
+              --json number,title,body,labels,createdAt \
+              --jq "map(select(.createdAt > \"$cutoff_date\" and (.labels | length) < 3))" \
+              > lifecycle/reports/issues_for_labeling.json
+            
+            issue_count=$(jq length lifecycle/reports/issues_for_labeling.json)
+            jq -r '.[].number' lifecycle/reports/issues_for_labeling.json > lifecycle/reports/target_issues.txt
+            echo "$issue_count" > lifecycle/reports/issue_count.txt
+            echo "Found $issue_count issues for auto-labeling"
+            ;;
+          "group-related-issues")
+            # Query issues that might be related
+            echo "Querying issues for grouping..."
+            gh issue list \
+              --state open \
+              --json number,title,body,labels,createdAt \
+              --jq "map(select(.createdAt > \"$cutoff_date\"))" \
+              > lifecycle/reports/issues_for_grouping.json
+            
+            issue_count=$(jq length lifecycle/reports/issues_for_grouping.json)
+            jq -r '.[].number' lifecycle/reports/issues_for_grouping.json > lifecycle/reports/target_issues.txt
+            echo "$issue_count" > lifecycle/reports/issue_count.txt
+            echo "Found $issue_count issues for grouping analysis"
+            ;;
+          "close-stale-issues")
+            # Query resolved issues that can be closed
+            auto_close_threshold="${{ github.event.inputs.auto-close-threshold || '7' }}"
+            stale_cutoff=$(date -d "$auto_close_threshold days ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+            
+            echo "Querying stale resolved issues..."
+            gh issue list \
+              --state open \
+              --label "auto-resolved,verified-fixed,resolved" \
+              --json number,title,labels,updatedAt \
+              --jq "map(select(.updatedAt < \"$stale_cutoff\"))" \
+              > lifecycle/reports/stale_issues.json
+            
+            issue_count=$(jq length lifecycle/reports/stale_issues.json)
+            jq -r '.[].number' lifecycle/reports/stale_issues.json > lifecycle/reports/target_issues.txt
+            echo "$issue_count" > lifecycle/reports/issue_count.txt
+            echo "Found $issue_count stale resolved issues"
+            ;;
+          *)
+            # General query for specified issues or recent issues
+            if [[ -n "${{ github.event.inputs.issue-numbers || inputs.issue-numbers }}" ]]; then
+              echo "${{ github.event.inputs.issue-numbers || inputs.issue-numbers }}" | tr ',' '\n' > lifecycle/reports/target_issues.txt
+              issue_count=$(wc -l < lifecycle/reports/target_issues.txt)
+            else
+              gh issue list \
+                --state open \
+                --json number \
+                --jq "map(select(.createdAt > \"$cutoff_date\")) | .[].number" \
+                > lifecycle/reports/target_issues.txt
+              issue_count=$(wc -l < lifecycle/reports/target_issues.txt)
+            fi
+            echo "$issue_count" > lifecycle/reports/issue_count.txt
+            echo "Processing $issue_count issues"
+            ;;
+        esac
+        
+        echo "target-issues=$issue_count" >> $GITHUB_OUTPUT
+        echo "**Target Issues**: $issue_count issues identified for processing" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $issue_count -eq 0 ]]; then
+          echo "✅ No issues require processing at this time" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issues to Process:**" >> $GITHUB_STEP_SUMMARY
+          head -10 lifecycle/reports/target_issues.txt | while read -r issue_num; do
+            [[ -n "$issue_num" ]] && echo "- #$issue_num" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          # Show "and X more..." if there are more than 10
+          total=$(cat lifecycle/reports/issue_count.txt)
+          if [[ $total -gt 10 ]]; then
+            echo "- ... and $((total - 10)) more" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+    
+    - name: Auto-Label Issues by Type and Component
+      id: auto-label
+      if: steps.analyze-context.outputs.target-issues != '0' && (steps.init.outputs.operation == 'auto-label-issues' || steps.init.outputs.operation == 'auto-label-new-issue' || steps.init.outputs.operation == 'comprehensive-maintenance')
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🏷️ Auto-Labeling Issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        dry_run="${{ steps.init.outputs.dry-run }}"
+        operation="${{ steps.init.outputs.operation }}"
+        
+        labeled_count=0
+        
+        # Define labeling rules
+        declare -A type_patterns=(
+          ["bug"]="bug|error|fail|broken|issue|problem|not working"
+          ["feature"]="feature|enhancement|add|implement|new|support"
+          ["documentation"]="doc|readme|guide|instruction|help|explain"
+          ["maintenance"]="cleanup|refactor|update|upgrade|maintenance|optimization"
+          ["question"]="question|how to|help|support|unclear"
+        )
+        
+        declare -A component_patterns=(
+          ["data-collection"]="data collection|maricopa|phoenix mls|scraper|collector"
+          ["database"]="database|mongodb|connection|schema|repository"
+          ["api"]="api|endpoint|rest|service|server"
+          ["authentication"]="auth|login|secret|credential|key|token"
+          ["monitoring"]="monitor|metric|dashboard|alert|health|log"
+          ["deployment"]="deploy|docker|ci|cd|workflow|github actions"
+          ["configuration"]="config|setting|environment|variable|setup"
+          ["testing"]="test|spec|unit|integration|e2e|coverage"
+          ["performance"]="performance|speed|slow|timeout|optimization|memory"
+          ["security"]="security|vulnerability|cve|encrypt|permission|access"
+        )
+        
+        declare -A priority_patterns=(
+          ["critical"]="critical|urgent|production down|p0|emergency|outage"
+          ["high"]="high priority|important|p1|blocking|major"
+          ["medium"]="medium|p2|normal|standard"
+          ["low"]="low|minor|p3|nice to have|cosmetic"
+        )
+        
+        # Process each target issue
+        while read -r issue_number; do
+          [[ -z "$issue_number" ]] && continue
+          
+          echo "Processing issue #$issue_number"
+          
+          # Get issue details
+          issue_data=$(gh issue view "$issue_number" --json title,body,labels --jq '.')
+          issue_title=$(echo "$issue_data" | jq -r '.title // ""')
+          issue_body=$(echo "$issue_data" | jq -r '.body // ""')
+          current_labels=$(echo "$issue_data" | jq -r '.labels[].name' | tr '\n' ',' | sed 's/,$//')
+          
+          # Combine title and body for analysis
+          issue_text="$issue_title $issue_body"
+          issue_text_lower=$(echo "$issue_text" | tr '[:upper:]' '[:lower:]')
+          
+          labels_to_add=()
+          
+          # Analyze and assign type labels
+          for type_label in "${!type_patterns[@]}"; do
+            pattern="${type_patterns[$type_label]}"
+            if echo "$issue_text_lower" | grep -E "$pattern" >/dev/null; then
+              if [[ "$current_labels" != *"$type_label"* ]]; then
+                labels_to_add+=("$type_label")
+              fi
+              break  # Only assign one type label
+            fi
+          done
+          
+          # Analyze and assign component labels
+          for component_label in "${!component_patterns[@]}"; do
+            pattern="${component_patterns[$component_label]}"
+            if echo "$issue_text_lower" | grep -E "$pattern" >/dev/null; then
+              if [[ "$current_labels" != *"$component_label"* ]]; then
+                labels_to_add+=("$component_label")
+              fi
+            fi
+          done
+          
+          # Analyze and assign priority labels (only if no priority exists)
+          has_priority=false
+          for priority in "critical" "high" "medium" "low" "p0" "p1" "p2" "p3"; do
+            if [[ "$current_labels" == *"$priority"* ]]; then
+              has_priority=true
+              break
+            fi
+          done
+          
+          if [[ "$has_priority" == "false" ]]; then
+            for priority_label in "${!priority_patterns[@]}"; do
+              pattern="${priority_patterns[$priority_label]}"
+              if echo "$issue_text_lower" | grep -E "$pattern" >/dev/null; then
+                labels_to_add+=("$priority_label")
+                break  # Only assign one priority label
+              fi
+            done
+          fi
+          
+          # Add automation label for tracking
+          if [[ "$current_labels" != *"auto-labeled"* ]]; then
+            labels_to_add+=("auto-labeled")
+          fi
+          
+          # Apply labels
+          if [[ ${#labels_to_add[@]} -gt 0 ]]; then
+            labels_string=$(printf '%s,' "${labels_to_add[@]}" | sed 's/,$//')
+            
+            if [[ "$dry_run" == "true" ]]; then
+              echo "  → [DRY RUN] Would add labels: $labels_string" >> $GITHUB_STEP_SUMMARY
+            else
+              if gh issue edit "$issue_number" --add-label "$labels_string"; then
+                echo "  → ✅ Added labels to #$issue_number: $labels_string" >> $GITHUB_STEP_SUMMARY
+                labeled_count=$((labeled_count + 1))
+              else
+                echo "  → ❌ Failed to add labels to #$issue_number" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          else
+            echo "  → ℹ️ No new labels needed for #$issue_number" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+        done < lifecycle/reports/target_issues.txt
+        
+        echo "labeled-count=$labeled_count" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Auto-Labeling Results**: $labeled_count issues labeled" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Group Related Issues
+      id: group-related
+      if: steps.analyze-context.outputs.target-issues != '0' && (steps.init.outputs.operation == 'group-related-issues' || steps.init.outputs.operation == 'comprehensive-maintenance')
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🔗 Grouping Related Issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        dry_run="${{ steps.init.outputs.dry-run }}"
+        grouped_count=0
+        
+        # Get all open issues for analysis
+        gh issue list \
+          --state open \
+          --json number,title,body,labels \
+          > lifecycle/reports/all_open_issues.json
+        
+        # Define grouping patterns
+        declare -A group_patterns=(
+          ["production-failure"]="production.*fail|data collection.*fail|service.*down|critical.*error"
+          ["secret-configuration"]="secret|configuration|missing.*key|invalid.*format|credential"
+          ["mongodb-issues"]="mongodb|database|connection|atlas|schema|repository"
+          ["api-connectivity"]="api.*fail|connectivity|timeout|unreachable|service.*unavailable"
+          ["monitoring-alerts"]="monitoring|alert|dashboard|metric|health.*check"
+        )
+        
+        # Find and group related issues
+        for group_name in "${!group_patterns[@]}"; do
+          pattern="${group_patterns[$group_name]}"
+          
+          # Find issues matching this pattern
+          related_issues=$(jq -r \
+            --arg pattern "$pattern" \
+            '.[] | select((.title + " " + (.body // "")) | test($pattern; "i")) | .number' \
+            lifecycle/reports/all_open_issues.json)
+          
+          issue_count=$(echo "$related_issues" | wc -w)
+          
+          if [[ $issue_count -gt 1 ]]; then
+            echo "**Group: $group_name** ($issue_count issues)" >> $GITHUB_STEP_SUMMARY
+            
+            # Add group label to related issues
+            for issue_num in $related_issues; do
+              group_label="group:$group_name"
+              
+              if [[ "$dry_run" == "true" ]]; then
+                echo "  → [DRY RUN] Would add group label to #$issue_num: $group_label" >> $GITHUB_STEP_SUMMARY
+              else
+                if gh issue edit "$issue_num" --add-label "$group_label"; then
+                  echo "  → ✅ Added group label to #$issue_num" >> $GITHUB_STEP_SUMMARY
+                  grouped_count=$((grouped_count + 1))
+                else
+                  echo "  → ❌ Failed to add group label to #$issue_num" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+        
+        echo "grouped-count=$grouped_count" >> $GITHUB_OUTPUT
+        echo "**Grouping Results**: $grouped_count issues grouped" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Close Stale Resolved Issues
+      id: close-stale
+      if: steps.analyze-context.outputs.target-issues != '0' && (steps.init.outputs.operation == 'close-stale-issues' || steps.init.outputs.operation == 'comprehensive-maintenance')
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "### 🗂️ Closing Stale Resolved Issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        dry_run="${{ steps.init.outputs.dry-run }}"
+        auto_close_threshold="${{ github.event.inputs.auto-close-threshold || '7' }}"
+        closed_count=0
+        
+        # Query issues marked as resolved but still open
+        stale_cutoff=$(date -d "$auto_close_threshold days ago" -u +"%Y-%m-%dT%H:%M:%SZ")
+        
+        echo "Looking for issues resolved more than $auto_close_threshold days ago..."
+        
+        gh issue list \
+          --state open \
+          --label "auto-resolved,verified-fixed,resolved,status-updated" \
+          --json number,title,labels,updatedAt,comments \
+          --jq "map(select(.updatedAt < \"$stale_cutoff\"))" \
+          > lifecycle/reports/stale_resolved_issues.json
+        
+        stale_count=$(jq length lifecycle/reports/stale_resolved_issues.json)
+        
+        if [[ $stale_count -eq 0 ]]; then
+          echo "✅ No stale resolved issues found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Found $stale_count stale resolved issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Process each stale issue
+          jq -c '.[]' lifecycle/reports/stale_resolved_issues.json | while read -r issue; do
+            issue_number=$(echo "$issue" | jq -r '.number')
+            issue_title=$(echo "$issue" | jq -r '.title')
+            last_updated=$(echo "$issue" | jq -r '.updatedAt')
+            
+            # Create closure comment using heredoc
+            read -r -d '' closure_comment << 'EOF'
+            ## 🗂️ Auto-Closing Stale Resolved Issue
+
+            This issue has been marked as resolved for more than $auto_close_threshold days without further activity.
+
+            **Last Updated**: $last_updated
+            **Auto-Close Threshold**: $auto_close_threshold days
+            **Closure Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+            ### If this issue is not actually resolved:
+            1. Reopen this issue with updated details
+            2. Remove any incorrect resolution labels
+            3. Provide current status and next steps needed
+
+            ---
+            *Auto-closed by Issue Lifecycle Management*
+            EOF
+            
+            if [[ "$dry_run" == "true" ]]; then
+              echo "  → [DRY RUN] Would close #$issue_number: $issue_title" >> $GITHUB_STEP_SUMMARY
+            else
+              # Add closure comment and close issue
+              if gh issue comment "$issue_number" --body "$closure_comment" && \
+                 gh issue close "$issue_number" --reason "completed"; then
+                echo "  → ✅ Closed stale issue #$issue_number" >> $GITHUB_STEP_SUMMARY
+                closed_count=$((closed_count + 1))
+                
+                # Add closure tracking label
+                gh issue edit "$issue_number" --add-label "auto-closed,stale-resolved" || true
+              else
+                echo "  → ❌ Failed to close #$issue_number" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+        fi
+        
+        echo "closed-count=$closed_count" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Stale Issue Closure**: $closed_count issues auto-closed" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Process Issues
+      id: process-issues
+      if: always()
+      run: |
+        echo "### 📊 Issue Processing Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Collect processing results
+        target_issues="${{ steps.analyze-context.outputs.target-issues || '0' }}"
+        labeled_count="${{ steps.auto-label.outputs.labeled-count || '0' }}"
+        grouped_count="${{ steps.group-related.outputs.grouped-count || '0' }}"
+        closed_count="${{ steps.close-stale.outputs.closed-count || '0' }}"
+        
+        total_processed=$((labeled_count + grouped_count + closed_count))
+        
+        operations_completed=()
+        [[ $labeled_count -gt 0 ]] && operations_completed+=("auto-labeling:$labeled_count")
+        [[ $grouped_count -gt 0 ]] && operations_completed+=("grouping:$grouped_count")
+        [[ $closed_count -gt 0 ]] && operations_completed+=("stale-closure:$closed_count")
+        
+        operations_summary=$(printf '%s,' "${operations_completed[@]}" | sed 's/,$//')
+        [[ -z "$operations_summary" ]] && operations_summary="none"
+        
+        echo "issues-processed=$total_processed" >> $GITHUB_OUTPUT
+        echo "operations-completed=$operations_summary" >> $GITHUB_OUTPUT
+        
+        # Generate maintenance summary
+        maintenance_summary=$(jq -n \
+          --arg timestamp "$(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
+          --arg operation "${{ steps.init.outputs.operation }}" \
+          --argjson target "$target_issues" \
+          --argjson labeled "$labeled_count" \
+          --argjson grouped "$grouped_count" \
+          --argjson closed "$closed_count" \
+          --argjson total "$total_processed" \
+          --arg dry_run "${{ steps.init.outputs.dry-run }}" \
+          '{
+            timestamp: $timestamp,
+            operation: $operation,
+            target_issues: $target,
+            operations: {
+              labeled: $labeled,
+              grouped: $grouped,
+              closed: $closed
+            },
+            total_processed: $total,
+            dry_run: ($dry_run == "true")
+          }')
+        
+        echo "$maintenance_summary" > lifecycle/reports/maintenance_summary.json
+        echo "maintenance-summary=$(echo "$maintenance_summary" | jq -c .)" >> $GITHUB_OUTPUT
+        
+        echo "**Processing Results:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Target Issues: $target_issues" >> $GITHUB_STEP_SUMMARY
+        echo "- Auto-Labeled: $labeled_count" >> $GITHUB_STEP_SUMMARY
+        echo "- Grouped: $grouped_count" >> $GITHUB_STEP_SUMMARY
+        echo "- Stale Closed: $closed_count" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Processed**: $total_processed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ steps.init.outputs.dry-run }}" == "true" ]]; then
+          echo "🧪 **This was a dry run** - no actual changes were made to issues." >> $GITHUB_STEP_SUMMARY
+          echo "Re-run without dry-run mode to apply the operations." >> $GITHUB_STEP_SUMMARY
+        elif [[ $total_processed -eq 0 ]]; then
+          echo "ℹ️ **No issues required processing** - all issues are already properly managed." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ **Issue lifecycle management completed successfully**" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Generate Lifecycle Report
+      id: report
+      if: always()
+      run: |
+        echo "### 📋 Issue Lifecycle Management Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        operation="${{ steps.init.outputs.operation }}"
+        trigger="${{ steps.init.outputs.trigger }}"
+        total_processed="${{ steps.process-issues.outputs.issues-processed }}"
+        
+        echo "**Operation Details:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Operation: $operation" >> $GITHUB_STEP_SUMMARY
+        echo "- Trigger: $trigger" >> $GITHUB_STEP_SUMMARY
+        echo "- Date Range: ${{ steps.init.outputs.date-range }} days" >> $GITHUB_STEP_SUMMARY
+        echo "- Dry Run Mode: ${{ steps.init.outputs.dry-run }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "**Recommendations:**" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ $total_processed -eq 0 ]]; then
+          echo "- ✅ Issue management is up to date" >> $GITHUB_STEP_SUMMARY
+          echo "- 📅 Continue regular automated maintenance" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- 👀 Monitor newly labeled/grouped issues for accuracy" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 Consider adjusting auto-labeling rules based on results" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Review issue trends and patterns regularly" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "- 🤖 Schedule regular lifecycle management for optimal issue hygiene" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Completion Time**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload Lifecycle Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: issue-lifecycle-${{ github.run_number }}
+        path: |
+          lifecycle/logs/*
+          lifecycle/reports/*
+          lifecycle/operations/*
+        retention-days: 30

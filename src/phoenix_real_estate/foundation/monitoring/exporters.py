@@ -5,7 +5,6 @@ with production monitoring dashboard integration and cost tracking.
 """
 
 import threading
-import time
 from datetime import datetime
 from typing import Optional, Dict, Any
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -18,7 +17,6 @@ from prometheus_client import (
     delete_from_gateway,
     CONTENT_TYPE_LATEST,
     Gauge,
-    CollectorRegistry,
 )
 
 from phoenix_real_estate.foundation.logging import get_logger

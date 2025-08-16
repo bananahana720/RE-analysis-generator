@@ -9,8 +9,6 @@ Usage:
 """
 
 import subprocess
-import json
-import yaml
 import argparse
 from datetime import datetime
 from pathlib import Path
@@ -438,21 +436,21 @@ def main():
             print(f"  {status_icon} {service.capitalize()}: {status}")
         
         # Resource Usage Report
-        print(f"\n💾 RESOURCE USAGE:")
+        print("\n💾 RESOURCE USAGE:")
         if "containers" in analysis["resources"]:
             print(f"  📦 Active containers: {analysis['resources']['total_containers']}")
             if analysis["resources"]["high_cpu_containers"]:
                 print(f"  ⚡ High CPU containers: {len(analysis['resources']['high_cpu_containers'])}")
         
         # Cost Analysis
-        print(f"\n💰 COST ANALYSIS:")
+        print("\n💰 COST ANALYSIS:")
         print(f"  Monthly estimate: ${analysis['costs']['total_monthly_usd']:.2f}")
         print(f"  Annual estimate: ${analysis['costs']['annual_estimate_usd']:.2f}")
         
         # Recommendations
         recommendations = optimizer.generate_recommendations(analysis, args.markets)
         if recommendations:
-            print(f"\n🎯 RECOMMENDATIONS:")
+            print("\n🎯 RECOMMENDATIONS:")
             for i, rec in enumerate(recommendations, 1):
                 print(f"  {i}. {rec}")
         
@@ -470,23 +468,23 @@ def main():
         print(f"📈 SCALING ANALYSIS FOR {args.markets} MARKETS")
         print("="*80)
         
-        print(f"\n🏗️ RECOMMENDED SETUP:")
+        print("\n🏗️ RECOMMENDED SETUP:")
         print(f"  Instance type: {scaling['recommended_setup']['instance_type']}")
         print(f"  Instance count: {scaling['recommended_setup']['instance_count']}")
         print(f"  MongoDB tier: {scaling['recommended_setup']['mongodb_tier']}")
         
-        print(f"\n💰 COST BREAKDOWN:")
+        print("\n💰 COST BREAKDOWN:")
         cost = scaling['cost_analysis']
         print(f"  Compute: ${cost['monthly_compute']:.2f}/month")
         print(f"  Storage: ${cost['monthly_storage']:.2f}/month")
         print(f"  MongoDB: ${cost['monthly_mongodb']:.2f}/month")
         print(f"  Other: ${cost['monthly_other']:.2f}/month")
-        print(f"  ───────────────────────────────")
+        print("  ───────────────────────────────")
         print(f"  Total: ${cost['total_monthly_usd']:.2f}/month")
         print(f"  Per market: ${cost['cost_per_market_monthly']:.2f}/month")
         print(f"  Annual: ${cost['annual_estimate_usd']:.2f}")
         
-        print(f"\n📅 SCALING TIMELINE:")
+        print("\n📅 SCALING TIMELINE:")
         for phase in scaling['scaling_timeline']:
             print(f"  {phase['phase']}: {phase['markets']} markets")
             print(f"    Duration: {phase['duration_weeks']} weeks")

@@ -51,7 +51,7 @@ async def validate_production_environment():
                     data = await resp.json()
                     models = [m["name"] for m in data.get("models", [])]
                     if "llama3.2:latest" in models:
-                        print(f"[OK] Ollama LLM: llama3.2:latest available")
+                        print("[OK] Ollama LLM: llama3.2:latest available")
                         validations["ollama"] = True
                     else:
                         print(f"[WARN] Ollama LLM: llama3.2:latest not found. Available: {models}")

@@ -1,8 +1,5 @@
 # Unit tests for cost tracking module
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
-from decimal import Decimal
 
 # Import cost tracking classes
 try:
